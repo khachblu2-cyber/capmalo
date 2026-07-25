@@ -193,7 +193,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V2.9.3</div>
+      <div class="ver">Phiên bản: V3.0.0</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -297,7 +297,7 @@
       <div class="card" style="overflow-x:auto;">
         <div class="table-scroll">
           <table class="grid-table">
-            <thead><tr><th></th><th>Lot No</th><th>Code</th><th>Ngày SX</th><th>Vùng nuôi</th><th>Khách hàng</th><th>Mặt hàng - Net</th><th></th></tr></thead>
+            <thead><tr><th></th><th>Lot No</th><th>Code</th><th>Ngày SX</th><th>Vùng nuôi</th><th>Khách hàng</th><th>Mặt hàng - Net</th><th style="width:90px;">Đã cấp Health</th><th>Ghi chú</th><th></th></tr></thead>
             <tbody id="danhSachBody"></tbody>
           </table>
         </div>
@@ -440,6 +440,13 @@
             <div class="field"><label>Tên hộ nuôi</label><input type="text" id="newHoNuoi" placeholder="VD: Tiết Văn Dũng" onkeydown="if(event.key==='Enter')addHoNuoi()"></div>
             <div class="field" style="display:flex;align-items:flex-end;max-width:200px;"><button class="btn btn-primary" style="width:100%;" onclick="addHoNuoi()">+ Thêm hộ nuôi</button></div>
           </div>
+          <div class="btn-row" style="margin-top:10px;">
+            <button class="btn btn-outline btn-sm" onclick="exportHoNuoiExcel()">📊 Xuất Excel</button>
+            <label class="btn btn-outline btn-sm" style="margin:0;">📥 Nhập Excel<input type="file" accept=".xlsx,.xls" onchange="importHoNuoiExcel(event)" style="display:none;"></label>
+          </div>
+        </div>
+        <div class="card">
+          <div class="field"><label>Tìm hộ nuôi</label><input type="text" id="hoNuoiSearch" placeholder="Gõ để tìm..." oninput="renderHoNuoi()"></div>
         </div>
         <div class="card"><div id="hoNuoiList"></div></div>
       </div>
@@ -1766,8 +1773,11 @@ function xoaHoNuoi(id, btn){
 function renderHoNuoi(){
   const el = document.getElementById('hoNuoiList');
   if(!el) return;
+  const search = (document.getElementById('hoNuoiSearch')?.value||'').trim().toLowerCase();
+  const filtered = search ? hoNuoiList.filter(h=>h.ten.toLowerCase().includes(search)) : hoNuoiList;
   if(!hoNuoiList.length){ el.innerHTML = '<div class="empty"><div class="ico">🌾</div>Chưa có hộ nuôi — thêm ở form phía trên</div>'; return; }
-  el.innerHTML = hoNuoiList.map(h=>{
+  if(!filtered.length){ el.innerHTML = '<div class="empty"><div class="ico">🔍</div>Không tìm thấy hộ nuôi nào khớp</div>'; return; }
+  el.innerHTML = filtered.map(h=>{
     if(editingHNId===h.id){
       return `<div class="list-row">
         <input type="text" id="eHN_${h.id}" value="${escapeHtml(h.ten)}" style="flex:1;margin-right:10px;">
@@ -1784,6 +1794,39 @@ function renderHoNuoi(){
       </div>
     </div>`;
   }).join('');
+}
+function exportHoNuoiExcel(){
+  if(!hoNuoiList.length){ showToast('Chưa có hộ nuôi nào để xuất'); return; }
+  const aoa = [['Tên hộ nuôi']];
+  hoNuoiList.forEach(h=> aoa.push([h.ten]));
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:40}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ho nuoi');
+  XLSX.writeFile(wb, `danh-muc-ho-nuoi-${Date.now()}.xlsx`);
+}
+function importHoNuoiExcel(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const wb = XLSX.read(e.target.result, {type:'binary'});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
+      let added = 0, skipped = 0;
+      for(let i=1;i<rows.length;i++){
+        const r = rows[i];
+        if(!r || !r[0]) continue;
+        const ten = String(r[0]).trim();
+        if(!ten || hoNuoiList.some(h=>h.ten===ten)){ skipped++; continue; }
+        await db.collection('capmalo_honuoi').add({ten});
+        added++;
+      }
+      showToast(`Đã nhập ${added} hộ nuôi mới${skipped?`, bỏ qua ${skipped} (trùng tên/rỗng)`:''}`);
+    }catch(err){ fsErr(err); }
+    evt.target.value = '';
+  };
+  reader.readAsBinaryString(file);
 }
 
 /* ============ DANH MỤC: THÔNG TIN XUẤT KHẨU (giá trị gợi ý tái sử dụng) ============ */
@@ -1892,7 +1935,7 @@ function onExistingLotChange(){
 function autoLotNo(c){
   if(!c) return '';
   const nextSoTT = c.soThuTuHienTai + 1;
-  return `VN${c.maSoVN}/CN${String(nextSoTT).padStart(3,'0')}`;
+  return `VN${c.maSoVN}V/CN${String(nextSoTT).padStart(3,'0')}`;
 }
 function onCongTyChange(){
   const c = congTyList.find(x=>x.id===document.getElementById('fCongTy').value);
@@ -2067,8 +2110,10 @@ function renderDanhSach(){
         <td><input type="checkbox" ${selectedLotIds.has(l.id)?'checked':''} onchange="toggleSelLot('${l.id}')" style="width:16px;height:16px;"></td>
         ${i===0? `<td rowspan="${items.length}"><b>${l.lotNo}</b></td><td rowspan="${items.length}">${escapeHtml(l.maCode)}</td>` : ''}
         <td>${(l.ngaySX||[]).map(fmtDateVN).join(', ')}</td>
-        ${i===0? `<td rowspan="${items.length}">${escapeHtml(l.vungNuoiTen)}</td><td rowspan="${items.length}"><span class="color-dot" style="background:${l.khachHangMau||'#165dd8'}"></span> ${escapeHtml(l.khachHangTen)}</td>` : ''}
+        ${i===0? `<td rowspan="${items.length}">${escapeHtml(vungNuoiDisplayEN(l.vungNuoiId, l.vungNuoiTen))}</td><td rowspan="${items.length}"><span class="color-dot" style="background:${l.khachHangMau||'#165dd8'}"></span> ${escapeHtml(l.khachHangTen)}</td>` : ''}
         <td>${escapeHtml(l.matHangNet)}</td>
+        <td style="text-align:center;"><input type="checkbox" ${l.hasHealthCert?'checked':''} onchange="toggleLotHealthCert('${l.id}', this.checked)" style="width:18px;height:18px;"></td>
+        <td><input type="text" value="${escapeHtml(l.ghiChu||'')}" placeholder="Ghi chú..." style="width:130px;padding:5px 7px;font-size:13px;" onchange="updateLotGhiChu('${l.id}', this.value)"></td>
         <td>
           <button class="btn btn-outline btn-sm" onclick="openEditLot('${l.id}')">✏️</button>
           <button class="btn btn-danger btn-sm" onclick="xoaLot('${l.id}', this)">🗑</button>
@@ -2077,6 +2122,16 @@ function renderDanhSach(){
     });
   });
   body.innerHTML = html;
+}
+function vungNuoiDisplayEN(vungNuoiId, fallbackTen){
+  const v = vungNuoiList.find(x=>x.id===vungNuoiId);
+  return (v && v.tenEN) ? v.tenEN : (fallbackTen||'');
+}
+function toggleLotHealthCert(id, checked){
+  db.collection('capmalo_lot').doc(id).update({hasHealthCert: checked}).catch(fsErr);
+}
+function updateLotGhiChu(id, val){
+  db.collection('capmalo_lot').doc(id).update({ghiChu: val.trim()}).then(()=>showToast('Đã lưu ghi chú')).catch(fsErr);
 }
 function toggleSelLot(id){ selectedLotIds.has(id) ? selectedLotIds.delete(id) : selectedLotIds.add(id); }
 function toggleSelectAllDanhSach(){
@@ -2094,7 +2149,7 @@ function openEditLot(id){
   if(!l) return;
   document.getElementById('editLotId').value = l.id;
   document.getElementById('editLotNo').value = l.lotNo;
-  document.getElementById('editLotVungNuoi').innerHTML = vungNuoiList.map(v=>`<option value="${v.id}" ${v.id===l.vungNuoiId?'selected':''}>${escapeHtml(v.ten)}</option>`).join('');
+  document.getElementById('editLotVungNuoi').innerHTML = vungNuoiList.map(v=>`<option value="${v.id}" ${v.id===l.vungNuoiId?'selected':''}>${escapeHtml(v.tenEN || v.ten)}</option>`).join('');
   document.getElementById('editLotKH').innerHTML = khList.map(k=>`<option value="${k.id}" ${k.id===l.khachHangId?'selected':''}>${escapeHtml(k.ten)}</option>`).join('');
   document.getElementById('editLotNgaySX').value = (l.ngaySX||[]).join(', ');
   document.getElementById('editLotMatHang').value = l.matHangNet;
