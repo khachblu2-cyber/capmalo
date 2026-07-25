@@ -622,6 +622,12 @@
         <hr style="margin:18px 0;border:none;border-top:1px solid var(--border);">
         <div id="userList"></div>
       </div>
+
+      <div class="card" id="activityLogCard">
+        <div class="card-title">📜 Lịch sử Truy Xuất</div>
+        <div class="hint">Ghi lại các thao tác thay đổi dữ liệu (tạo/sửa/xoá Lô, Chia Ngày, Phiếu, Danh Mục, Tài khoản) — hiển thị 200 lượt gần nhất.</div>
+        <div id="activityLogList" style="margin-top:10px;"></div>
+      </div>
     </div>
 
   </div>
@@ -785,6 +791,31 @@ const CUR_USER_KEY = 'capmalo_currentUser';
 /* ============ STATE ============ */
 let userList = [];
 let currentUser = null;
+let activityLogList = [];
+function logActivity(action){
+  if(!db) return;
+  db.collection('capmalo_activitylog').add({
+    user: currentUser? currentUser.displayName : '(không rõ)',
+    action,
+    ts: Date.now()
+  }).catch(()=>{}); // không chặn thao tác chính nếu ghi log lỗi
+}
+function fmtActivityTs(ts){
+  const d = new Date(ts);
+  return d.toLocaleString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+function renderActivityLog(){
+  const el = document.getElementById('activityLogList');
+  if(!el) return;
+  if(!activityLogList.length){ el.innerHTML = '<div class="empty"><div class="ico">📜</div>Chưa có lịch sử nào</div>'; return; }
+  el.innerHTML = activityLogList.map(a=>`
+    <div class="list-row" style="align-items:flex-start;">
+      <div>
+        <div><b>${escapeHtml(a.user)}</b> <span class="small muted">${fmtActivityTs(a.ts)}</span></div>
+        <div class="small">${escapeHtml(a.action)}</div>
+      </div>
+    </div>`).join('');
+}
 let congTyList = [];
 let khList = [];
 let vungNuoiList = [];
@@ -939,6 +970,7 @@ function applyTabVisibility(){
     btn.classList.toggle('hidden', !ok);
   });
   document.getElementById('userMgmtCard').classList.toggle('hidden', !hasPerm('quanLyTaiKhoan'));
+  document.getElementById('activityLogCard').classList.toggle('hidden', !hasPerm('quanLyTaiKhoan'));
 }
 
 /* ============ TABS ============ */
@@ -951,7 +983,7 @@ function switchTab(tab){
   if(tab==='danhMuc'){ renderCongTy(); renderKH(); renderVungNuoi(); renderSanPham(); renderSize(); renderChuHang(); renderDaiLyNL(); renderHoNuoi(); renderXkThongTinValues(); }
   if(tab==='phieuDongGoi'){ switchPdgSub(pdgSection); }
   if(tab==='listChiaNgay'){ switchLcnSub(lcnSection); }
-  if(tab==='taiKhoan'){ renderCurAccountBox(); buildNewUserPermCheckboxes(); renderUserList(); }
+  if(tab==='taiKhoan'){ renderCurAccountBox(); buildNewUserPermCheckboxes(); renderUserList(); renderActivityLog(); }
 }
 let pdgSection = 'tao';
 function switchPdgSub(sub){
@@ -1029,6 +1061,11 @@ function listenAll(){
     if(activeTab==='phieuDongGoi') fillXkDatalists();
   }, fsErr);
 
+  db.collection('capmalo_activitylog').orderBy('ts','desc').limit(200).onSnapshot(snap=>{
+    activityLogList = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(activeTab==='taiKhoan') renderActivityLog();
+  }, fsErr);
+
   db.collection('capmalo_packinglist').orderBy('createdAt','desc').onSnapshot(snap=>{
     packingList = snap.docs.map(d=>({id:d.id, ...d.data()}));
     if(activeTab==='phieuDongGoi' && pdgSection==='list') renderPdgList();
@@ -1081,6 +1118,7 @@ function addCongTy(){
     document.getElementById('newCTTenEN').value='';
     document.getElementById('newCTChuHangGDK').value='';
     document.getElementById('newCTChuHangHC').value='';
+    logActivity(`Thêm công ty ${ten}`);
     showToast('Đã thêm công ty '+ten);
   }).catch(fsErr);
 }
@@ -1100,7 +1138,7 @@ function saveEditCongTy(id){
   if(!ten || !maCode || !maSoVN){ showToast('Nhập đủ Tên, Mã Code, Mã số VN'); return; }
   if(congTyList.some(c=>c.maSoVN===maSoVN && c.id!==id)){ showToast('Mã số VN này đã có công ty khác dùng'); return; }
   db.collection('capmalo_congty').doc(id).update({ten, maCode, maSoVN, diaChi, dienThoai, email, diaChiEN, tenEN, chuHangIdGDK, chuHangIdHC}).then(()=>{
-    editingCTId = null; renderCongTy(); showToast('Đã cập nhật công ty');
+    editingCTId = null; renderCongTy(); logActivity(`Sửa công ty ${ten}`); showToast('Đã cập nhật công ty');
   }).catch(fsErr);
 }
 function updateCounter(id, val){
@@ -1174,6 +1212,7 @@ function addKH(){
   if(!ten){ showToast('Nhập tên khách hàng'); return; }
   db.collection('capmalo_khachhang').add({ten, mau, presets:[], nguoiNhanHang:[]}).then(()=>{
     document.getElementById('newKHTen').value='';
+    logActivity(`Thêm khách hàng ${ten}`);
     showToast('Đã thêm khách hàng '+ten);
   }).catch(fsErr);
 }
@@ -1183,7 +1222,7 @@ function saveEditKH(id){
   const ten = document.getElementById('editKHTen_'+id).value.trim();
   const mau = document.getElementById('editKHMau_'+id).value;
   if(!ten){ showToast('Nhập tên khách hàng'); return; }
-  db.collection('capmalo_khachhang').doc(id).update({ten, mau}).then(()=>{ renderKH(); showToast('Đã cập nhật'); }).catch(fsErr);
+  db.collection('capmalo_khachhang').doc(id).update({ten, mau}).then(()=>{ renderKH(); logActivity(`Sửa khách hàng ${ten}`); showToast('Đã cập nhật'); }).catch(fsErr);
 }
 function themPreset(khId){
   const tenMatHang = document.getElementById('presetTen_'+khId).value.trim();
@@ -1227,7 +1266,8 @@ function normPreset(p){
 }
 function xoaKH(id, btn){
   if(!requestConfirm('kh:'+id, btn)) return;
-  db.collection('capmalo_khachhang').doc(id).delete().then(()=>showToast('Đã xoá khách hàng')).catch(fsErr);
+  const kh = khList.find(k=>k.id===id);
+  db.collection('capmalo_khachhang').doc(id).delete().then(()=>{ logActivity(`Xoá khách hàng ${kh?kh.ten:id}`); showToast('Đã xoá khách hàng'); }).catch(fsErr);
 }
 function exportKHExcel(){
   if(!khList.length){ showToast('Chưa có khách hàng nào để xuất'); return; }
@@ -1486,6 +1526,7 @@ function addVungNuoi(){
   db.collection('capmalo_vungnuoi').add({ten, tenEN}).then(()=>{
     document.getElementById('newVungNuoi').value='';
     document.getElementById('newVungNuoiEN').value='';
+    logActivity(`Thêm vùng nuôi ${ten}`);
     showToast('Đã thêm vùng nuôi '+ten);
   }).catch(fsErr);
 }
@@ -1495,11 +1536,12 @@ function saveEditVungNuoi(id){
   const ten = document.getElementById('editVN_'+id).value.trim();
   const tenEN = document.getElementById('editVNEN_'+id).value.trim();
   if(!ten){ showToast('Nhập tên vùng nuôi'); return; }
-  db.collection('capmalo_vungnuoi').doc(id).update({ten, tenEN}).then(()=>{ editingVNId=null; renderVungNuoi(); showToast('Đã cập nhật'); }).catch(fsErr);
+  db.collection('capmalo_vungnuoi').doc(id).update({ten, tenEN}).then(()=>{ editingVNId=null; renderVungNuoi(); logActivity(`Sửa vùng nuôi ${ten}`); showToast('Đã cập nhật'); }).catch(fsErr);
 }
 function xoaVungNuoi(id, btn){
   if(!requestConfirm('vn:'+id, btn)) return;
-  db.collection('capmalo_vungnuoi').doc(id).delete().then(()=>showToast('Đã xoá')).catch(fsErr);
+  const v = vungNuoiList.find(x=>x.id===id);
+  db.collection('capmalo_vungnuoi').doc(id).delete().then(()=>{ logActivity(`Xoá vùng nuôi ${v?v.ten:id}`); showToast('Đã xoá'); }).catch(fsErr);
 }
 function renderVungNuoi(){
   const el = document.getElementById('vungNuoiList');
@@ -1533,6 +1575,7 @@ function addSanPham(){
   if(!ten){ showToast('Nhập tên sản phẩm'); return; }
   db.collection('capmalo_sanpham').add({ten}).then(()=>{
     document.getElementById('newSanPham').value='';
+    logActivity(`Thêm sản phẩm ${ten}`);
     showToast('Đã thêm sản phẩm '+ten);
   }).catch(fsErr);
 }
@@ -1545,11 +1588,12 @@ function saveEditSanPham(id){
   const hsCode = document.getElementById('editSPHSCode_'+id).value.trim();
   const dangSP = document.getElementById('editSPDang_'+id).value.trim();
   if(!ten){ showToast('Nhập tên sản phẩm'); return; }
-  db.collection('capmalo_sanpham').doc(id).update({ten, moTa, tenKhoaHoc, hsCode, dangSP}).then(()=>{ editingSPId=null; renderSanPham(); showToast('Đã cập nhật'); }).catch(fsErr);
+  db.collection('capmalo_sanpham').doc(id).update({ten, moTa, tenKhoaHoc, hsCode, dangSP}).then(()=>{ editingSPId=null; renderSanPham(); logActivity(`Sửa sản phẩm ${ten}`); showToast('Đã cập nhật'); }).catch(fsErr);
 }
 function xoaSanPham(id, btn){
   if(!requestConfirm('sp:'+id, btn)) return;
-  db.collection('capmalo_sanpham').doc(id).delete().then(()=>showToast('Đã xoá')).catch(fsErr);
+  const s = sanPhamList.find(x=>x.id===id);
+  db.collection('capmalo_sanpham').doc(id).delete().then(()=>{ logActivity(`Xoá sản phẩm ${s?s.ten:id}`); showToast('Đã xoá'); }).catch(fsErr);
 }
 function renderSanPham(){
   const el = document.getElementById('sanPhamList');
@@ -1589,6 +1633,7 @@ function addSize(){
   if(sizeList.some(s=>s.ten===ten)){ showToast('Size này đã có'); return; }
   db.collection('capmalo_size').add({ten, thuTu: sizeList.length}).then(()=>{
     document.getElementById('newSize').value='';
+    logActivity(`Thêm size ${ten}`);
     showToast('Đã thêm size '+ten);
   }).catch(fsErr);
 }
@@ -1597,11 +1642,12 @@ function cancelEditSize(){ editingSizeId = null; renderSize(); }
 function saveEditSize(id){
   const ten = document.getElementById('editSize_'+id).value.trim();
   if(!ten){ showToast('Nhập size'); return; }
-  db.collection('capmalo_size').doc(id).update({ten}).then(()=>{ editingSizeId=null; renderSize(); showToast('Đã cập nhật'); }).catch(fsErr);
+  db.collection('capmalo_size').doc(id).update({ten}).then(()=>{ editingSizeId=null; renderSize(); logActivity(`Sửa size thành ${ten}`); showToast('Đã cập nhật'); }).catch(fsErr);
 }
 function xoaSize(id, btn){
   if(!requestConfirm('size:'+id, btn)) return;
-  db.collection('capmalo_size').doc(id).delete().then(()=>showToast('Đã xoá')).catch(fsErr);
+  const s = sizeList.find(x=>x.id===id);
+  db.collection('capmalo_size').doc(id).delete().then(()=>{ logActivity(`Xoá size ${s?s.ten:id}`); showToast('Đã xoá'); }).catch(fsErr);
 }
 function moveSize(id, dir){
   const idx = sizeList.findIndex(s=>s.id===id);
@@ -1655,6 +1701,7 @@ function addChuHang(){
     document.getElementById('newCHDiaChi').value='';
     document.getElementById('newCHDiaChiEN').value='';
     document.getElementById('newCHTenEN').value='';
+    logActivity(`Thêm chủ hàng ${ten}`);
     showToast('Đã thêm chủ hàng '+ten);
   }).catch(fsErr);
 }
@@ -1668,11 +1715,12 @@ function saveEditChuHang(id){
   const diaChiEN = document.getElementById('eCHDiaChiEN_'+id).value.trim();
   const tenEN = document.getElementById('eCHTenEN_'+id).value.trim();
   if(!ten){ showToast('Nhập tên chủ hàng'); return; }
-  db.collection('capmalo_chuhang').doc(id).update({ten, dienThoai, email, diaChi, diaChiEN, tenEN}).then(()=>{ editingCHId=null; renderChuHang(); showToast('Đã cập nhật'); }).catch(fsErr);
+  db.collection('capmalo_chuhang').doc(id).update({ten, dienThoai, email, diaChi, diaChiEN, tenEN}).then(()=>{ editingCHId=null; renderChuHang(); logActivity(`Sửa chủ hàng ${ten}`); showToast('Đã cập nhật'); }).catch(fsErr);
 }
 function xoaChuHang(id, btn){
   if(!requestConfirm('ch:'+id, btn)) return;
-  db.collection('capmalo_chuhang').doc(id).delete().then(()=>showToast('Đã xoá')).catch(fsErr);
+  const c = chuHangList.find(x=>x.id===id);
+  db.collection('capmalo_chuhang').doc(id).delete().then(()=>{ logActivity(`Xoá chủ hàng ${c?c.ten:id}`); showToast('Đã xoá'); }).catch(fsErr);
 }
 function renderChuHang(){
   const el = document.getElementById('chuHangList');
@@ -1712,6 +1760,7 @@ function addDaiLyNL(){
   if(!ten){ showToast('Nhập tên đại lý'); return; }
   db.collection('capmalo_daily_nl').add({ten}).then(()=>{
     document.getElementById('newDaiLyNL').value='';
+    logActivity(`Thêm đại lý ${ten}`);
     showToast('Đã thêm đại lý '+ten);
   }).catch(fsErr);
 }
@@ -1720,11 +1769,12 @@ function cancelEditDaiLyNL(){ editingDLId = null; renderDaiLyNL(); }
 function saveEditDaiLyNL(id){
   const ten = document.getElementById('eDL_'+id).value.trim();
   if(!ten){ showToast('Nhập tên đại lý'); return; }
-  db.collection('capmalo_daily_nl').doc(id).update({ten}).then(()=>{ editingDLId=null; renderDaiLyNL(); showToast('Đã cập nhật'); }).catch(fsErr);
+  db.collection('capmalo_daily_nl').doc(id).update({ten}).then(()=>{ editingDLId=null; renderDaiLyNL(); logActivity(`Sửa đại lý thành ${ten}`); showToast('Đã cập nhật'); }).catch(fsErr);
 }
 function xoaDaiLyNL(id, btn){
   if(!requestConfirm('dlnl:'+id, btn)) return;
-  db.collection('capmalo_daily_nl').doc(id).delete().then(()=>showToast('Đã xoá')).catch(fsErr);
+  const d = daiLyNLList.find(x=>x.id===id);
+  db.collection('capmalo_daily_nl').doc(id).delete().then(()=>{ logActivity(`Xoá đại lý ${d?d.ten:id}`); showToast('Đã xoá'); }).catch(fsErr);
 }
 function renderDaiLyNL(){
   const el = document.getElementById('daiLyNLList');
@@ -1756,6 +1806,7 @@ function addHoNuoi(){
   if(!ten){ showToast('Nhập tên hộ nuôi'); return; }
   db.collection('capmalo_honuoi').add({ten}).then(()=>{
     document.getElementById('newHoNuoi').value='';
+    logActivity(`Thêm hộ nuôi ${ten}`);
     showToast('Đã thêm hộ nuôi '+ten);
   }).catch(fsErr);
 }
@@ -1764,11 +1815,12 @@ function cancelEditHoNuoi(){ editingHNId = null; renderHoNuoi(); }
 function saveEditHoNuoi(id){
   const ten = document.getElementById('eHN_'+id).value.trim();
   if(!ten){ showToast('Nhập tên hộ nuôi'); return; }
-  db.collection('capmalo_honuoi').doc(id).update({ten}).then(()=>{ editingHNId=null; renderHoNuoi(); showToast('Đã cập nhật'); }).catch(fsErr);
+  db.collection('capmalo_honuoi').doc(id).update({ten}).then(()=>{ editingHNId=null; renderHoNuoi(); logActivity(`Sửa hộ nuôi thành ${ten}`); showToast('Đã cập nhật'); }).catch(fsErr);
 }
 function xoaHoNuoi(id, btn){
   if(!requestConfirm('hn:'+id, btn)) return;
-  db.collection('capmalo_honuoi').doc(id).delete().then(()=>showToast('Đã xoá')).catch(fsErr);
+  const h = hoNuoiList.find(x=>x.id===id);
+  db.collection('capmalo_honuoi').doc(id).delete().then(()=>{ logActivity(`Xoá hộ nuôi ${h?h.ten:id}`); showToast('Đã xoá'); }).catch(fsErr);
 }
 function renderHoNuoi(){
   const el = document.getElementById('hoNuoiList');
@@ -1935,7 +1987,8 @@ function onExistingLotChange(){
 function autoLotNo(c){
   if(!c) return '';
   const nextSoTT = c.soThuTuHienTai + 1;
-  return `VN${c.maSoVN}V/CN${String(nextSoTT).padStart(3,'0')}`;
+  const suffix = (String(c.maSoVN)==='184') ? 'V' : '';
+  return `VN${c.maSoVN}${suffix}/CN${String(nextSoTT).padStart(3,'0')}`;
 }
 function onCongTyChange(){
   const c = congTyList.find(x=>x.id===document.getElementById('fCongTy').value);
@@ -2034,6 +2087,7 @@ async function capMaLoNgay(evt){
     if(congTyForCounter && (!lotNoManuallyEdited || payload.lotNo===autoLotNo(congTyForCounter))){
       await db.collection('capmalo_congty').doc(congTyForCounter.id).update({soThuTuHienTai: congTyForCounter.soThuTuHienTai + 1});
     }
+    logActivity(`Cấp mã lô ${payload.lotNo} — KH: ${payload.khachHangTen}`);
     showToast('Đã cấp mã '+payload.lotNo);
     resetFormCapLo();
     switchTab('danhSach');
@@ -2142,7 +2196,8 @@ function toggleSelectAllDanhSach(){
 }
 function xoaLot(id, btn){
   if(!requestConfirm('lot:'+id, btn)) return;
-  db.collection('capmalo_lot').doc(id).delete().then(()=>showToast('Đã xoá lô')).catch(fsErr);
+  const l = lotList.find(x=>x.id===id);
+  db.collection('capmalo_lot').doc(id).delete().then(()=>{ logActivity(`Xoá lô ${l?l.lotNo:id}`); showToast('Đã xoá lô'); }).catch(fsErr);
 }
 function openEditLot(id){
   const l = lotList.find(x=>x.id===id);
@@ -2171,7 +2226,7 @@ function saveEditLot(){
     lotNo, vungNuoiId, vungNuoiTen: vungNuoi.ten,
     khachHangId: khId, khachHangTen: kh.ten, khachHangMau: kh.mau,
     ngaySX, matHangNet: matHang
-  }).then(()=>{ closeEditLot(); showToast('Đã cập nhật lô'); }).catch(fsErr);
+  }).then(()=>{ logActivity(`Sửa lô ${lotNo}`); closeEditLot(); showToast('Đã cập nhật lô'); }).catch(fsErr);
 }
 function buildExportRows(){
   const rows = getFilteredLots().filter(l=>selectedLotIds.has(l.id));
@@ -2203,7 +2258,7 @@ function exportDanhSachExcel(){
       aoa.push([
         i===0? l.lotNo:'', i===0? l.maCode:'',
         (l.ngaySX||[]).map(fmtDateVN).join(', '),
-        i===0? l.vungNuoiTen:'', i===0? l.khachHangTen:'',
+        i===0? vungNuoiDisplayEN(l.vungNuoiId, l.vungNuoiTen):'', i===0? l.khachHangTen:'',
         l.matHangNet
       ]);
     });
@@ -2235,7 +2290,7 @@ function buildDanhSachExportHtml(rows){
       bodyHtml += `<tr>
         ${i===0? `<td rowspan="${items.length}" style="padding:10px;border:1px solid #d5e0ec;"><b>${l.lotNo}</b></td><td rowspan="${items.length}" style="padding:10px;border:1px solid #d5e0ec;">${escapeHtml(l.maCode)}</td>`:''}
         <td style="padding:10px;border:1px solid #d5e0ec;">${(l.ngaySX||[]).map(fmtDateVN).join(', ')}</td>
-        ${i===0? `<td rowspan="${items.length}" style="padding:10px;border:1px solid #d5e0ec;">${escapeHtml(l.vungNuoiTen)}</td><td rowspan="${items.length}" style="padding:10px;border:1px solid #d5e0ec;">${escapeHtml(l.khachHangTen)}</td>`:''}
+        ${i===0? `<td rowspan="${items.length}" style="padding:10px;border:1px solid #d5e0ec;">${escapeHtml(vungNuoiDisplayEN(l.vungNuoiId, l.vungNuoiTen))}</td><td rowspan="${items.length}" style="padding:10px;border:1px solid #d5e0ec;">${escapeHtml(l.khachHangTen)}</td>`:''}
         <td style="padding:10px;border:1px solid #d5e0ec;">${escapeHtml(l.matHangNet)}</td>
       </tr>`;
     });
@@ -2475,11 +2530,13 @@ async function savePdg(){
   try{
     if(pdgEditingId){
       await db.collection('capmalo_packinglist').doc(pdgEditingId).update(data);
+      logActivity(`Cập nhật Phiếu Đóng Gói ${lot.lotNo}`);
       showToast('Đã cập nhật phiếu đóng gói cho '+lot.lotNo);
     } else {
       data.createdBy = currentUser.displayName;
       data.createdAt = Date.now();
       await db.collection('capmalo_packinglist').add(data);
+      logActivity(`Tạo Phiếu Đóng Gói ${lot.lotNo}`);
       showToast('Đã lưu phiếu đóng gói cho '+lot.lotNo);
     }
     resetPdgForm();
@@ -2618,6 +2675,8 @@ function saveXuatKhauInfo(){
     autoSaveXkValue('noiDenQuocGia', noiDenQuocGia);
     autoSaveXkValue('cangNhapKhau', cangNhapKhau);
     autoSaveXkValue('moTaHangHoa', moTaHangHoa);
+    const p = packingList.find(x=>x.id===id);
+    logActivity(`Cập nhật Thông tin xuất khẩu — ${p?p.lotNo:id}`);
     showToast('Đã lưu thông tin xuất khẩu');
     closeXuatKhauInfo();
   }).catch(fsErr);
@@ -2625,7 +2684,8 @@ function saveXuatKhauInfo(){
 
 function deletePdg(id, btn){
   if(!requestConfirm('pdg:'+id, btn)) return;
-  db.collection('capmalo_packinglist').doc(id).delete().then(()=>showToast('Đã xoá phiếu')).catch(fsErr);
+  const p = packingList.find(x=>x.id===id);
+  db.collection('capmalo_packinglist').doc(id).delete().then(()=>{ logActivity(`Xoá Phiếu Đóng Gói ${p?p.lotNo:id}`); showToast('Đã xoá phiếu'); }).catch(fsErr);
 }
 let pdgPreviewCurrentId = null;
 function xemPdgTruoc(id){
@@ -3646,11 +3706,13 @@ async function saveLcn(){
   try{
     if(lcnEditingId){
       await db.collection('capmalo_listchianngay').doc(lcnEditingId).update(data);
+      logActivity(`Cập nhật Chia Ngày Sản Xuất ${lot.lotNo}`);
       showToast('Đã cập nhật Chia Ngày Sản Xuất cho '+lot.lotNo);
     } else {
       data.createdBy = currentUser.displayName;
       data.createdAt = Date.now();
       await db.collection('capmalo_listchianngay').add(data);
+      logActivity(`Tạo Chia Ngày Sản Xuất ${lot.lotNo}`);
       showToast('Đã lưu Chia Ngày Sản Xuất cho '+lot.lotNo);
     }
     resetLcnForm();
@@ -3727,7 +3789,8 @@ function renderLcnList(){
 }
 function deleteLcn(id, btn){
   if(!requestConfirm('lcn:'+id, btn)) return;
-  db.collection('capmalo_listchianngay').doc(id).delete().then(()=>showToast('Đã xoá')).catch(fsErr);
+  const item = listChiaNgayList.find(x=>x.id===id);
+  db.collection('capmalo_listchianngay').doc(id).delete().then(()=>{ logActivity(`Xoá Chia Ngày Sản Xuất ${item?item.lotNo:id}`); showToast('Đã xoá'); }).catch(fsErr);
 }
 function buildLcnExportHtml(item){
   const rows = [
@@ -3889,6 +3952,7 @@ function themTaiKhoan(){
     document.getElementById('newUserDisplayName').value='';
     document.getElementById('newUserUsername').value='';
     document.getElementById('newUserPassword').value='';
+    logActivity(`Tạo tài khoản ${displayName} (@${username})`);
     showToast('Đã tạo tài khoản '+displayName);
   }).catch(fsErr);
 }
@@ -3904,7 +3968,7 @@ function saveEditUser(id){
   const data = {displayName, username};
   if(password) data.password = password; // chỉ đổi mật khẩu nếu có nhập, để trống thì giữ nguyên
   db.collection('capmalo_users').doc(id).update(data).then(()=>{
-    editingUserId = null; renderUserList(); showToast('Đã cập nhật tài khoản');
+    editingUserId = null; renderUserList(); logActivity(`Sửa tài khoản ${displayName} (@${username})${password?' — có đổi mật khẩu':''}`); showToast('Đã cập nhật tài khoản');
     if(currentUser && currentUser.id===id){
       currentUser.displayName = displayName; currentUser.username = username;
       renderCurAccountBox();
@@ -3950,7 +4014,8 @@ function togglePerm(uid, key, val){
 }
 function xoaUser(id, btn){
   if(!requestConfirm('user:'+id, btn)) return;
-  db.collection('capmalo_users').doc(id).delete().then(()=>showToast('Đã xoá tài khoản')).catch(fsErr);
+  const u = userList.find(x=>x.id===id);
+  db.collection('capmalo_users').doc(id).delete().then(()=>{ logActivity(`Xoá tài khoản ${u?u.displayName:id}`); showToast('Đã xoá tài khoản'); }).catch(fsErr);
 }
 function renderCurAccountBox(){
   const el = document.getElementById('curAccountBox');
@@ -3964,6 +4029,7 @@ function doiMatKhauCuaToi(){
   if(!val || val.length<4){ showToast('Mật khẩu tối thiểu 4 ký tự'); return; }
   db.collection('capmalo_users').doc(currentUser.id).update({password:val}).then(()=>{
     document.getElementById('myNewPass').value='';
+    logActivity(`${currentUser.displayName} tự đổi mật khẩu`);
     showToast('Đã đổi mật khẩu');
   }).catch(fsErr);
 }
