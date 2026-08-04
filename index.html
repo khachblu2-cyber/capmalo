@@ -193,7 +193,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V3.4.1</div>
+      <div class="ver">Phiên bản: V3.4.2</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -744,6 +744,8 @@
 <div class="modal-overlay hidden" id="lcnHoNuoiPickerModal" onclick="if(event.target===this)closeLcnHoNuoiPicker()">
   <div class="modal" style="max-width:420px;">
     <div class="modal-title">Chọn hộ nuôi (có thể chọn nhiều)<span class="x" onclick="closeLcnHoNuoiPicker()">✕</span></div>
+    <input type="text" id="lcnHoNuoiPickerSearch" placeholder="🔍 Tìm hộ nuôi (không cần dấu)..." oninput="renderLcnHoNuoiPickerList()" style="margin-bottom:8px;">
+    <div class="small muted" id="lcnHoNuoiPickerCount" style="margin-bottom:6px;">Đã chọn: 0 hộ nuôi</div>
     <div id="lcnHoNuoiPickerList" style="max-height:50vh;overflow-y:auto;"></div>
     <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="confirmLcnHoNuoiPicker()">✓ Xác nhận</button>
   </div>
@@ -837,6 +839,7 @@ let lcnEditingId = null;
 let lcnNgayItems = []; // [{ngay, maTruyXuat, hoNuoiIds:[], sizeRows:[{rowId,sizeTen,soLuongCtn}]}]
 let lcnSizePickerNgayIdx = null;
 let lcnHoNuoiPickerNgayIdx = null;
+let lcnHoNuoiPickerSelected = []; // lưu tạm hộ nuôi đã tick, không mất khi lọc tìm kiếm
 let pdgEditingId = null;
 let selectedDates = [];
 let selectedLotIds = new Set();
@@ -872,6 +875,12 @@ function sortBySizeOrder(rows){
   return [...rows].sort((a,b)=> sizeSortIndex(a.sizeTen) - sizeSortIndex(b.sizeTen));
 }
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+// Bỏ dấu tiếng Việt để tìm kiếm không dấu: "bui van" khớp "Bùi Văn Hơn"
+function boDauVN(s){
+  return (s||'').toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/đ/g,'d').trim();
+}
 function normName(s){ return (s||'').trim().toLowerCase().replace(/\s+/g,' '); }
 
 // double-tap confirm pattern thay cho confirm()
@@ -3946,16 +3955,33 @@ function confirmLcnSizePicker(){
 function openLcnHoNuoiPicker(ngayIdx){
   if(!hoNuoiList.length){ showToast('Chưa có hộ nuôi nào trong danh mục — thêm ở Danh Mục > Hộ nuôi'); return; }
   lcnHoNuoiPickerNgayIdx = ngayIdx;
-  const selected = lcnNgayItems[ngayIdx].hoNuoiIds || [];
-  document.getElementById('lcnHoNuoiPickerList').innerHTML = hoNuoiList.map(h=>`
-    <label class="size-pick-item"><input type="checkbox" value="${h.id}" ${selected.includes(h.id)?'checked':''}><span>${escapeHtml(h.ten)}</span></label>
-  `).join('');
+  // giữ lựa chọn trong biến tạm để lọc/tìm kiếm không làm mất hộ đã tick
+  lcnHoNuoiPickerSelected = [...(lcnNgayItems[ngayIdx].hoNuoiIds || [])];
+  document.getElementById('lcnHoNuoiPickerSearch').value = '';
+  renderLcnHoNuoiPickerList();
   document.getElementById('lcnHoNuoiPickerModal').classList.remove('hidden');
+}
+function renderLcnHoNuoiPickerList(){
+  const kw = boDauVN(document.getElementById('lcnHoNuoiPickerSearch')?.value || '');
+  const list = kw ? hoNuoiList.filter(h=>boDauVN(h.ten).includes(kw)) : hoNuoiList;
+  const el = document.getElementById('lcnHoNuoiPickerList');
+  el.innerHTML = list.length ? list.map(h=>`
+    <label class="size-pick-item"><input type="checkbox" value="${h.id}" ${lcnHoNuoiPickerSelected.includes(h.id)?'checked':''} onchange="toggleLcnHoNuoiPick('${h.id}', this.checked)"><span>${escapeHtml(h.ten)}</span></label>
+  `).join('') : '<div class="empty"><div class="ico">🔍</div>Không tìm thấy hộ nuôi nào khớp</div>';
+  updateLcnHoNuoiPickerCount();
+}
+function toggleLcnHoNuoiPick(id, checked){
+  if(checked){ if(!lcnHoNuoiPickerSelected.includes(id)) lcnHoNuoiPickerSelected.push(id); }
+  else lcnHoNuoiPickerSelected = lcnHoNuoiPickerSelected.filter(x=>x!==id);
+  updateLcnHoNuoiPickerCount();
+}
+function updateLcnHoNuoiPickerCount(){
+  const c = document.getElementById('lcnHoNuoiPickerCount');
+  if(c) c.textContent = `Đã chọn: ${lcnHoNuoiPickerSelected.length} hộ nuôi`;
 }
 function closeLcnHoNuoiPicker(){ document.getElementById('lcnHoNuoiPickerModal').classList.add('hidden'); lcnHoNuoiPickerNgayIdx=null; }
 function confirmLcnHoNuoiPicker(){
-  const checked = Array.from(document.querySelectorAll('#lcnHoNuoiPickerList input:checked')).map(el=>el.value);
-  if(lcnHoNuoiPickerNgayIdx!==null) lcnNgayItems[lcnHoNuoiPickerNgayIdx].hoNuoiIds = checked;
+  if(lcnHoNuoiPickerNgayIdx!==null) lcnNgayItems[lcnHoNuoiPickerNgayIdx].hoNuoiIds = [...lcnHoNuoiPickerSelected];
   renderLcnNgayBlocks();
   closeLcnHoNuoiPicker();
 }
