@@ -44,7 +44,7 @@
     font-size:12.5px;color:var(--muted);white-space:nowrap;cursor:pointer;}
   .section-tab button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 
-  .container{padding:12px;max-width:900px;margin:0 auto;}
+  .container{padding:12px;margin:0 auto;}
   .card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(20,30,50,.06);border:1px solid var(--border);}
   .card-title{font-size:15px;font-weight:700;margin:0 0 4px;}
   .hint{color:var(--muted);font-size:12px;margin:0 0 12px;}
@@ -193,7 +193,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V3.4.2</div>
+      <div class="ver">Phiên bản: V3.7.4</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -202,9 +202,9 @@
 
   <div class="tabbar" id="tabbar">
     <button data-tab="capLo" onclick="switchTab('capLo')">📝 Cấp Lô</button>
-    <button data-tab="danhSach" onclick="switchTab('danhSach')">📋 Danh Sách</button>
     <button data-tab="listChiaNgay" onclick="switchTab('listChiaNgay')">📅 Chia Ngày Sản Xuất</button>
-    <button data-tab="phieuDongGoi" onclick="switchTab('phieuDongGoi')">📦 Phiếu Đóng Gói</button>
+    <button data-tab="phieuDongGoi" onclick="switchTab('phieuDongGoi')">📦 Bảng Kê - Phiếu ĐK</button>
+    <button data-tab="healthNhap" onclick="switchTab('healthNhap')">🩺 Health Nháp</button>
     <button data-tab="danhMuc" onclick="switchTab('danhMuc')">🗂️ Danh Mục</button>
     <button data-tab="taiKhoan" onclick="switchTab('taiKhoan')">👤 Tài Khoản</button>
   </div>
@@ -213,6 +213,11 @@
 
     <!-- ===== TAB CẤP LÔ ===== -->
     <div id="pane-capLo">
+      <div class="section-tab" id="capSubTab">
+        <button class="active" data-sub="tao" onclick="switchCapSub('tao')">➕ Cấp lô</button>
+        <button data-sub="list" onclick="switchCapSub('list')">📋 Danh sách lô</button>
+      </div>
+      <div id="cap-tao">
       <div class="card">
         <div class="card-title">Thông tin lô hàng</div>
         <div class="hint">Chọn công ty để hệ thống tự sinh Lot No (có thể sửa tay nếu cần), điền thông tin rồi bấm "+ Cấp mã lô".</div>
@@ -274,10 +279,9 @@
         <textarea id="fMatHangText" placeholder="VD: 2,800 CTN, THẺ PD IQF - NET 9.4 KG, GROSS 10 KG" style="margin-top:8px;"></textarea>
         <button class="btn btn-primary btn-block" onclick="capMaLoNgay(event)">+ Cấp mã lô</button>
       </div>
-    </div>
+      </div>
 
-    <!-- ===== TAB DANH SÁCH ===== -->
-    <div id="pane-danhSach" class="hidden">
+      <div id="cap-list" class="hidden">
       <div class="card">
         <div class="card-title">Danh sách lô đã cấp</div>
         <div class="row-flex">
@@ -313,6 +317,7 @@
           </table>
         </div>
         <div class="empty hidden" id="danhSachEmpty"><div class="ico">📭</div>Chưa có lô nào được cấp</div>
+      </div>
       </div>
     </div>
 
@@ -486,6 +491,7 @@
                 <option value="noiDenQuocGia">Nơi đến (quốc gia)</option>
                 <option value="cangNhapKhau">Cảng/nơi nhập khẩu cụ thể</option>
                 <option value="moTaHangHoa">Mô tả hàng hóa</option>
+                <option value="noiKy">Nơi ký</option>
               </select>
             </div>
             <div class="field"><label>Giá trị</label><input type="text" id="newXKTVGiaTri" onkeydown="if(event.key==='Enter')addXkThongTinValue()"></div>
@@ -512,35 +518,22 @@
             <div class="field"><label>Lot No</label><select id="pdgLot" onchange="onPdgLotChange()"><option value="">— Chọn Lot No —</option></select></div>
             <div class="field"><label>Mã truy xuất</label><input type="text" id="pdgMaTruyXuat" placeholder="Không bắt buộc"></div>
           </div>
-          <div class="row-flex" style="margin-top:4px;">
-            <div class="field"><label>Ngày sản xuất</label><input type="text" id="pdgNgaySX" readonly style="background:#f3f5f8;"></div>
-            <div class="field"><label>Vùng nuôi</label><input type="text" id="pdgVungNuoi" readonly style="background:#f3f5f8;"></div>
-          </div>
-          <div class="hint" style="margin-top:8px;margin-bottom:0;">Tên/địa chỉ chủ hàng lấy từ Công ty của Lot No (sửa ở Danh Mục → Công ty). Tên/địa chỉ người nhận hàng lấy từ Khách hàng (sửa ở Danh Mục → Khách hàng).</div>
-          <div class="row-flex" style="margin-top:4px;">
-            <div class="field"><label>Tên chủ hàng (tự lấy theo Công ty, có thể sửa tay)</label><input type="text" id="pdgCongTyTen"></div>
-            <div class="field"><label>Địa chỉ chủ hàng (tự lấy theo Công ty, có thể sửa tay)</label><input type="text" id="pdgCongTyDiaChi"></div>
-          </div>
-          <div class="row-flex" style="margin-top:4px;">
-            <div class="field"><label>Người nhận hàng</label><select id="pdgNguoiNhanSelect" onchange="onPdgNguoiNhanChange()"><option value="">— Chọn —</option></select></div>
-            <div class="field"><label>Địa chỉ người nhận hàng</label><input type="text" id="pdgDiaChiNguoiNhan" readonly style="background:#f3f5f8;"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Thông tin xuất khẩu (dùng khi xuất Bảng kê chi tiết lô hàng)</div>
-          <div class="grid">
+          <div class="grid" style="margin-top:4px;">
             <div class="field"><label>Số chứng thư</label><input type="text" id="pdgSoChungThu" placeholder="VD: 0901262/2026"></div>
-            <div class="field"><label>Ngày chứng thư</label><input type="date" id="pdgNgayChungThu"></div>
-            <div class="field"><label>Nơi ký (đầu văn bản)</label><input type="text" id="pdgNoiKy" placeholder="VD: Cà Mau"></div>
+            <div class="field"><label>Ngày chứng thư / ngày ký</label><input type="date" id="pdgNgayChungThu"></div>
+            <div class="field"><label>Ngày xuất khẩu (dự kiến)</label><input type="date" id="pdgNgayXuatKhau"></div>
           </div>
           <div class="row-flex" style="margin-top:4px;">
-            <div class="field"><label>FROM (nơi xuất)</label><input type="text" id="pdgFrom" placeholder="VD: QUANG NINH, VIET NAM"></div>
-            <div class="field"><label>TO (nơi đến)</label><input type="text" id="pdgTo" placeholder="VD: GUANGXI, CHINA"></div>
+            <div class="field"><label>Nơi ký</label><input type="text" id="pdgNoiKy" list="dl_noiKy" placeholder="VD: Cà Mau"><datalist id="dl_noiKy"></datalist></div>
           </div>
+          <div class="hint" style="margin-top:8px;margin-bottom:0;">Chỉ hiện Lot No đã làm Health Nháp. Toàn bộ thông tin chủ hàng, người nhận, nơi đi/đến, mặt hàng, container/seal lấy từ Health Nháp — muốn đổi thì sửa ở tab Health Nháp.</div>
         </div>
 
-        <div id="pdgItemsWrap"></div>
+        <div class="card" id="pdgAutoCard" style="background:#fffbe6;border-color:#f0d264;">
+          <div class="card-title" style="color:#8a6d0b;">Lấy từ Health Nháp (chỉ xem)</div>
+          <div id="pdgAutoBody"></div>
+        </div>
+
         <div class="card" id="pdgGrandTotalCard" style="background:#f3f5f8;">
           <div class="row-flex" style="align-items:center;">
             <b>TỔNG CỘNG TOÀN PHIẾU (tất cả mặt hàng)</b>
@@ -606,6 +599,80 @@
       </div>
     </div>
 
+    <!-- ===== TAB HEALTH NHÁP ===== -->
+    <div id="pane-healthNhap" class="hidden">
+      <div class="section-tab" id="hcSubTab">
+        <button class="active" data-sub="tao" onclick="switchHcSub('tao')">➕ Tạo Health</button>
+        <button data-sub="list" onclick="switchHcSub('list')">📋 Danh sách Health</button>
+      </div>
+
+      <div id="hc-tao">
+        <div class="card">
+          <div class="card-title">Chọn lô</div>
+          <div class="row-flex">
+            <div class="field"><label>Khách hàng</label><select id="hcKhachHang" onchange="onHcKHChange()"><option value="">— Chọn khách hàng —</option></select></div>
+            <div class="field"><label>Lot No</label><select id="hcLot" onchange="onHcLotChange()"><option value="">— Chọn Lot No —</option></select></div>
+          </div>
+        </div>
+
+        <div class="card" id="hcAutoCard" style="background:#fffbe6;border-color:#f0d264;">
+          <div class="card-title" style="color:#8a6d0b;">Tự động ra sau khi chọn Lot (chỉ xem)</div>
+          <div id="hcAutoBody"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Thông tin vận chuyển</div>
+          <label>Chủ hàng — Name and address of Consignor</label>
+          <select id="hcChuHang" onchange="onHcChuHangChange()"><option value="">— Chọn chủ hàng —</option></select>
+          <div class="small muted" id="hcChuHangInfo" style="margin-top:4px;">—</div>
+
+          <label style="margin-top:12px;">Nhà nhập khẩu — Name and address of Consignee</label>
+          <select id="hcNhaNK" onchange="onHcNhaNKChange()"><option value="">— Chọn nhà nhập khẩu —</option></select>
+          <div class="small muted" id="hcNhaNKInfo" style="margin-top:4px;">—</div>
+
+          <div id="hcNhaNKNewWrap" class="hidden" style="background:#f3f5f8;border-radius:9px;padding:10px 12px;margin-top:8px;">
+            <div class="hint" style="margin-top:0;">Nhập nhà NK mới — lưu xong sẽ tự thêm vào <b>Người nhận hàng</b> của khách hàng đang chọn, lần sau chọn thẳng.</div>
+            <div class="row-flex">
+              <div class="field"><label>Tên nhà nhập khẩu</label><input type="text" id="hcNhaNKTen" placeholder="VD: Dongxing City Junxuan Import and Export Trade Co., Ltd."></div>
+              <div class="field"><label>Địa chỉ</label><input type="text" id="hcNhaNKDiaChi" placeholder="VD: Shop No. 01, 30# Building, No. 3 Tianhe Road..."></div>
+            </div>
+          </div>
+
+          <div class="row-flex" style="margin-top:12px;">
+            <div class="field"><label>Nơi đi — Place of dispatch</label><input type="text" id="hcNoiDi" list="dl_noiDi" placeholder="VD: QUANG NINH, VIETNAM"><datalist id="dl_noiDi"></datalist></div>
+            <div class="field"><label>Nơi đến — Place of destination</label><input type="text" id="hcNoiDen" list="dl_cangNhapKhau" placeholder="VD: JINGXI, GUANGXI, CHINA"><datalist id="dl_cangNhapKhau"></datalist></div>
+          </div>
+          <div class="row-flex" style="margin-top:4px;">
+            <div class="field"><label>Phương tiện vận chuyển — Means of transport</label><input type="text" id="hcPhuongTien" list="dl_hcPhuongTien" placeholder="VD: BY COLD TRUCK">
+              <datalist id="dl_hcPhuongTien"><option value="BY COLD TRUCK"></option><option value="BY REEFER TRUCK"></option><option value="BY TRUCK"></option><option value="BY SEA"></option><option value="BY AIR"></option></datalist>
+            </div>
+            <div class="field"><label>Ngày xuất — Date of issue</label><input type="date" id="hcNgayXuat"></div>
+          </div>
+          <div class="row-flex" style="margin-top:4px;">
+            <div class="field"><label>Số container — Container number</label><input type="text" id="hcContainer" placeholder="VD: TDRU7171250"></div>
+            <div class="field"><label>Số seal — Seal number</label><input type="text" id="hcSeal" placeholder="VD: CBT000599"></div>
+            <div class="field"><label>Nơi ký — Place of issue</label><input type="text" id="hcNoiKy" value="Cà Mau"></div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:4px;">
+          <button class="btn btn-outline" onclick="hcPreviewDraft()">👁️ Xem trước</button>
+          <button class="btn btn-outline" onclick="hcExportDraft()">📤 Xuất Health Cert</button>
+        </div>
+        <button class="btn btn-primary btn-block" id="hcSaveBtn" onclick="saveHc()">💾 Lưu Health nháp</button>
+      </div>
+
+      <div id="hc-list" class="hidden">
+        <div class="card">
+          <div class="row-flex">
+            <div class="field"><label>Khách hàng</label><select id="hcFilterKH" onchange="renderHcList()"><option value="">Tất cả</option></select></div>
+            <div class="field"><label>Tìm Lot No</label><input type="text" id="hcFilterSearch" oninput="renderHcList()"></div>
+          </div>
+        </div>
+        <div id="hcListWrap"></div>
+      </div>
+    </div>
+
     <div id="pane-taiKhoan" class="hidden">
       <div class="card">
         <div class="card-title">Tài khoản của tôi</div>
@@ -639,48 +706,30 @@
 </div>
 
 <!-- thông tin xuất khẩu modal -->
-<div class="modal-overlay hidden" id="xuatKhauModal">
-  <div class="modal" style="max-width:640px;">
-    <div class="modal-title">Thông tin xuất khẩu<span class="x" onclick="closeXuatKhauInfo()">✕</span></div>
-    <input type="hidden" id="xkPdgId">
-    <div class="hint">Điền để xuất Giấy đăng ký thẩm định (Mẫu 02.LH). Có thể để trống các mục chưa cần.</div>
-    <label>Chủ hàng — dùng cho Giấy Đăng Ký (Mẫu 02.LH)</label>
-    <select id="xkChuHang"><option value="">— Chọn chủ hàng —</option></select>
-    <label style="margin-top:8px;">Chủ hàng — dùng cho Health Certificate (Tiếng Anh)</label>
-    <select id="xkChuHangHC"><option value="">— Chọn chủ hàng —</option></select>
+<!-- cập nhật phiếu Đăng Ký (các mục chỉ Giấy ĐK mới có) -->
+<div class="modal-overlay hidden" id="phieuDkModal">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-title">Cập nhật phiếu Đăng Ký<span class="x" onclick="closePhieuDk()">✕</span></div>
+    <input type="hidden" id="pdkPdgId">
+    <div class="hint">Các mục này chỉ có trên Giấy Đăng Ký (Mẫu 02.LH) — Health Nháp không có. File Word xuất ra vẫn giữ nguyên dấu tích có sẵn trong mẫu; các ô này dùng cho bản Xem trước và PDF.</div>
     <div class="row-flex" style="margin-top:8px;">
-      <div class="field"><label>Nơi đi</label><input type="text" id="xkNoiDi" list="dl_noiDi" placeholder="VD: CA MAU PROVINCE, VIET NAM"><datalist id="dl_noiDi"></datalist></div>
-      <div class="field"><label>Cảng xuất khẩu</label><input type="text" id="xkCangXuatKhau" list="dl_cangXuatKhau" placeholder="Mặc định giống Nơi đi"><datalist id="dl_cangXuatKhau"></datalist></div>
-    </div>
-    <div class="row-flex" style="margin-top:8px;">
-      <div class="field"><label>Ngày xuất khẩu (dự kiến)</label><input type="date" id="xkNgayXuatKhau"></div>
-      <div class="field"><label>Nơi đến (quốc gia)</label><input type="text" id="xkNoiDenQuocGia" list="dl_noiDenQuocGia" placeholder="VD: CHINA"><datalist id="dl_noiDenQuocGia"></datalist></div>
-    </div>
-    <div class="row-flex" style="margin-top:8px;">
-      <div class="field"><label>Cảng/nơi nhập khẩu cụ thể</label><input type="text" id="xkCangNhapKhau" list="dl_cangNhapKhau" placeholder="VD: JINGXI, GUANGXI, CHINA"><datalist id="dl_cangNhapKhau"></datalist></div>
-      <div class="field"><label>Số container/seal</label><input type="text" id="xkContainerSeal" placeholder="VD: YMLU5371944 / CBT000236"></div>
-    </div>
-    <div class="row-flex" style="margin-top:8px;">
-      <div class="field"><label>Phương tiện vận chuyển</label>
-        <select id="xkPhuongTien"><option>Xe tải/xe container</option><option>Máy bay</option><option>Tàu thủy</option></select>
+      <div class="field"><label>10. Phương tiện vận chuyển</label>
+        <select id="pdkPhuongTien"><option>Xe tải/xe container</option><option>Máy bay</option><option>Tàu thủy</option></select>
       </div>
-      <div class="field"><label>Điều kiện vận chuyển</label>
-        <select id="xkDieuKien"><option>Đông lạnh</option><option>Nhiệt độ thường</option><option>Ướp lạnh</option></select>
+      <div class="field"><label>11. Điều kiện vận chuyển</label>
+        <select id="pdkDieuKien"><option>Đông lạnh</option><option>Nhiệt độ thường</option><option>Ướp lạnh</option></select>
       </div>
     </div>
-    <label>Đề nghị cấp</label>
-    <input type="text" id="xkDeNghiCap" placeholder="VD: Chứng nhận ATTP DS 2031">
-
-    <label style="margin-top:8px;">Mô tả hàng hóa (ghi đè mô tả mặc định của Sản phẩm nếu cần)</label>
-    <input type="text" id="xkMoTaHangHoa" list="dl_moTaHangHoa" placeholder="VD: TÔM THẺ PD TƯƠI ĐÔNG LẠNH (SẢN PHẨM NẤU CHÍN TRƯỚC KHI ĂN)"><datalist id="dl_moTaHangHoa"></datalist>
-
-    <div class="hint" style="margin-top:16px;">Mục 9 "Xuất xứ nguyên liệu" (Đại lý, Hộ nuôi theo từng ngày sản xuất) tự lấy từ tab <b>Chia Ngày Sản Xuất</b> của Lot này — không cần nhập lại ở đây.</div>
-    <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveXuatKhauInfo()">✓ Lưu thông tin xuất khẩu</button>
+    <label style="margin-top:8px;">12. Đề nghị cấp</label>
+    <input type="text" id="pdkDeNghiCap" placeholder="VD: Chứng nhận ATTP DS 2031">
+    <label style="margin-top:8px;">5. Mô tả hàng hóa (ghi đè mô tả mặc định của Sản phẩm nếu cần)</label>
+    <input type="text" id="pdkMoTaHangHoa" list="dl_moTaHangHoa" placeholder="VD: TÔM THẺ PD TƯƠI ĐÔNG LẠNH (SẢN PHẨM NẤU CHÍN TRƯỚC KHI ĂN)"><datalist id="dl_moTaHangHoa"></datalist>
+    <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="savePhieuDk()">✓ Lưu phiếu Đăng Ký</button>
   </div>
 </div>
 
 <!-- xem trước Bảng kê chi tiết (Phiếu Đóng Gói) -->
-<div class="modal-overlay hidden" id="pdgPreviewModal" onclick="if(event.target===this)closePdgPreview()">
+<div class="modal-overlay hidden" id="pdgPreviewModal">
   <div class="modal" style="max-width:800px;">
     <div class="modal-title">Xem trước<span class="x" onclick="closePdgPreview()">✕</span></div>
     <div id="pdgPreviewBody" style="overflow-x:auto;"></div>
@@ -692,7 +741,7 @@
 </div>
 
 <!-- xem trước Giấy Đăng Ký -->
-<div class="modal-overlay hidden" id="giayDkPreviewModal" onclick="if(event.target===this)closeGiayDkPreview()">
+<div class="modal-overlay hidden" id="giayDkPreviewModal">
   <div class="modal" style="max-width:800px;">
     <div class="modal-title">Xem trước<span class="x" onclick="closeGiayDkPreview()">✕</span></div>
     <div id="giayDkPreviewBody" style="overflow-x:auto;"></div>
@@ -704,7 +753,7 @@
 </div>
 
 <!-- xem trước Health Certificate -->
-<div class="modal-overlay hidden" id="healthCertPreviewModal" onclick="if(event.target===this)closeHealthCertPreview()">
+<div class="modal-overlay hidden" id="healthCertPreviewModal">
   <div class="modal" style="max-width:800px;">
     <div class="modal-title">Xem trước<span class="x" onclick="closeHealthCertPreview()">✕</span></div>
     <div id="healthCertPreviewBody" style="overflow-x:auto;"></div>
@@ -716,7 +765,7 @@
 </div>
 
 <!-- chọn định dạng xuất -->
-<div class="modal-overlay hidden" id="formatPickerModal" onclick="if(event.target===this)closeFormatPicker()">
+<div class="modal-overlay hidden" id="formatPickerModal">
   <div class="modal" style="max-width:340px;">
     <div class="modal-title"><span id="formatPickerTitle">Chọn định dạng</span><span class="x" onclick="closeFormatPicker()">✕</span></div>
     <div id="formatPickerButtons"></div>
@@ -724,7 +773,7 @@
 </div>
 
 <!-- xem trước Chia Ngày Sản Xuất modal -->
-<div class="modal-overlay hidden" id="lcnPreviewModal" onclick="if(event.target===this)closeLcnPreview()">
+<div class="modal-overlay hidden" id="lcnPreviewModal">
   <div class="modal" style="max-width:800px;">
     <div class="modal-title">Xem trước<span class="x" onclick="closeLcnPreview()">✕</span></div>
     <div id="lcnPreviewBody" style="overflow-x:auto;"></div>
@@ -732,7 +781,7 @@
 </div>
 
 <!-- chọn size cho Chia Ngày Sản Xuất -->
-<div class="modal-overlay hidden" id="lcnSizePickerModal" onclick="if(event.target===this)closeLcnSizePicker()">
+<div class="modal-overlay hidden" id="lcnSizePickerModal">
   <div class="modal" style="max-width:420px;">
     <div class="modal-title">Chọn size (có thể chọn nhiều)<span class="x" onclick="closeLcnSizePicker()">✕</span></div>
     <div id="lcnSizePickerList" style="max-height:50vh;overflow-y:auto;"></div>
@@ -741,7 +790,7 @@
 </div>
 
 <!-- chọn hộ nuôi cho Chia Ngày Sản Xuất -->
-<div class="modal-overlay hidden" id="lcnHoNuoiPickerModal" onclick="if(event.target===this)closeLcnHoNuoiPicker()">
+<div class="modal-overlay hidden" id="lcnHoNuoiPickerModal">
   <div class="modal" style="max-width:420px;">
     <div class="modal-title">Chọn hộ nuôi (có thể chọn nhiều)<span class="x" onclick="closeLcnHoNuoiPicker()">✕</span></div>
     <input type="text" id="lcnHoNuoiPickerSearch" placeholder="🔍 Tìm hộ nuôi (không cần dấu)..." oninput="renderLcnHoNuoiPickerList()" style="margin-bottom:8px;">
@@ -752,7 +801,7 @@
 </div>
 
 <!-- xem trước danh sách modal -->
-<div class="modal-overlay hidden" id="danhSachPreviewModal" onclick="if(event.target===this)closeDanhSachPreview()">
+<div class="modal-overlay hidden" id="danhSachPreviewModal">
   <div class="modal" style="max-width:800px;">
     <div class="modal-title">Xem trước<span class="x" onclick="closeDanhSachPreview()">✕</span></div>
     <div id="danhSachPreviewBody" style="overflow-x:auto;"></div>
@@ -834,6 +883,7 @@ let xkThongTinValueList = [];
 let lotList = [];
 let packingList = [];
 let listChiaNgayList = [];
+let healthList = [];
 let lcnSection = 'tao';
 let lcnEditingId = null;
 let lcnNgayItems = []; // [{ngay, maTruyXuat, hoNuoiIds:[], sizeRows:[{rowId,sizeTen,soLuongCtn}]}]
@@ -850,6 +900,7 @@ const PERM_LIST = [
   {key:'xemDanhSach', label:'Xem/Xuất danh sách'},
   {key:'phieuDongGoi', label:'Phiếu đóng gói'},
   {key:'listChiaNgay', label:'Chia Ngày Sản Xuất'},
+  {key:'healthNhap', label:'Health Nháp'},
   {key:'quanLyDanhMuc', label:'Quản lý danh mục'},
   {key:'quanLyTaiKhoan', label:'Quản lý tài khoản'}
 ];
@@ -974,38 +1025,56 @@ function applyTabVisibility(){
     const tab = btn.dataset.tab;
     let ok = true;
     if(tab==='capLo') ok = hasPerm('capLo');
-    if(tab==='danhSach') ok = hasPerm('xemDanhSach');
     if(tab==='phieuDongGoi') ok = hasPerm('phieuDongGoi');
     if(tab==='listChiaNgay') ok = hasPerm('listChiaNgay');
+    if(tab==='healthNhap') ok = hasPerm('healthNhap') || hasPerm('phieuDongGoi'); // tài khoản cũ chưa có quyền riêng vẫn dùng được
     if(tab==='danhMuc') ok = hasPerm('quanLyDanhMuc');
     if(tab==='taiKhoan') ok = true; // Ai cũng cần vào được để tự đổi mật khẩu — phần Quản lý tài khoản bên trong vẫn được kiểm soát riêng bằng quyền quanLyTaiKhoan
     btn.classList.toggle('hidden', !ok);
   });
+  {
+    const btnList = document.querySelector('#capSubTab button[data-sub="list"]');
+    if(btnList){
+      const okList = hasPerm('xemDanhSach');
+      btnList.classList.toggle('hidden', !okList);
+      if(!okList && capSection==='list') switchCapSub('tao');
+    }
+  }
   document.getElementById('userMgmtCard').classList.toggle('hidden', !hasPerm('quanLyTaiKhoan'));
   document.getElementById('activityLogCard').classList.toggle('hidden', !hasPerm('quanLyTaiKhoan'));
 }
 
 /* ============ TABS ============ */
+let capSection = 'tao';
+function switchCapSub(sub){
+  capSection = sub;
+  document.querySelectorAll('#capSubTab button').forEach(b=>b.classList.toggle('active', b.dataset.sub===sub));
+  document.getElementById('cap-tao').classList.toggle('hidden', sub!=='tao');
+  document.getElementById('cap-list').classList.toggle('hidden', sub!=='list');
+  if(sub==='list'){ fillFilterSelects(); renderDanhSach(); }
+}
 function switchTab(tab){
   activeTab = tab;
   document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('[id^="pane-"]').forEach(p=>p.classList.toggle('hidden', p.id!=='pane-'+tab));
   if(tab==='capLo'){ fillCongTySelect(); fillKHSelect(); fillVungNuoiSelect(); }
-  if(tab==='danhSach'){ fillFilterSelects(); renderDanhSach(); }
+  if(tab==='capLo'){ switchCapSub(capSection); }
   if(tab==='danhMuc'){ renderCongTy(); renderKH(); renderVungNuoi(); renderSanPham(); renderSize(); renderChuHang(); renderDaiLyNL(); renderHoNuoi(); renderXkThongTinValues(); }
   if(tab==='phieuDongGoi'){ switchPdgSub(pdgSection); }
   if(tab==='listChiaNgay'){ switchLcnSub(lcnSection); }
+  if(tab==='healthNhap'){ switchHcSub(hcSection); }
   if(tab==='taiKhoan'){ renderCurAccountBox(); buildNewUserPermCheckboxes(); renderUserList(); renderActivityLog(); }
 }
 let pdgSection = 'tao';
 function switchPdgSub(sub){
+  if(sub==='tao') fillPdgNoiKyDatalist();
   pdgSection = sub;
   document.querySelectorAll('#pdgSubTab button').forEach(b=>b.classList.toggle('active', b.dataset.sub===sub));
   document.getElementById('pdg-tao').classList.toggle('hidden', sub!=='tao');
   document.getElementById('pdg-list').classList.toggle('hidden', sub!=='list');
   if(sub==='tao'){
     fillPdgKHSelect(); fillSanPhamSelect(); fillSizeSelect();
-    if(pdgItemsState.length===0) renderPdgItemCards();
+    if(pdgItemsState.length===0) renderPdgAuto();
     if(!document.getElementById('pdgNgayChungThu').value){
       document.getElementById('pdgNgayChungThu').value = new Date().toISOString().slice(0,10);
     }
@@ -1024,14 +1093,14 @@ function listenAll(){
     congTyList = snap.docs.map(d=>({id:d.id, ...d.data()}));
     if(activeTab==='danhMuc') renderCongTy();
     if(activeTab==='capLo'){ fillCongTySelect(); }
-    if(activeTab==='danhSach'){ fillFilterSelects(); renderDanhSach(); }
+    if(activeTab==='capLo' && capSection==='list'){ fillFilterSelects(); renderDanhSach(); }
   }, fsErr);
 
   db.collection('capmalo_khachhang').orderBy('ten').onSnapshot(snap=>{
     khList = snap.docs.map(d=>({id:d.id, ...d.data()}));
     if(activeTab==='danhMuc') renderKH();
     if(activeTab==='capLo'){ fillKHSelect(); }
-    if(activeTab==='danhSach'){ fillFilterSelects(); renderDanhSach(); }
+    if(activeTab==='capLo' && capSection==='list'){ fillFilterSelects(); renderDanhSach(); }
   }, fsErr);
 
   db.collection('capmalo_vungnuoi').orderBy('ten').onSnapshot(snap=>{
@@ -1088,6 +1157,11 @@ function listenAll(){
     if(activeTab==='listChiaNgay' && lcnSection==='list') renderLcnList();
   }, fsErr);
 
+  db.collection('capmalo_health').orderBy('createdAt','desc').onSnapshot(snap=>{
+    healthList = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(activeTab==='healthNhap' && hcSection==='list') renderHcList();
+  }, fsErr);
+
   db.collection('capmalo_users').onSnapshot(snap=>{
     userList = snap.docs.map(d=>({id:d.id, ...d.data()}));
     checkLoginGate();
@@ -1096,7 +1170,7 @@ function listenAll(){
 
   db.collection('capmalo_lot').orderBy('createdAt','desc').onSnapshot(snap=>{
     lotList = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    if(activeTab==='danhSach') renderDanhSach();
+    if(activeTab==='capLo' && capSection==='list') renderDanhSach();
   }, fsErr);
 }
 
@@ -1920,7 +1994,7 @@ function importHoNuoiExcel(evt){
 }
 
 /* ============ DANH MỤC: THÔNG TIN XUẤT KHẨU (giá trị gợi ý tái sử dụng) ============ */
-const XK_LOAI_LABEL = {noiDi:'Nơi đi', cangXuatKhau:'Cảng xuất khẩu', noiDenQuocGia:'Nơi đến (quốc gia)', cangNhapKhau:'Cảng/nơi nhập khẩu cụ thể', moTaHangHoa:'Mô tả hàng hóa'};
+const XK_LOAI_LABEL = {noiDi:'Nơi đi', cangXuatKhau:'Cảng xuất khẩu', noiDenQuocGia:'Nơi đến (quốc gia)', cangNhapKhau:'Cảng/nơi nhập khẩu cụ thể', moTaHangHoa:'Mô tả hàng hóa', noiKy:'Nơi ký'};
 function addXkThongTinValue(){
   const loai = document.getElementById('newXKTVLoai').value;
   const giaTri = document.getElementById('newXKTVGiaTri').value.trim();
@@ -2128,7 +2202,7 @@ async function capMaLoNgay(evt){
     logActivity(`Cấp mã lô ${payload.lotNo} — KH: ${payload.khachHangTen}`);
     showToast('Đã cấp mã '+payload.lotNo);
     resetFormCapLo();
-    switchTab('danhSach');
+    switchTab('capLo'); switchCapSub('list');
   }catch(e){ fsErr(e); }
   finally{
     if(btn){ btn.disabled = false; btn.textContent = '+ Cấp mã lô'; }
@@ -2395,137 +2469,84 @@ function fillPdgKHSelect(){
   sel.innerHTML = '<option value="">— Chọn khách hàng —</option>' + khList.map(k=>`<option value="${k.id}">${escapeHtml(k.ten)}</option>`).join('');
   if(cur) sel.value = cur;
 }
-function fillSanPhamSelect(){ /* Sản phẩm giờ chọn theo từng mặt hàng — xem renderPdgItemCards() */ }
+function fillSanPhamSelect(){ /* Sản phẩm lấy tự động từ Health Nháp — không còn chọn tay ở tab Bảng Kê */ }
 function fillSizeSelect(){ /* Phiếu Đóng Gói không còn chọn size thủ công — xem Chia Ngày Sản Xuất */ }
-let pdgItemsState = []; // [{lotId, sanPhamTen, matHangTen, quyCach, net, gross, ngaySX, rows}] — mỗi phần tử = 1 mặt hàng trong Lot No
+let pdgItemsState = []; // mặt hàng lấy thẳng từ Health Nháp, không sửa tay
+let pdgHealth = null;   // bản ghi Health Nháp đang gắn với phiếu đang tạo
+function findHealthFor(khId, lotNo){
+  return healthList.find(h=>h.khachHangId===khId && h.lotNo===lotNo) || null;
+}
 function onPdgKHChange(){
   const khId = document.getElementById('pdgKhachHang').value;
   const lotSel = document.getElementById('pdgLot');
-  const eligible = lotList.filter(l=>l.khachHangId===khId && !l.hasHealthCert && listChiaNgayList.some(x=>x.lotId===l.id));
-  const byLotNo = {};
-  eligible.forEach(l=>{ (byLotNo[l.lotNo] = byLotNo[l.lotNo]||[]).push(l); });
-  const lotNos = Object.keys(byLotNo);
-  lotSel.innerHTML = '<option value="">— Chọn Lot No —</option>' + lotNos.map(lotNo=>{
-    const items = byLotNo[lotNo];
-    const label = items.length>1 ? `${lotNo} — ${items.length} mặt hàng` : `${lotNo} — ${escapeHtml((items[0].matHangNet||'').slice(0,40))}`;
-    return `<option value="${escapeHtml(lotNo)}">${label}</option>`;
+  // chỉ hiện Lot đã có Health Nháp
+  const eligible = lotList.filter(l=>l.khachHangId===khId && !l.hasHealthCert
+    && listChiaNgayList.some(x=>x.lotId===l.id)
+    && healthList.some(h=>h.khachHangId===khId && h.lotNo===l.lotNo));
+  const lotNos = [...new Set(eligible.map(l=>l.lotNo))];
+  lotSel.innerHTML = '<option value="">— Chọn Lot No —</option>' + lotNos.map(n=>{
+    const cnt = eligible.filter(l=>l.lotNo===n).length;
+    return `<option value="${escapeHtml(n)}">${escapeHtml(n)}${cnt>1?` — ${cnt} mặt hàng`:''}</option>`;
   }).join('');
-  if(khId && lotNos.length===0){
-    showToast('Khách hàng này chưa có Lot No nào làm Chia Ngày Sản Xuất — làm Chia Ngày Sản Xuất trước đã');
-  }
-  document.getElementById('pdgNgaySX').value = '';
-  document.getElementById('pdgVungNuoi').value = '';
-  document.getElementById('pdgCongTyTen').value = '';
-  document.getElementById('pdgCongTyDiaChi').value = '';
-  const kh = khList.find(k=>k.id===khId);
-  const receivers = kh ? getReceiverList(kh) : [];
-  document.getElementById('pdgNguoiNhanSelect').innerHTML = '<option value="">— Chọn —</option>' + receivers.map((r,i)=>`<option value="${i}">${escapeHtml(r.ten)}</option>`).join('');
-  document.getElementById('pdgDiaChiNguoiNhan').value = '';
-  pdgItemsState = [];
-  renderPdgItemCards();
+  if(khId && !lotNos.length) showToast('Khách hàng này chưa có Lot No nào đã làm Health Nháp — làm Health Nháp trước đã');
+  pdgHealth = null; pdgItemsState = [];
+  renderPdgAuto(); pdgUpdateGrandTotal();
 }
-function onPdgNguoiNhanChange(){
-  const khId = document.getElementById('pdgKhachHang').value;
-  const kh = khList.find(k=>k.id===khId);
-  const idx = document.getElementById('pdgNguoiNhanSelect').value;
-  const receivers = kh ? getReceiverList(kh) : [];
-  document.getElementById('pdgDiaChiNguoiNhan').value = (idx!=='' && receivers[idx]) ? (receivers[idx].diaChi||'') : '';
+function pdgSanPhamInfo(ten){ return sanPhamList.find(s=>s.ten===ten) || null; }
+// Công ty sản xuất gắn theo Lot (mục 7 Giấy ĐK) — KHÁC với Chủ hàng (mục 1)
+function pdgCoSoSanXuat(khId, lotNo){
+  const lot = lotList.find(l=>l.khachHangId===khId && l.lotNo===lotNo);
+  if(!lot) return null;
+  return congTyList.find(c=>c.id===lot.congTyId) || null;
 }
 function onPdgLotChange(){
   const khId = document.getElementById('pdgKhachHang').value;
   const lotNo = document.getElementById('pdgLot').value;
-  const lots = lotList.filter(l=>l.khachHangId===khId && l.lotNo===lotNo && !l.hasHealthCert);
-  if(!lots.length){
-    document.getElementById('pdgNgaySX').value=''; document.getElementById('pdgVungNuoi').value='';
-    document.getElementById('pdgCongTyTen').value=''; document.getElementById('pdgCongTyDiaChi').value='';
-    pdgItemsState=[]; renderPdgItemCards(); return;
-  }
-  const firstLot = lots[0];
-  const allNgay = [...new Set(lots.flatMap(l=>l.ngaySX||[]))].sort();
-  document.getElementById('pdgNgaySX').value = allNgay.map(fmtDateVN).join(', ');
-  document.getElementById('pdgVungNuoi').value = firstLot.vungNuoiTen;
-  const congTy = congTyList.find(c=>c.id===firstLot.congTyId);
-  document.getElementById('pdgCongTyTen').value = congTy? congTy.ten:'';
-  document.getElementById('pdgCongTyDiaChi').value = congTy? (congTy.diaChi||''):'';
-
-  pdgItemsState = lots.map(l=>{
-    const lcn = listChiaNgayList.find(x=>x.lotId===l.id);
-    const bySize = {}, order=[];
-    if(lcn){
-      (lcn.ngayItems||[]).forEach(ni=>{
-        (ni.sizeRows||[]).forEach(r=>{
-          if(!(r.sizeTen in bySize)){ bySize[r.sizeTen]=0; order.push(r.sizeTen); }
-          bySize[r.sizeTen] += Number(r.soLuongCtn)||0;
-        });
-      });
-    }
-    const rows = sortBySizeOrder(order.map(sizeTen=>({sizeTen, soLuongCtn:bySize[sizeTen]})));
-    return { lotId:l.id, sanPhamTen:'', matHangTen:'', quyCach:'', net:0, gross:0, ngaySX:l.ngaySX||[], rows, _lcnMissing: !lcn, _matHangNetHint: l.matHangNet||'' };
-  });
-  renderPdgItemCards();
-  if(pdgItemsState.some(it=>it._lcnMissing)) showToast('Có mặt hàng trong Lot này chưa làm Chia Ngày Sản Xuất — vào tab Chia Ngày Sản Xuất để nhập trước');
-}
-function renderPdgItemCards(){
-  const wrap = document.getElementById('pdgItemsWrap');
-  if(!pdgItemsState.length){ wrap.innerHTML = '<div class="card"><div class="empty"><div class="ico">📦</div>Chọn Lot No để hiện mặt hàng</div></div>'; pdgUpdateGrandTotal(); return; }
-  const khId = document.getElementById('pdgKhachHang').value;
-  const kh = khList.find(k=>k.id===khId);
-  wrap.innerHTML = pdgItemsState.map((it,idx)=>{
-    const presetOpts = '<option value="">— Chọn mẫu —</option>' + (kh && kh.presets ? kh.presets.map((p,i)=>`<option value="${i}">${escapeHtml(presetLabel(p))}</option>`).join(''):'');
-    const sanPhamOpts = '<option value="">— Chọn sản phẩm —</option>' + sanPhamList.map(s=>`<option value="${escapeHtml(s.ten)}" ${s.ten===it.sanPhamTen?'selected':''}>${escapeHtml(s.ten)}</option>`).join('');
-    const rowsHtml = it.rows.length ? it.rows.map((r,ri)=>`
-      <tr><td>${ri+1}</td><td>${escapeHtml(r.sizeTen)}</td>
-      <td style="text-align:right;">${formatNumber(r.soLuongCtn)}</td>
-      <td id="pdgItemTinh_${idx}_${ri}" style="text-align:right;">-</td>
-      <td id="pdgItemTong_${idx}_${ri}" style="text-align:right;">-</td></tr>`).join('')
-      : `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:12px;">Chưa có dữ liệu size — làm Chia Ngày Sản Xuất cho mặt hàng này</td></tr>`;
-    return `<div class="card" style="overflow-x:auto;border:1px solid var(--primary);">
-      <div class="card-title">📦 Mặt hàng ${idx+1}/${pdgItemsState.length}${it._matHangNetHint? ` <span class="small muted">(Cấp Lô ghi: ${escapeHtml(it._matHangNetHint.slice(0,50))})</span>`:''}</div>
-      <div class="grid">
-        <div class="field"><label>Tên sản phẩm</label><select onchange="pdgItemSetField(${idx},'sanPhamTen',this.value)">${sanPhamOpts}</select></div>
-        <div class="field"><label>Mẫu Mặt hàng - Net</label><select onchange="onPdgItemPresetChange(${idx}, this.value)">${presetOpts}</select></div>
-      </div>
-      <div class="grid" style="margin-top:4px;">
-        <div class="field"><label>Mặt hàng</label><input type="text" value="${escapeHtml(it.matHangTen)}" onchange="pdgItemSetField(${idx},'matHangTen',this.value)"></div>
-        <div class="field"><label>Quy cách đóng gói</label><input type="text" value="${escapeHtml(it.quyCach)}" onchange="pdgItemSetField(${idx},'quyCach',this.value)"></div>
-      </div>
-      <div class="row-flex" style="margin-top:4px;">
-        <div class="field"><label>Net (Kg)</label><input type="number" step="0.01" value="${it.net||''}" oninput="pdgItemSetNumField(${idx},'net',this.value)"></div>
-        <div class="field"><label>Gross (Kg)</label><input type="number" step="0.01" value="${it.gross||''}" oninput="pdgItemSetNumField(${idx},'gross',this.value)"></div>
-      </div>
-      <div class="table-scroll" style="margin-top:10px;">
-        <table class="grid-table">
-          <thead><tr><th style="width:36px;">Stt</th><th>Size</th><th style="width:110px;">Số lượng (CTN)</th><th style="width:120px;">KL tịnh (Kg)</th><th style="width:120px;">KL tổng (Kg)</th></tr></thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
-      </div>
-    </div>`;
-  }).join('');
-  pdgItemsState.forEach((it,idx)=>pdgItemRecalc(idx));
-}
-function pdgItemSetField(idx, field, val){ pdgItemsState[idx][field]=val; }
-function pdgItemSetNumField(idx, field, val){ pdgItemsState[idx][field]=parseFloat(val)||0; pdgItemRecalc(idx); }
-function onPdgItemPresetChange(idx, presetIdx){
-  const khId = document.getElementById('pdgKhachHang').value;
-  const kh = khList.find(k=>k.id===khId);
-  if(presetIdx===''||!kh) return;
-  const p = normPreset(kh.presets[presetIdx]);
-  pdgItemsState[idx].matHangTen = p.tenMatHang;
-  pdgItemsState[idx].quyCach = p.quyCach;
-  pdgItemsState[idx].net = p.net||0;
-  pdgItemsState[idx].gross = p.gross||0;
-  renderPdgItemCards();
-}
-function pdgItemRecalc(idx){
-  const it = pdgItemsState[idx];
-  it.rows.forEach((r,ri)=>{
-    const ctn = r.soLuongCtn||0;
-    const tinh=ctn*it.net, tong=ctn*it.gross;
-    const tE=document.getElementById(`pdgItemTinh_${idx}_${ri}`), oE=document.getElementById(`pdgItemTong_${idx}_${ri}`);
-    if(tE) tE.textContent = tinh?formatNumber2(tinh):'-';
-    if(oE) oE.textContent = tong?formatNumber2(tong):'-';
-  });
+  pdgHealth = lotNo ? findHealthFor(khId, lotNo) : null;
+  pdgItemsState = pdgHealth ? getPdgItems(pdgHealth).map(it=>({
+    lotId: it.lotId, sanPhamTen: it.sanPhamTen||'', matHangTen: it.matHangTen||'', quyCach: it.quyCach||'',
+    net: Number(it.net)||0, gross: Number(it.gross)||0, ngaySX: it.ngaySX||[],
+    rows: sortBySizeOrder((it.rows||[]).map(r=>({sizeTen:r.sizeTen, soLuongCtn:Number(r.soLuongCtn)||0})))
+  })) : [];
+  renderPdgAuto();
   pdgUpdateGrandTotal();
+}
+function renderPdgAuto(){
+  const el = document.getElementById('pdgAutoBody');
+  if(!el) return;
+  if(!pdgHealth){
+    el.innerHTML = '<div class="empty" style="color:#a3312a;"><div class="ico">⚠</div>Lot này chưa có Health Nháp — vào tab Health Nháp cập nhật trước khi xuất file</div>';
+    return;
+  }
+  const h = pdgHealth;
+  const khId = document.getElementById('pdgKhachHang').value;
+  const ch = chuHangList.find(c=>c.id===(h.chuHangIdHC||h.chuHangId));
+  const cs = pdgCoSoSanXuat(khId, h.lotNo);
+  const seal = splitContainerSeal(h.containerSeal);
+  const t = pdgTotals(h);
+  const items = getPdgItems(h);
+  const multi = items.length > 1;
+  const spInfo = items.map(it=>pdgSanPhamInfo(it.sanPhamTen));
+  const join = (arr)=> multi ? arr.map((v,i)=>`${i+1}./ ${v||''}`).join('\n') : (arr[0]||'');
+  const line = (lab, val, danger) => `<div class="row-flex" style="gap:8px;padding:5px 0;align-items:flex-start;">
+      <div class="small" style="flex:0 0 34%;color:#8a6d0b;">${lab}</div>
+      <div class="small" style="flex:1;font-weight:700;color:${danger?'#a3312a':'#6b540a'};white-space:pre-wrap;">${escapeHtml(val||'—')}</div></div>`;
+  const containerHtml = (seal.container || seal.seal)
+    ? line('10. Số container / seal', `${seal.container||'—'} / ${seal.seal||'—'}`)
+    : line('10. Số container / seal', '⚠ Chưa có — cập nhật bên Health Nháp', true);
+  el.innerHTML =
+    line('1. Chủ hàng', ch ? [ch.ten, [ch.diaChi||'', ch.dienThoai||''].filter(Boolean).join(' · ')].filter(Boolean).join('\n') : '(chưa chọn ở Health Nháp)')
+    + line('2. Người nhận hàng', [h.tenNguoiNhan||'', h.diaChiNguoiNhan||''].filter(Boolean).join('\n'))
+    + line('3. Nơi đi · Cảng xuất khẩu', h.tuNoi||'')
+    + line('4. Nơi đến', h.cangNhapKhau||'')
+    + line('5. Mô tả hàng hóa', join(spInfo.map(sp=>sp? (sp.moTa||''):'')))
+    + line('5. Tên sản phẩm', join(items.map(it=>it.sanPhamTen)))
+    + line('5. Tên khoa học · HS Code', `${join(spInfo.map(sp=>sp?(sp.tenKhoaHoc||''):''))}${multi?'\n':' · '}${join(spInfo.map(sp=>sp?(sp.hsCode||''):''))}`)
+    + line('6. Số lượng · Gross · Net', `${formatNumber(t.sumCtn)} ctns · ${formatNumber2(t.sumTong)} kg · ${formatNumber2(t.sumTinh)} kg`)
+    + line('7. Cơ sở sản xuất · Mã số', cs ? `${cs.ten} · ${cs.maCode||''}` : '(không tìm thấy Công ty của Lot)')
+    + line('8. Mã lô · Thời gian sản xuất', `${h.lotNo||''} · ${(h.ngaySX||[]).map(fmtDateDot).join('  &  ')}`)
+    + line('9. Xuất xứ nguyên liệu', `${h.vungNuoiTen||''} (${xuatXuText(h)})`)
+    + containerHtml;
 }
 function pdgUpdateGrandTotal(){
   let sumCtn=0,sumTinh=0,sumTong=0;
@@ -2537,24 +2558,24 @@ function pdgUpdateGrandTotal(){
   if(b) b.textContent=formatNumber2(sumTinh);
   if(c) c.textContent=formatNumber2(sumTong);
 }
+function fillPdgNoiKyDatalist(){
+  const dl = document.getElementById('dl_noiKy');
+  if(!dl) return;
+  dl.innerHTML = xkThongTinValueList.filter(x=>x.loai==='noiKy').map(x=>`<option value="${escapeHtml(x.giaTri)}"></option>`).join('');
+}
 function resetPdgForm(){
   pdgEditingId = null;
   document.getElementById('pdgKhachHang').value = '';
   document.getElementById('pdgLot').innerHTML = '<option value="">— Chọn Lot No —</option>';
   document.getElementById('pdgMaTruyXuat').value = '';
-  document.getElementById('pdgNgaySX').value = '';
-  document.getElementById('pdgVungNuoi').value = '';
-  document.getElementById('pdgCongTyTen').value = '';
-  document.getElementById('pdgCongTyDiaChi').value = '';
-  document.getElementById('pdgNguoiNhanSelect').innerHTML = '<option value="">— Chọn —</option>';
-  document.getElementById('pdgDiaChiNguoiNhan').value = '';
+  pdgHealth = null;
+  pdgItemsState = [];
+  renderPdgAuto();
+  pdgUpdateGrandTotal();
   document.getElementById('pdgSoChungThu').value = '';
   document.getElementById('pdgNgayChungThu').value = new Date().toISOString().slice(0,10);
+  document.getElementById('pdgNgayXuatKhau').value = '';
   document.getElementById('pdgNoiKy').value = '';
-  document.getElementById('pdgFrom').value = '';
-  document.getElementById('pdgTo').value = '';
-  pdgItemsState = [];
-  renderPdgItemCards();
   document.getElementById('pdgSaveBtn').textContent = '💾 Lưu phiếu đóng gói';
 }
 async function savePdg(){
@@ -2563,44 +2584,55 @@ async function savePdg(){
   const lotNo = document.getElementById('pdgLot').value;
   const lots = lotList.filter(l=>l.khachHangId===khId && l.lotNo===lotNo && !l.hasHealthCert);
   const firstLot = lots[0];
-  const congTy = firstLot ? congTyList.find(c=>c.id===firstLot.congTyId) : null;
+  const coSo = pdgCoSoSanXuat(khId, lotNo);
   const vungNuoi = firstLot ? vungNuoiList.find(v=>v.id===firstLot.vungNuoiId) : null;
   const maTruyXuat = document.getElementById('pdgMaTruyXuat').value.trim();
   const soChungThu = document.getElementById('pdgSoChungThu').value.trim();
   const ngayChungThu = document.getElementById('pdgNgayChungThu').value;
+  const ngayXuatKhau = document.getElementById('pdgNgayXuatKhau').value;
   const noiKy = document.getElementById('pdgNoiKy').value.trim();
-  const tuNoi = document.getElementById('pdgFrom').value.trim();
-  const denNoi = document.getElementById('pdgTo').value.trim();
-  const receiverIdx = document.getElementById('pdgNguoiNhanSelect').value;
-  const receivers = kh ? getReceiverList(kh) : [];
-  const receiver = receiverIdx!=='' ? receivers[receiverIdx] : null;
+  const hc = pdgHealth || findHealthFor(khId, lotNo);
   if(!kh){ showToast('Chọn khách hàng'); return; }
   if(!firstLot){ showToast('Chọn Lot No'); return; }
-  if(!pdgItemsState.length){ showToast('Lot này chưa có mặt hàng nào'); return; }
-  for(const it of pdgItemsState){
-    if(!it.sanPhamTen){ showToast('Chọn Tên sản phẩm cho tất cả mặt hàng'); return; }
-    if(!it.matHangTen || !it.net || !it.gross){ showToast('Nhập đủ Mặt hàng/Net/Gross cho tất cả mặt hàng'); return; }
-    if(!it.rows.length){ showToast('Có mặt hàng chưa có dữ liệu size'); return; }
-  }
+  if(!hc){ showToast('Lot này chưa có Health Nháp — vào tab Health Nháp cập nhật trước'); return; }
+  if(!pdgItemsState.length){ showToast('Health Nháp của Lot này chưa có mặt hàng nào'); return; }
+  const chuHangVN = chuHangList.find(c=>c.id===(hc.chuHangIdHC||hc.chuHangId)) || null;
   const allNgay = [...new Set(lots.flatMap(l=>l.ngaySX||[]))].sort();
   const items = pdgItemsState.map(it=>({
     lotId: it.lotId, sanPhamTen: it.sanPhamTen, matHangTen: it.matHangTen, quyCach: it.quyCach,
     net: it.net, gross: it.gross, ngaySX: it.ngaySX,
     rows: it.rows.map(r=>({sizeTen:r.sizeTen, soLuongCtn: parseFloat(r.soLuongCtn)||0}))
   }));
+  const sp0 = pdgSanPhamInfo(items[0].sanPhamTen);
   const data = {
     khachHangId: khId, khachHangTen: kh.ten,
-    tenNguoiNhan: receiver? receiver.ten:'', diaChiNguoiNhan: receiver? (receiver.diaChi||''):'',
-    dienThoaiNguoiNhan: receiver? (receiver.dienThoai||''):'', emailNguoiNhan: receiver? (receiver.email||''):'',
+    healthId: hc.id||'',
+    tenNguoiNhan: hc.tenNguoiNhan||'', diaChiNguoiNhan: hc.diaChiNguoiNhan||'',
+    dienThoaiNguoiNhan: '', emailNguoiNhan: '',
     lotNo, ngaySX: allNgay, vungNuoiTen: firstLot.vungNuoiTen, vungNuoiTenEN: vungNuoi? (vungNuoi.tenEN||''):'',
-    congTyTen: document.getElementById('pdgCongTyTen').value.trim() || (congTy? congTy.ten:''),
-    congTyDiaChi: document.getElementById('pdgCongTyDiaChi').value.trim() || (congTy? (congTy.diaChi||''):''),
-    congTyDiaChiEN: congTy? (congTy.diaChiEN||''):'', congTyTenEN: congTy? (congTy.tenEN||''):'',
-    congTyMaCode: congTy? congTy.maCode:'', congTyDienThoai: congTy? (congTy.dienThoai||''):'', congTyEmail: congTy? (congTy.email||''):'',
-    maTruyXuat, soChungThu, ngayChungThu, noiKy, tuNoi, denNoi,
+    // Chủ hàng (mục 1 Giấy ĐK + đầu Bảng Kê) — lấy từ Health Nháp
+    chuHangId: hc.chuHangIdHC || hc.chuHangId || '', chuHangIdHC: hc.chuHangIdHC || '',
+    congTyTen: chuHangVN ? chuHangVN.ten : '', congTyDiaChi: chuHangVN ? (chuHangVN.diaChi||'') : '',
+    // Cơ sở sản xuất (mục 7 Giấy ĐK) — theo Công ty gắn với Lot, TÁCH RIÊNG khỏi Chủ hàng
+    coSoSanXuatTen: coSo? coSo.ten:'', coSoSanXuatMaCode: coSo? (coSo.maCode||''):'',
+    congTyDiaChiEN: coSo? (coSo.diaChiEN||''):'', congTyTenEN: coSo? (coSo.tenEN||''):'',
+    congTyMaCode: coSo? (coSo.maCode||''):'', congTyDienThoai: coSo? (coSo.dienThoai||''):'', congTyEmail: coSo? (coSo.email||''):'',
+    // Vận chuyển — lấy từ Health Nháp
+    noiDi: hc.tuNoi||'', cangXuatKhau: hc.tuNoi||'',
+    noiDenQuocGia: hc.cangNhapKhau||'', cangNhapKhau: hc.cangNhapKhau||'',
+    containerSeal: hc.containerSeal||'',
+    tuNoi: hc.tuNoi||'', denNoi: hc.cangNhapKhau||'',
+
+    maTruyXuat, soChungThu, ngayChungThu, ngayXuatKhau, noiKy,
     items
   };
+  const cu = pdgEditingId ? packingList.find(x=>x.id===pdgEditingId) : null;
+  data.phuongTien = (cu && cu.phuongTien) || 'Xe tải/xe container';
+  data.dieuKienVanChuyen = (cu && cu.dieuKienVanChuyen) || 'Đông lạnh';
+  data.deNghiCap = (cu && cu.deNghiCap) || 'Chứng nhận ATTP DS 2031';
+  data.moTaHangHoa = (cu && cu.moTaHangHoa) || (sp0? (sp0.moTa||''):'');
   try{
+    if(noiKy) autoSaveXkValue('noiKy', noiKy);
     if(pdgEditingId){
       await db.collection('capmalo_packinglist').doc(pdgEditingId).update(data);
       logActivity(`Cập nhật Phiếu Đóng Gói ${lotNo}`);
@@ -2624,31 +2656,18 @@ function editPdg(id){
   document.getElementById('pdgSaveBtn').textContent = '💾 Cập nhật phiếu đóng gói';
   document.getElementById('pdgKhachHang').value = p.khachHangId;
   onPdgKHChange();
-  document.getElementById('pdgLot').value = p.lotNo;
-  document.getElementById('pdgMaTruyXuat').value = p.maTruyXuat||'';
-  {
-    const kh = khList.find(k=>k.id===p.khachHangId);
-    const receivers = kh ? getReceiverList(kh) : [];
-    const idx = receivers.findIndex(r=>r.ten===p.tenNguoiNhan);
-    document.getElementById('pdgNguoiNhanSelect').value = idx>=0 ? String(idx) : '';
-    document.getElementById('pdgDiaChiNguoiNhan').value = p.diaChiNguoiNhan||'';
+  const lotSel = document.getElementById('pdgLot');
+  if(p.lotNo && ![...lotSel.options].some(o=>o.value===p.lotNo)){
+    lotSel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(p.lotNo)}">${escapeHtml(p.lotNo)}</option>`);
   }
-  document.getElementById('pdgNgaySX').value = (p.ngaySX||[]).map(fmtDateVN).join(', ');
-  document.getElementById('pdgVungNuoi').value = p.vungNuoiTen||'';
-  document.getElementById('pdgCongTyTen').value = p.congTyTen||'';
-  document.getElementById('pdgCongTyDiaChi').value = p.congTyDiaChi||'';
+  lotSel.value = p.lotNo;
+  onPdgLotChange();
+  document.getElementById('pdgMaTruyXuat').value = p.maTruyXuat||'';
   document.getElementById('pdgSoChungThu').value = p.soChungThu||'';
   document.getElementById('pdgNgayChungThu').value = p.ngayChungThu||'';
+  document.getElementById('pdgNgayXuatKhau').value = p.ngayXuatKhau||'';
   document.getElementById('pdgNoiKy').value = p.noiKy||'';
-  document.getElementById('pdgFrom').value = p.tuNoi||'';
-  document.getElementById('pdgTo').value = p.denNoi||'';
-  pdgItemsState = getPdgItems(p).map(it=>({
-    lotId: it.lotId, sanPhamTen: it.sanPhamTen||'', matHangTen: it.matHangTen||'', quyCach: it.quyCach||'',
-    net: it.net||0, gross: it.gross||0, ngaySX: it.ngaySX||[],
-    rows: sortBySizeOrder((it.rows||[]).map(r=>({sizeTen:r.sizeTen, soLuongCtn:r.soLuongCtn||0})))
-  }));
-  renderPdgItemCards();
-  showToast('Đang sửa phiếu '+p.lotNo+' — sửa xong bấm "Cập nhật phiếu đóng gói"');
+  showToast('Đang sửa phiếu '+p.lotNo+' — dữ liệu mặt hàng nạp lại theo Health Nháp mới nhất');
 }
 function fillPdgFilterKH(){
   const sel = document.getElementById('pdgFilterKH');
@@ -2682,7 +2701,8 @@ function renderPdgList(){
   const wrap = document.getElementById('pdgListWrap');
   const list = getFilteredPdg();
   if(!list.length){ wrap.innerHTML = '<div class="card"><div class="empty"><div class="ico">📦</div>Chưa có phiếu đóng gói nào</div></div>'; return; }
-  wrap.innerHTML = list.map(p=>{
+  wrap.innerHTML = list.map(p0=>{
+    const p = pdgResolve(p0);
     const t = pdgTotals(p);
     const pItems = getPdgItems(p);
     const matHangSummary = pItems.length>1
@@ -2702,79 +2722,95 @@ function renderPdgList(){
         Ngày SX: ${(p.ngaySX||[]).map(fmtDateVN).join(', ')} · Vùng nuôi: ${escapeHtml(p.vungNuoiTen)}<br>
         Tổng: ${formatNumber(t.sumCtn)} CTN — ${formatNumber2(t.sumTinh)} Kg tịnh — ${formatNumber2(t.sumTong)} Kg tổng
         ${hasAnyRows? `<br><span style="color:var(--ok);">✓ Đã cập nhật chi tiết lô hàng</span>` : `<br><span style="color:var(--danger);">⚠ Chưa có dữ liệu size — kiểm tra Chia Ngày Sản Xuất</span>`}
-        ${p.chuHangId? `<br><span style="color:var(--ok);">✓ Đã có thông tin xuất khẩu</span>` : ''}
+        ${splitContainerSeal(p.containerSeal).container ? '' : `<br><span style="color:var(--danger);">⚠ Chưa có Số container/seal — cập nhật bên Health Nháp</span>`}
       </div>
       <div class="btn-row" style="margin-top:10px;flex-wrap:wrap;">
         <button class="btn btn-outline btn-sm" onclick="xemPdgTruoc('${p.id}')">👁️ Xem</button>
         <button class="btn btn-outline btn-sm" onclick="xuatBangKe('${p.id}')">📤 Xuất Bảng kê</button>
-        <button class="btn btn-amber btn-sm" onclick="openXuatKhauInfo('${p.id}')">📝 Thông tin XK</button>
+        <button class="btn btn-amber btn-sm" onclick="openPhieuDk('${p.id}')">📝 Cập nhật phiếu ĐK</button>
         <button class="btn btn-outline btn-sm" onclick="xemGiayDkTruoc('${p.id}')">👁️ Xem Giấy ĐK</button>
         <button class="btn btn-primary btn-sm" onclick="xuatGiayDangKy('${p.id}')">📤 Xuất Đăng Ký</button>
-        <button class="btn btn-outline btn-sm" onclick="xemHealthCertTruoc('${p.id}')">👁️ Xem Health Cert</button>
-        <button class="btn btn-primary btn-sm" onclick="xuatHealthCert('${p.id}')">📤 Xuất Health Cert</button>
         ${needsUyQuyen(p) ? `<button class="btn btn-amber btn-sm" onclick="exportGiayUyQuyen('${p.id}')">📜 Xuất Giấy Ủy Quyền</button>` : ''}
       </div>
     </div>`;
   }).join('');
 }
-/* ============ THÔNG TIN XUẤT KHẨU (phần xuất khẩu Mẫu 02.LH) ============ */
-function openXuatKhauInfo(id){
+// Hợp nhất phiếu với Health Nháp NGAY LÚC XUẤT FILE — phiếu lưu từ bản cũ vẫn ra đúng, không cần lưu lại
+function pdgResolve(p){
+  if(!p) return null;
+  const hc = findHealthFor(p.khachHangId, p.lotNo);
+  const coSo = pdgCoSoSanXuat(p.khachHangId, p.lotNo);
+  const base = Object.assign({}, p, {
+    coSoSanXuatTen: coSo? coSo.ten : (p.coSoSanXuatTen || p.congTyTen || ''),
+    coSoSanXuatMaCode: coSo? (coSo.maCode||'') : (p.coSoSanXuatMaCode || p.congTyMaCode || ''),
+    congTyMaCode: coSo? (coSo.maCode||'') : (p.congTyMaCode||''),
+    congTyTenEN: coSo? (coSo.tenEN||'') : (p.congTyTenEN||''),
+    congTyDiaChiEN: coSo? (coSo.diaChiEN||'') : (p.congTyDiaChiEN||''),
+    phuongTien: p.phuongTien || 'Xe tải/xe container',
+    dieuKienVanChuyen: p.dieuKienVanChuyen || 'Đông lạnh',
+    deNghiCap: p.deNghiCap || 'Chứng nhận ATTP DS 2031'
+  });
+  if(!hc){
+    const spOld = pdgSanPhamInfo((getPdgItems(p)[0]||{}).sanPhamTen);
+    base.moTaHangHoa = p.moTaHangHoa || (spOld? (spOld.moTa||''):'');
+    return base;
+  }
+  const ch = chuHangList.find(c=>c.id===(hc.chuHangIdHC||hc.chuHangId)) || null;
+  const items = getPdgItems(hc);
+  const sp0 = pdgSanPhamInfo((items[0]||{}).sanPhamTen);
+  return Object.assign(base, {
+    items,
+    ngaySX: (hc.ngaySX && hc.ngaySX.length)? hc.ngaySX : (p.ngaySX||[]),
+    vungNuoiTen: hc.vungNuoiTen || p.vungNuoiTen || '',
+    vungNuoiTenEN: hc.vungNuoiTenEN || p.vungNuoiTenEN || '',
+    chuHangId: hc.chuHangIdHC || hc.chuHangId || p.chuHangId || '',
+    chuHangIdHC: hc.chuHangIdHC || p.chuHangIdHC || '',
+    congTyTen: ch? ch.ten : (p.congTyTen||''),
+    congTyDiaChi: ch? (ch.diaChi||'') : (p.congTyDiaChi||''),
+    tenNguoiNhan: hc.tenNguoiNhan || p.tenNguoiNhan || '',
+    diaChiNguoiNhan: hc.diaChiNguoiNhan || p.diaChiNguoiNhan || '',
+    noiDi: hc.tuNoi || p.noiDi || '',
+    cangXuatKhau: hc.tuNoi || p.cangXuatKhau || '',
+    noiDenQuocGia: hc.cangNhapKhau || p.noiDenQuocGia || '',
+    cangNhapKhau: hc.cangNhapKhau || p.cangNhapKhau || '',
+    containerSeal: hc.containerSeal || p.containerSeal || '',
+    tuNoi: hc.tuNoi || p.tuNoi || '',
+    denNoi: hc.cangNhapKhau || p.denNoi || '',
+    moTaHangHoa: p.moTaHangHoa || (sp0? (sp0.moTa||''):'')
+  });
+}
+
+/* ============ CẬP NHẬT PHIẾU ĐĂNG KÝ (các mục chỉ Giấy ĐK mới có) ============ */
+function openPhieuDk(id){
   const p = packingList.find(x=>x.id===id);
   if(!p) return;
   fillXkDatalists();
-  document.getElementById('xkPdgId').value = id;
-  const items = getPdgItems(p);
-  const lot = lotList.find(l=>l.id===items[0].lotId) || lotList.find(l=>l.lotNo===p.lotNo);
-  const congTy = lot ? congTyList.find(c=>c.id===lot.congTyId) : null;
-  const defaultGDK = p.chuHangId || (congTy? congTy.chuHangIdGDK : '') || '';
-  const defaultHC = p.chuHangIdHC || (congTy? congTy.chuHangIdHC : '') || '';
-  document.getElementById('xkChuHang').innerHTML = '<option value="">— Chọn chủ hàng —</option>' + chuHangList.map(c=>`<option value="${c.id}" ${c.id===defaultGDK?'selected':''}>${escapeHtml(c.ten)}</option>`).join('');
-  document.getElementById('xkChuHangHC').innerHTML = '<option value="">— Chọn chủ hàng —</option>' + chuHangList.map(c=>`<option value="${c.id}" ${c.id===defaultHC?'selected':''}>${escapeHtml(c.ten)}</option>`).join('');
-  document.getElementById('xkNoiDi').value = p.noiDi||'';
-  document.getElementById('xkCangXuatKhau').value = p.cangXuatKhau||'';
-  document.getElementById('xkNgayXuatKhau').value = p.ngayXuatKhau||'';
-  document.getElementById('xkNoiDenQuocGia').value = p.noiDenQuocGia||'';
-  document.getElementById('xkCangNhapKhau').value = p.cangNhapKhau||'';
-  document.getElementById('xkContainerSeal').value = p.containerSeal||'';
-  document.getElementById('xkPhuongTien').value = p.phuongTien||'Xe tải/xe container';
-  document.getElementById('xkDieuKien').value = p.dieuKienVanChuyen||'Đông lạnh';
-  document.getElementById('xkDeNghiCap').value = p.deNghiCap||'Chứng nhận ATTP DS 2031';
-  document.getElementById('xkMoTaHangHoa').value = p.moTaHangHoa||'';
-  document.getElementById('xuatKhauModal').classList.remove('hidden');
+  document.getElementById('pdkPdgId').value = id;
+  document.getElementById('pdkPhuongTien').value = p.phuongTien || 'Xe tải/xe container';
+  document.getElementById('pdkDieuKien').value = p.dieuKienVanChuyen || 'Đông lạnh';
+  document.getElementById('pdkDeNghiCap').value = p.deNghiCap || 'Chứng nhận ATTP DS 2031';
+  const sp0 = pdgSanPhamInfo((getPdgItems(p)[0]||{}).sanPhamTen);
+  document.getElementById('pdkMoTaHangHoa').value = p.moTaHangHoa || (sp0? (sp0.moTa||''):'');
+  document.getElementById('phieuDkModal').classList.remove('hidden');
 }
-function closeXuatKhauInfo(){ document.getElementById('xuatKhauModal').classList.add('hidden'); }
-function saveXuatKhauInfo(){
-  const id = document.getElementById('xkPdgId').value;
-  const noiDi = document.getElementById('xkNoiDi').value.trim();
-  const cangXuatKhau = document.getElementById('xkCangXuatKhau').value.trim() || noiDi;
-  const noiDenQuocGia = document.getElementById('xkNoiDenQuocGia').value.trim();
-  const cangNhapKhau = document.getElementById('xkCangNhapKhau').value.trim();
-  const moTaHangHoa = document.getElementById('xkMoTaHangHoa').value.trim();
+function closePhieuDk(){ document.getElementById('phieuDkModal').classList.add('hidden'); }
+function savePhieuDk(){
+  const id = document.getElementById('pdkPdgId').value;
+  const moTaHangHoa = document.getElementById('pdkMoTaHangHoa').value.trim();
   const data = {
-    chuHangId: document.getElementById('xkChuHang').value,
-    chuHangIdHC: document.getElementById('xkChuHangHC').value,
-    noiDi, cangXuatKhau,
-    ngayXuatKhau: document.getElementById('xkNgayXuatKhau').value,
-    noiDenQuocGia, cangNhapKhau,
-    containerSeal: document.getElementById('xkContainerSeal').value.trim(),
-    phuongTien: document.getElementById('xkPhuongTien').value,
-    dieuKienVanChuyen: document.getElementById('xkDieuKien').value,
-    deNghiCap: document.getElementById('xkDeNghiCap').value.trim(),
+    phuongTien: document.getElementById('pdkPhuongTien').value,
+    dieuKienVanChuyen: document.getElementById('pdkDieuKien').value,
+    deNghiCap: document.getElementById('pdkDeNghiCap').value.trim(),
     moTaHangHoa
   };
   db.collection('capmalo_packinglist').doc(id).update(data).then(()=>{
-    autoSaveXkValue('noiDi', noiDi);
-    autoSaveXkValue('cangXuatKhau', cangXuatKhau);
-    autoSaveXkValue('noiDenQuocGia', noiDenQuocGia);
-    autoSaveXkValue('cangNhapKhau', cangNhapKhau);
-    autoSaveXkValue('moTaHangHoa', moTaHangHoa);
+    if(moTaHangHoa) autoSaveXkValue('moTaHangHoa', moTaHangHoa);
     const p = packingList.find(x=>x.id===id);
-    logActivity(`Cập nhật Thông tin xuất khẩu — ${p?p.lotNo:id}`);
-    showToast('Đã lưu thông tin xuất khẩu');
-    closeXuatKhauInfo();
+    logActivity(`Cập nhật phiếu Đăng Ký — ${p?p.lotNo:id}`);
+    showToast('Đã lưu phiếu Đăng Ký');
+    closePhieuDk();
   }).catch(fsErr);
 }
-
 function deletePdg(id, btn){
   if(!requestConfirm('pdg:'+id, btn)) return;
   const p = packingList.find(x=>x.id===id);
@@ -2782,7 +2818,7 @@ function deletePdg(id, btn){
 }
 let pdgPreviewCurrentId = null;
 function xemPdgTruoc(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = pdgResolve(packingList.find(x=>x.id===id));
   if(!p) return;
   pdgPreviewCurrentId = id;
   document.getElementById('pdgPreviewBody').innerHTML = buildPdgExportHtml(p);
@@ -2791,7 +2827,7 @@ function xemPdgTruoc(id){
 function closePdgPreview(){ document.getElementById('pdgPreviewModal').classList.add('hidden'); }
 function sharePdgPreview(){
   if(!pdgPreviewCurrentId) return;
-  const p = packingList.find(x=>x.id===pdgPreviewCurrentId);
+  const p = pdgResolve(packingList.find(x=>x.id===pdgPreviewCurrentId));
   if(!p) return;
   shareHtmlAsImage(buildPdgExportHtml(p), `BangKeChiTiet - ${p.lotNo.replace(/[\/\\]/g,'-')}.png`);
 }
@@ -2864,7 +2900,7 @@ function xuatBangKe(id){
   });
 }
 async function exportPdgAsPdf(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = pdgResolve(packingList.find(x=>x.id===id));
   if(!p) return;
   if(typeof window.jspdf==='undefined'){ showToast('Đang tải thư viện PDF, thử lại sau vài giây'); return; }
   try{
@@ -2962,7 +2998,7 @@ async function exportPdgAsPdf(id){
 
 let giayDkPreviewCurrentId = null;
 function xemGiayDkTruoc(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = pdgResolve(packingList.find(x=>x.id===id));
   if(!p) return;
   giayDkPreviewCurrentId = id;
   document.getElementById('giayDkPreviewBody').innerHTML = buildGiayDangKyExportHtml(p);
@@ -2971,7 +3007,7 @@ function xemGiayDkTruoc(id){
 function closeGiayDkPreview(){ document.getElementById('giayDkPreviewModal').classList.add('hidden'); }
 function shareGiayDkPreview(){
   if(!giayDkPreviewCurrentId) return;
-  const p = packingList.find(x=>x.id===giayDkPreviewCurrentId);
+  const p = pdgResolve(packingList.find(x=>x.id===giayDkPreviewCurrentId));
   if(!p) return;
   shareHtmlAsImage(buildGiayDangKyExportHtml(p), `GiayDangKyUuTien - ${p.lotNo.replace(/[\/\\]/g,'-')}.png`);
 }
@@ -2985,7 +3021,7 @@ function xuatGiayDangKy(id){
   });
 }
 async function exportGiayDangKyAsPdf(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = pdgResolve(packingList.find(x=>x.id===id));
   if(!p) return;
   if(typeof window.jspdf==='undefined'){ showToast('Đang tải thư viện PDF, thử lại sau vài giây'); return; }
   try{
@@ -3052,7 +3088,7 @@ async function exportGiayDangKyAsPdf(id){
     label('Khối lượng tổng (gross weight)', f.sumTong?formatNumber2(f.sumTong)+' kg':'');
     label('Khối lượng tịnh (net weight)', f.sumTinh?formatNumber2(f.sumTinh)+' kg':''); gap();
 
-    label('7. Tên cơ sở sản xuất', p.congTyTen, true);
+    label('7. Tên cơ sở sản xuất', p.coSoSanXuatTen || p.congTyTen, true);
     label('Mã số cơ sở', p.congTyMaCode); gap();
 
     label('8. Mã số lô hàng', p.lotNo, true);
@@ -3063,7 +3099,7 @@ async function exportGiayDangKyAsPdf(id){
     label('Trong nước', f.xuatXu||'.....................'); gap();
 
     label('10. Phương tiện vận chuyển', p.phuongTien);
-    label('Số container/seal', p.containerSeal); gap();
+    if(pdgThieuContainerSeal(p)){ doc.setTextColor(200,30,30); label('Số container/seal', '⚠ CHƯA CÓ — CẬP NHẬT BÊN HEALTH NHÁP'); doc.setTextColor(0,0,0); } else { label('Số container/seal', p.containerSeal); } gap();
 
     label('11. Điều kiện vận chuyển', p.dieuKienVanChuyen); gap();
 
@@ -3152,20 +3188,28 @@ function buildPdgExportHtml(p){
     </div>`;
 }
 function fmtDateDot(iso){ const [y,m,d]=iso.split('-'); return `${y}.${m}.${d}`; }
+// Số container/seal — chưa có thì in cảnh báo thay vì để trống
+function pdgThieuContainerSeal(p){
+  const cs = splitContainerSeal(p.containerSeal);
+  return !cs.container && !cs.seal;
+}
+function pdgContainerSealText(p){
+  return pdgThieuContainerSeal(p) ? '(CHƯA CÓ)' : (p.containerSeal||'');
+}
 /* ============ GIẤY ỦY QUYỀN (khi Chủ hàng khác Công ty sản xuất) ============ */
 function needsUyQuyen(p){
-  const congTyTen = normName(p.congTyTen||'');
+  const coSoTen = normName(p.coSoSanXuatTen || p.congTyTen || '');
   const chuHang = chuHangList.find(c=>c.id===(p.chuHangIdHC || p.chuHangId));
-  if(!chuHang) return false;
-  return normName(chuHang.ten) !== congTyTen;
+  if(!chuHang || !coSoTen) return false;
+  return normName(chuHang.ten) !== coSoTen;
 }
 async function exportGiayUyQuyen(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = pdgResolve(packingList.find(x=>x.id===id));
   if(!p) return;
   if(typeof ExcelJS === 'undefined'){ showToast('Đang tải thư viện Excel, thử lại sau vài giây'); return; }
-  const congTy = congTyList.find(c=>c.ten===p.congTyTen);
+  const congTy = congTyList.find(c=>c.ten===(p.coSoSanXuatTen || p.congTyTen));
   const chuHang = chuHangList.find(c=>c.id===(p.chuHangIdHC || p.chuHangId));
-  if(!chuHang){ showToast('Chưa chọn Chủ hàng — vào Thông tin xuất khẩu để chọn trước'); return; }
+  if(!chuHang){ showToast('Chưa chọn Chủ hàng — vào tab Health Nháp chọn trước'); return; }
   const f = giayDangKyFields(p);
 
   const wb = new ExcelJS.Workbook();
@@ -3277,7 +3321,7 @@ async function exportGiayUyQuyen(id){
 }
 
 async function exportPdgExcel(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = pdgResolve(packingList.find(x=>x.id===id));
   if(!p) return;
   if(typeof ExcelJS === 'undefined'){ showToast('Đang tải thư viện Excel, thử lại sau vài giây'); return; }
   const wb = new ExcelJS.Workbook();
@@ -3295,6 +3339,20 @@ async function exportPdgExcel(id){
     return c;
   };
   const merge = (range)=> ws.mergeCells(range);
+  // Ô gộp trong Excel KHÔNG tự giãn chiều cao -> phải tự tính, nếu không chữ dài sẽ bị cắt mất
+  const COL_W = [5.3,20.4,16.3,11.4,13.7,10.7,13.3,13.4,9.3];
+  const spanWidth = (fromIdx, toIdx)=> COL_W.slice(fromIdx, toIdx+1).reduce((a,b)=>a+b,0);
+  const fitRow = (rowNum, texts, widthChars, fontSize)=>{
+    const perLine = Math.max(6, widthChars * (11/fontSize) * 0.98);
+    let lines = 1;
+    (Array.isArray(texts)? texts : [texts]).forEach(t=>{
+      const str = String(t==null?'':t);
+      str.split('\n').forEach(seg=>{ lines = Math.max(lines, Math.ceil(seg.length / perLine) || 1); });
+    });
+    const h = Math.ceil(lines * fontSize * 1.5) + 4;
+    const cur = ws.getRow(rowNum).height || 0;
+    if(h > cur) ws.getRow(rowNum).height = h;
+  };
 
   merge('F2:G2');
   setCell('F2','Mẫu số 03.LH',{font:{bold:true,size:13}, align:{horizontal:'right'}});
@@ -3306,20 +3364,22 @@ async function exportPdgExcel(id){
   const chungThuTxt = p.soChungThu ? `(Kèm theo Giấy đăng ký cấp chứng thư số: ${p.soChungThu}${p.ngayChungThu?' ngày '+fmtDateVN(p.ngayChungThu):''})` : '';
   setCell('A5', chungThuTxt, {font:{size:14}, align:{horizontal:'center'}});
 
-  merge('A7:I7');
-  setCell('A7', `Tên chủ hàng : ${p.congTyTen||''}`, {font:{size:12}});
-  merge('A8:I8');
-  setCell('A8', `Địa chỉ: ${p.congTyDiaChi||''}`, {font:{size:12}});
-
-  merge('A9:H9');
-  setCell('A9', `Tên người nhận hàng: ${p.tenNguoiNhan||''}`, {font:{size:11}});
-  merge('A10:H10');
-  setCell('A10', `Địa chỉ: ${p.diaChiNguoiNhan||''}`, {font:{size:10}});
-
-  merge('A11:D11');
-  setCell('A11', `FROM: ${p.tuNoi||''}`, {font:{size:12}});
-  merge('A12:C12');
-  setCell('A12', `TO: ${p.denNoi||''}`, {font:{size:12}});
+  // Khối thông tin chủ hàng / người nhận: gộp đều A:I, cùng cỡ chữ 12, tự giãn dòng cho khỏi mất chữ
+  const infoW = spanWidth(0,8);
+  const infoLines = [
+    `Tên chủ hàng : ${p.congTyTen||''}`,
+    `Địa chỉ: ${p.congTyDiaChi||''}`,
+    `Tên người nhận hàng: ${p.tenNguoiNhan||''}`,
+    `Địa chỉ: ${p.diaChiNguoiNhan||''}`,
+    `FROM: ${p.tuNoi||''}`,
+    `TO: ${p.denNoi||''}`
+  ];
+  infoLines.forEach((txt, i)=>{
+    const rn = 7 + i;
+    merge(`A${rn}:I${rn}`);
+    setCell(`A${rn}`, txt, {font:{size:12}, align:{horizontal:'left', vertical:'top', wrapText:true}});
+    fitRow(rn, txt, infoW, 12);
+  });
 
   merge('A13:I13');
   setCell('A13', 'Chi tiết lô hàng:', {font:{size:12}});
@@ -3340,10 +3400,13 @@ async function exportPdgExcel(id){
     merge(`D${firstRow}:D${lastRow}`);
     setCell(`D${firstRow}`, (it.ngaySX||[]).map(fmtDateDot).join('  &  '), {align:{horizontal:'center'}, border:true});
     merge(`E${firstRow}:E${lastRow}`);
-    setCell(`E${firstRow}`, it.quyCach||'', {align:{horizontal:'center'}, border:true});
+    setCell(`E${firstRow}`, it.quyCach||'', {align:{horizontal:'center', vertical:'middle'}, border:true});
     merge(`F${firstRow}:H${firstRow}`);
     setCell(`F${firstRow}`, '', {border:true});
     setCell(`B${firstRow}`, it.sanPhamTen, {align:{horizontal:'center', vertical:'top'}, border:true});
+    // dòng tên sản phẩm: giãn đủ cao cho cả Tên sản phẩm (cột B) lẫn Quy cách (cột E)
+    fitRow(firstRow, it.sanPhamTen||'', spanWidth(1,1), 12);
+    fitRow(firstRow, it.quyCach||'', spanWidth(4,4), 12);
     ['A','B','C','D','E','F','G','H'].forEach(col=> ws.getCell(col+firstRow).border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}});
 
     rows.forEach((r,idx)=>{
@@ -3385,7 +3448,8 @@ async function exportPdgExcel(id){
   setCell(`E${signRow3}`, '(Ký tên, đóng dấu/ký số)', {font:{size:11}, align:{horizontal:'center', vertical:'top'}});
 
   ws.getRow(14).height = 64;
-  ws.getRow(lotStart).height = 30;
+  // giữ tối thiểu 30 nhưng KHÔNG đè lên chiều cao đã tính theo độ dài chữ
+  if(!ws.getRow(lotStart).height || ws.getRow(lotStart).height < 30) ws.getRow(lotStart).height = 30;
 
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], {type:'application/octet-stream'});
@@ -3396,7 +3460,7 @@ async function exportPdgExcel(id){
   URL.revokeObjectURL(url);
 }
 function exportPdgImage(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = pdgResolve(packingList.find(x=>x.id===id));
   if(!p) return;
   const area = document.getElementById('exportArea');
   area.innerHTML = buildPdgExportHtml(p);
@@ -3444,7 +3508,7 @@ function xuatXuText(p){
     const [ngay, daiLyId] = key.split('|');
     const dl = daiLyNLList.find(d=>d.id===daiLyId);
     const hoNuoiTen = [...groups[key]].map(hid=>{ const h=hoNuoiList.find(x=>x.id===hid); return h?h.ten:''; }).filter(Boolean).join(', ');
-    return `ngày ${fmtDateVN(ngay)}: ${dl?'Đại lý '+dl.ten:'(chưa chọn đại lý)'}${hoNuoiTen? ' - Hộ nuôi: '+hoNuoiTen : ''}`;
+    return `ngày ${fmtDateVN(ngay)}: ${dl?'Đại lý '+dl.ten:'(chưa chọn đại lý)'}${hoNuoiTen? ' (Hộ nuôi: '+hoNuoiTen+')' : ''}`;
   });
   return lines.join(' & ');
 }
@@ -3488,8 +3552,51 @@ function b64ToUint8Array(b64){
 }
 // Thay chữ vào ĐÚNG khuôn mẫu Word gốc (giữ nguyên bảng/khung/định dạng) — thay theo đúng thứ tự xuất hiện của từng đoạn <w:t> trong file gốc.
 // Bản đồ vị trí (index) này khớp với cấu trúc file "GiayDangKyUuTien_-067.docx" đã được chuẩn hoá (gộp run) — không đổi nếu file mẫu không đổi.
+// "JINGXI, GUANGXI, CHINA" -> "CHINA" (mục 4 chỉ ghi tên quốc gia)
+function quocGiaCuoi(s){
+  const parts = String(s||'').split(',').map(x=>x.trim()).filter(Boolean);
+  return parts.length ? parts[parts.length-1] : '';
+}
+// Chỉnh trang Giấy ĐK theo đúng bản mẫu chuẩn anh Tinh gửi (GIẤY ĐĂNG KÝ THẨM ĐỊNH -063)
+function bopOMuc12(xml, p, f){
+  xml = xml.replace('<w:pgMar w:top="0"', '<w:pgMar w:top="709"');
+  xml = xml.replace('<w:trHeight w:val="591"/>', '<w:trHeight w:val="521"/>');  // mục 10
+  xml = xml.replace('<w:trHeight w:val="325"/>', '<w:trHeight w:val="339"/>');  // mục 11
+  xml = xml.replace('<w:trHeight w:val="246"/>', '<w:trHeight w:val="416"/>');  // dòng PHẦN XÁC NHẬN
+
+  // Ô mục 12: mặc định 4451 như bản mẫu; lô nào nội dung dài hơn thì tự bóp lại cho vẫn lọt trang 1
+  const CHUAN = 4451, TW = 300, CAP = 15530, HEAD = 2650;
+  const dong = (txt, moiDong) => {
+    let n = 0;
+    String(txt==null?'':txt).split('\n').forEach(seg=>{ n += Math.max(1, Math.ceil(seg.length/moiDong)); });
+    return Math.max(1, n);
+  };
+  const L = 52, W = 110;
+  const r1 = Math.max(
+    dong('1.Chủ hàng: '+(f.chuHangTen||''), L) + dong('Địa chỉ: '+(f.chuHangDiaChi||''), L) + 1,
+    dong('2. Người nhận hàng: '+(p.tenNguoiNhan||''), L) + dong('Địa chỉ: '+(p.diaChiNguoiNhan||''), L) + 1
+  );
+  const r3 = Math.max(3, dong(f.sanPhamMoTa, L) + dong(f.sanPhamTenStr, L) + dong(f.tenKhoaHoc, L) + 3);
+  const r5 = 2 + dong('- Trong nước:  Tên, điạ chỉ cơ sở nuôi, đại lý/cơ sở cung cấp, vùng nuôi, thu hoạch/vùng khai thác: '+(p.vungNuoiTen||'')+' '+(f.xuatXu||''), W) + 2;
+  const bang = [[333,1],[887,r1],[260,3],[277,r3],[413,2],[392,r5],[521,2],[339,1]]
+    .reduce((t,r)=> t + Math.max(r[0], r[1]*TW), 0);
+  const conLai = CAP - HEAD - bang - 400;
+  const h12 = Math.max(2400, Math.min(CHUAN, Math.round(conLai)));
+  xml = xml.replace('<w:trHeight w:val="2957"/>', `<w:trHeight w:val="${h12}" w:hRule="exact"/>`);
+
+  // PHẦN XÁC NHẬN CỦA CƠ QUAN trở về sau luôn bắt đầu ở trang 2
+  const i = xml.indexOf('PHẦN XÁC NHẬN CỦA CƠ QUAN');
+  if(i > 0){
+    const j = xml.lastIndexOf('<w:tr ', i);
+    if(j > 0){
+      const k = xml.indexOf('<w:pPr>', j);
+      if(k > j && k < i) xml = xml.slice(0, k+7) + '<w:pageBreakBefore/>' + xml.slice(k+7);
+    }
+  }
+  return xml;
+}
 async function exportGiayDangKyDocx(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = pdgResolve(packingList.find(x=>x.id===id));
   if(!p) return;
   if(typeof JSZip==='undefined'){ showToast('Đang tải thư viện tạo file Word, thử lại sau vài giây'); return; }
   const f = giayDangKyFields(p);
@@ -3499,17 +3606,18 @@ async function exportGiayDangKyDocx(id){
     5: p.soChungThu||'', 6: p.soChungThu||'',
     14: f.chuHangTen, 17: f.chuHangDiaChi, 20: f.chuHangDienThoai,
     25: p.tenNguoiNhan||'', 27: p.diaChiNguoiNhan||'',
-    30: p.noiDi||'', 33: p.cangXuatKhau||'',
+    22: '    ',
+    30: (p.noiDi||'').replace(/\.+$/,''), 31: '', 33: (p.cangXuatKhau||'').replace(/\.+$/,''),
     35: ngayXKText, 36:'', 37:'', 38:'',
-    40: p.noiDenQuocGia||'', 42: p.cangNhapKhau||'',
+    40: quocGiaCuoi(p.noiDenQuocGia || p.cangNhapKhau), 42: p.cangNhapKhau||'',
     47: f.sanPhamMoTa, 49: f.sanPhamTenStr||'', 54: f.tenKhoaHoc, 56: f.hsCode,
     63: f.sumCtn? formatNumber(f.sumCtn):'', 67: f.sumTong? formatNumber2(f.sumTong):'', 71: f.sumTinh? formatNumber2(f.sumTinh):'',
-    75: p.congTyTen||'', 77: p.congTyMaCode||'', 79: p.lotNo||'',
+    75: p.coSoSanXuatTen || p.congTyTen || '', 77: p.coSoSanXuatMaCode || p.congTyMaCode || '', 79: p.lotNo||'',
     81: (p.ngaySX||[]).map(fmtDateDot).join('  &  '),
     89: (p.vungNuoiTen||'')+' ',
-    90: f.xuatXu || '.....................',
+    90: f.xuatXu ? `(${f.xuatXu})` : '.....................',
     91:'',92:'',93:'',94:'',95:'',96:'',97:'',98:'',99:'',100:'',101:'',102:'',
-    112: p.containerSeal||'', 113: '',
+    112: pdgContainerSealText(p), 113: '',
     131: p.noiKy||'', 133: ngayKyText, 134:'', 135:''
   };
   try{
@@ -3528,6 +3636,7 @@ async function exportGiayDangKyDocx(id){
       }
       return match;
     });
+    xml = bopOMuc12(xml, p, f);
     zip.file('word/document.xml', xml);
     const blob = await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
     const url = URL.createObjectURL(blob);
@@ -3570,14 +3679,14 @@ function buildGiayDangKyExportHtml(p){
       ${row('6. Số lượng', f.sumCtn?formatNumber(f.sumCtn)+' ctns':'')}
       ${row('Khối lượng tổng (gross weight)', f.sumTong?formatNumber2(f.sumTong)+' kg':'')}
       ${row('Khối lượng tịnh (net weight)', f.sumTinh?formatNumber2(f.sumTinh)+' kg':'')}
-      ${row('7. Tên cơ sở sản xuất', p.congTyTen, true)}
+      ${row('7. Tên cơ sở sản xuất', p.coSoSanXuatTen || p.congTyTen, true)}
       ${row('Mã số cơ sở', p.congTyMaCode)}
       ${row('8. Mã số lô hàng', p.lotNo, true)}
       ${row('Thời gian sản xuất', (p.ngaySX||[]).map(fmtDateDot).join(' & '))}
       <div style="font-weight:700;margin-top:8px;">9. Xuất xứ nguyên liệu để sản xuất lô hàng</div>
       ${row('Trong nước', f.xuatXu||'.....................')}
       ${row('10. Phương tiện vận chuyển', p.phuongTien)}
-      ${row('Số container/seal', p.containerSeal)}
+      ${pdgThieuContainerSeal(p) ? `<div style="margin:3px 0;color:#c0392b;font-weight:700;"><b>Số container/seal:</b> ⚠ CHƯA CÓ — CẬP NHẬT BÊN HEALTH NHÁP</div>` : row('Số container/seal', p.containerSeal)}
       ${row('11. Điều kiện vận chuyển', p.dieuKienVanChuyen)}
       <div style="font-weight:700;margin-top:8px;">12. Đề nghị:</div>
       ${row('Cấp', f.deNghiCap)}
@@ -3608,6 +3717,11 @@ function splitContainerSeal(cs){
   if(!cs) return {container:'', seal:''};
   const parts = cs.split('/').map(s=>s.trim());
   return {container: parts[0]||'', seal: parts[1]||''};
+}
+// Cho phép truyền vào id (Phiếu Đóng Gói / Health nháp) HOẶC trực tiếp object bản nháp chưa lưu
+function resolveHcDoc(x){
+  if(x && typeof x === 'object') return x;
+  return packingList.find(p=>p.id===x) || healthList.find(p=>p.id===x) || null;
 }
 function healthCertFields(p){
   const t = pdgTotals(p);
@@ -3640,14 +3754,14 @@ function healthCertFields(p){
     tenKhoaHoc: tenKhoaHocStr,
     commodityListStr, productionDateStr, multi,
     sumCtn: t.sumCtn, sumTinh: t.sumTinh, sumTong: t.sumTong,
-    meansOfTransport: composeMeansOfTransport(p.phuongTien, p.dieuKienVanChuyen),
+    meansOfTransport: (p.meansOfTransportManual||'').trim() || composeMeansOfTransport(p.phuongTien, p.dieuKienVanChuyen),
     containerNo: cs.container, sealNo: cs.seal,
     ngayCapEN: fmtDateEN(p.ngayChungThu),
     thieuBanTiengAnh: !( chuHang && chuHang.tenEN && p.congTyDiaChiEN && p.congTyTenEN && p.vungNuoiTenEN )
   };
 }
 async function exportHealthCertDocx(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = resolveHcDoc(id);
   if(!p) return;
   if(typeof JSZip==='undefined'){ showToast('Đang tải thư viện tạo file Word, thử lại sau vài giây'); return; }
   const f = healthCertFields(p);
@@ -3751,23 +3865,22 @@ function buildHealthCertExportHtml(p){
       ${f.thieuBanTiengAnh? `<div style="margin-top:10px;color:#c0392b;font-size:11px;">⚠ Một số mục chưa có bản tiếng Anh — đang tạm dùng bản tiếng Việt. Bổ sung ở Danh Mục (Vùng nuôi / Công ty / Chủ hàng) để chính xác hơn.</div>` : ''}
     </div>`;
 }
-let healthCertPreviewCurrentId = null;
+let healthCertPreviewCurrentDoc = null;
 function xemHealthCertTruoc(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = resolveHcDoc(id);
   if(!p) return;
-  healthCertPreviewCurrentId = id;
+  healthCertPreviewCurrentDoc = p;
   document.getElementById('healthCertPreviewBody').innerHTML = buildHealthCertExportHtml(p);
   document.getElementById('healthCertPreviewModal').classList.remove('hidden');
 }
 function closeHealthCertPreview(){ document.getElementById('healthCertPreviewModal').classList.add('hidden'); }
 function shareHealthCertPreview(){
-  if(!healthCertPreviewCurrentId) return;
-  const p = packingList.find(x=>x.id===healthCertPreviewCurrentId);
+  const p = healthCertPreviewCurrentDoc;
   if(!p) return;
   shareHtmlAsImage(buildHealthCertExportHtml(p), `Draft HEALTH CERTIFICATE - ${p.lotNo.replace(/[\/\\]/g,'-')}.png`);
 }
 async function exportHealthCertAsPdf(id){
-  const p = packingList.find(x=>x.id===id);
+  const p = resolveHcDoc(id);
   if(!p) return;
   await exportHtmlAsPdf(buildHealthCertExportHtml(p), `Draft HEALTH CERTIFICATE - ${p.lotNo.replace(/[\/\\]/g,'-')}.pdf`);
 }
@@ -3779,6 +3892,319 @@ function xuatHealthCert(id){
     if(key==='word') exportHealthCertDocx(id);
     else exportHealthCertAsPdf(id);
   });
+}
+
+/* ============ HEALTH NHÁP (tab riêng — làm trước Bảng Kê / Phiếu ĐK) ============ */
+let hcSection = 'tao';
+let hcEditingId = null;
+let hcBuilt = null; // dữ liệu tự động lấy từ Lot + Chia Ngày Sản Xuất
+
+function switchHcSub(sub){
+  hcSection = sub;
+  document.querySelectorAll('#hcSubTab button').forEach(b=>b.classList.toggle('active', b.dataset.sub===sub));
+  document.getElementById('hc-tao').classList.toggle('hidden', sub!=='tao');
+  document.getElementById('hc-list').classList.toggle('hidden', sub!=='list');
+  if(sub==='tao'){ fillHcKHSelect(); fillHcChuHangSelect(); fillXkDatalists(); }
+  else { fillHcFilterKH(); renderHcList(); }
+}
+function fillHcKHSelect(){
+  const sel = document.getElementById('hcKhachHang');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Chọn khách hàng —</option>' + khList.map(k=>`<option value="${k.id}">${escapeHtml(k.ten)}</option>`).join('');
+  if(cur) sel.value = cur;
+}
+function fillHcFilterKH(){
+  const sel = document.getElementById('hcFilterKH');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tất cả</option>' + khList.map(k=>`<option value="${k.id}">${escapeHtml(k.ten)}</option>`).join('');
+  if(cur) sel.value = cur;
+}
+function fillHcChuHangSelect(){
+  const sel = document.getElementById('hcChuHang');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Chọn chủ hàng —</option>' + chuHangList.map(c=>`<option value="${c.id}">${escapeHtml(c.tenEN || c.ten)}</option>`).join('');
+  if(cur) sel.value = cur;
+}
+function onHcChuHangChange(){
+  const c = chuHangList.find(x=>x.id===document.getElementById('hcChuHang').value);
+  document.getElementById('hcChuHangInfo').textContent = c ? [(c.tenEN||c.ten), (c.diaChiEN||c.diaChi||'')].filter(Boolean).join(' — ') : '—';
+}
+function fillHcNhaNKSelect(khId, selIdx){
+  const kh = khList.find(k=>k.id===khId);
+  const receivers = kh ? getReceiverList(kh) : [];
+  const sel = document.getElementById('hcNhaNK');
+  sel.innerHTML = '<option value="">— Chọn nhà nhập khẩu —</option>'
+    + receivers.map((r,i)=>`<option value="${i}">${escapeHtml(r.ten)}</option>`).join('')
+    + '<option value="__new__">➕ Nhập nhà NK mới</option>';
+  if(selIdx!==undefined && selIdx!==null && selIdx!=='') sel.value = String(selIdx);
+  onHcNhaNKChange();
+}
+function onHcNhaNKChange(){
+  const v = document.getElementById('hcNhaNK').value;
+  const isNew = v==='__new__';
+  document.getElementById('hcNhaNKNewWrap').classList.toggle('hidden', !isNew);
+  const info = document.getElementById('hcNhaNKInfo');
+  if(isNew){ info.textContent = 'Nhập tay bên dưới'; return; }
+  const kh = khList.find(k=>k.id===document.getElementById('hcKhachHang').value);
+  const receivers = kh ? getReceiverList(kh) : [];
+  const r = (v!=='' && receivers[v]) ? receivers[v] : null;
+  info.textContent = r ? [r.ten, r.diaChi||''].filter(Boolean).join(' — ') : '—';
+}
+// Gom dữ liệu tự động từ Lot + Chia Ngày Sản Xuất (KHÔNG phụ thuộc Phiếu Đóng Gói)
+function hcBuildFromLot(khId, lotNo){
+  const lots = lotList.filter(l=>l.khachHangId===khId && l.lotNo===lotNo);
+  if(!lots.length) return null;
+  const firstLot = lots[0];
+  const congTy = congTyList.find(c=>c.id===firstLot.congTyId) || null;
+  const vungNuoi = vungNuoiList.find(v=>v.id===firstLot.vungNuoiId) || null;
+  const allNgay = [...new Set(lots.flatMap(l=>l.ngaySX||[]))].sort();
+  const items = []; let missing = 0;
+  lots.forEach(l=>{
+    const lcn = listChiaNgayList.find(x=>x.lotId===l.id);
+    if(!lcn){ missing++; return; }
+    const bySize = {}, order = [];
+    (lcn.ngayItems||[]).forEach(ni=>{
+      (ni.sizeRows||[]).forEach(r=>{
+        if(!(r.sizeTen in bySize)){ bySize[r.sizeTen]=0; order.push(r.sizeTen); }
+        bySize[r.sizeTen] += Number(r.soLuongCtn)||0;
+      });
+    });
+    const rows = sortBySizeOrder(order.map(sizeTen=>({sizeTen, soLuongCtn:bySize[sizeTen]})));
+    items.push({ lotId:l.id, sanPhamTen:lcn.sanPhamTen||'', matHangTen:lcn.matHangTen||'', quyCach:lcn.quyCach||'',
+      net:Number(lcn.net)||0, gross:Number(lcn.gross)||0, ngaySX:l.ngaySX||[], rows });
+  });
+  return {lots, firstLot, congTy, vungNuoi, allNgay, items, missing};
+}
+function onHcKHChange(){
+  const khId = document.getElementById('hcKhachHang').value;
+  const lotSel = document.getElementById('hcLot');
+  const eligible = lotList.filter(l=>l.khachHangId===khId && !l.hasHealthCert && listChiaNgayList.some(x=>x.lotId===l.id));
+  const lotNos = [...new Set(eligible.map(l=>l.lotNo))];
+  lotSel.innerHTML = '<option value="">— Chọn Lot No —</option>' + lotNos.map(n=>{
+    const cnt = eligible.filter(l=>l.lotNo===n).length;
+    return `<option value="${escapeHtml(n)}">${escapeHtml(n)}${cnt>1?` — ${cnt} mặt hàng`:''}</option>`;
+  }).join('');
+  if(khId && !lotNos.length) showToast('Khách hàng này chưa có Lot nào làm Chia Ngày Sản Xuất — làm Chia Ngày Sản Xuất trước đã');
+  fillHcNhaNKSelect(khId);
+  hcBuilt = null;
+  renderHcAuto();
+}
+function onHcLotChange(){
+  const khId = document.getElementById('hcKhachHang').value;
+  const lotNo = document.getElementById('hcLot').value;
+  hcBuilt = lotNo ? hcBuildFromLot(khId, lotNo) : null;
+  renderHcAuto();
+  if(hcBuilt){
+    // gợi ý sẵn Chủ hàng mặc định (Health Cert) của Công ty gắn với Lot
+    const sel = document.getElementById('hcChuHang');
+    if(!sel.value && hcBuilt.congTy && hcBuilt.congTy.chuHangIdHC){ sel.value = hcBuilt.congTy.chuHangIdHC; onHcChuHangChange(); }
+    if(hcBuilt.missing) showToast(`${hcBuilt.missing} mặt hàng trong Lot này chưa làm Chia Ngày Sản Xuất — vào tab Chia Ngày Sản Xuất nhập trước`);
+  }
+}
+function renderHcAuto(){
+  const el = document.getElementById('hcAutoBody');
+  if(!hcBuilt || !hcBuilt.items.length){
+    el.innerHTML = '<div class="empty"><div class="ico">🩺</div>Chọn Khách hàng và Lot No để hiện dữ liệu</div>';
+    return;
+  }
+  const doc = hcDraftDoc(true);
+  const f = healthCertFields(doc);
+  const it0 = hcBuilt.items[0];
+  const multi = hcBuilt.items.length > 1;
+  const line = (lab, val) => `<div class="row-flex" style="gap:8px;padding:4px 0;align-items:flex-start;">
+      <div class="small" style="flex:0 0 42%;color:#8a6d0b;">${lab}</div>
+      <div class="small" style="flex:1;font-weight:700;color:#6b540a;white-space:pre-wrap;">${escapeHtml(val||'—')}</div></div>`;
+  el.innerHTML =
+    line('Commodity name', multi ? hcBuilt.items.map((x,i)=>`${i+1}./ ${x.sanPhamTen}`).join('\n') : it0.sanPhamTen)
+    + line('Packing · Lot No', `${multi? hcBuilt.items.map(x=>x.net+'KG/CTN').join(' · ') : it0.net+' KG/CTN'} · ${doc.lotNo}`)
+    + line('Cartons · Net · Gross', `${formatNumber2(f.sumCtn)} CTNS · ${formatNumber2(f.sumTinh)} KGS · ${formatNumber2(f.sumTong)} KGS`)
+    + line('Scientific name', f.tenKhoaHoc)
+    + line('Production place', f.congTyDiaChiEN)
+    + line('Aquaculture area', f.vungNuoiTenEN)
+    + line('Enterprise · Reg. number', `${f.congTyTenEN} · ${doc.congTyMaCode||''}`)
+    + line('Production date', f.productionDateStr);
+}
+// Gom toàn bộ dữ liệu form thành 1 bản ghi (dùng chung cho lưu / xem trước / xuất file)
+function hcDraftDoc(autoOnly){
+  if(!hcBuilt) return null;
+  const khId = document.getElementById('hcKhachHang').value;
+  const kh = khList.find(k=>k.id===khId);
+  const b = hcBuilt;
+  const doc = {
+    khachHangId: khId, khachHangTen: kh? kh.ten:'',
+    lotNo: document.getElementById('hcLot').value,
+    ngaySX: b.allNgay,
+    vungNuoiTen: b.firstLot.vungNuoiTen||'', vungNuoiTenEN: b.vungNuoi? (b.vungNuoi.tenEN||''):'',
+    congTyTen: b.congTy? b.congTy.ten:'', congTyDiaChi: b.congTy? (b.congTy.diaChi||''):'',
+    congTyTenEN: b.congTy? (b.congTy.tenEN||''):'', congTyDiaChiEN: b.congTy? (b.congTy.diaChiEN||''):'',
+    congTyMaCode: b.congTy? (b.congTy.maCode||''):'',
+    items: b.items
+  };
+  if(autoOnly) return doc;
+  const chuHangId = document.getElementById('hcChuHang').value;
+  const nkVal = document.getElementById('hcNhaNK').value;
+  let tenNguoiNhan = '', diaChiNguoiNhan = '';
+  if(nkVal==='__new__'){
+    tenNguoiNhan = document.getElementById('hcNhaNKTen').value.trim();
+    diaChiNguoiNhan = document.getElementById('hcNhaNKDiaChi').value.trim();
+  } else if(nkVal!==''){
+    const receivers = kh ? getReceiverList(kh) : [];
+    const r = receivers[nkVal];
+    if(r){ tenNguoiNhan = r.ten||''; diaChiNguoiNhan = r.diaChi||''; }
+  }
+  const cont = document.getElementById('hcContainer').value.trim();
+  const seal = document.getElementById('hcSeal').value.trim();
+  Object.assign(doc, {
+    chuHangIdHC: chuHangId, chuHangId: chuHangId,
+    tenNguoiNhan, diaChiNguoiNhan,
+    tuNoi: document.getElementById('hcNoiDi').value.trim(),
+    cangNhapKhau: document.getElementById('hcNoiDen').value.trim(),
+    meansOfTransportManual: document.getElementById('hcPhuongTien').value.trim(),
+    containerSeal: `${cont} / ${seal}`,
+    ngayChungThu: document.getElementById('hcNgayXuat').value,
+    noiKy: document.getElementById('hcNoiKy').value.trim()
+  });
+  return doc;
+}
+function hcValidate(doc){
+  if(!doc){ showToast('Chọn Khách hàng và Lot No'); return false; }
+  if(!doc.items.length){ showToast('Lot này chưa có mặt hàng nào có Chia Ngày Sản Xuất'); return false; }
+  if(!doc.chuHangIdHC){ showToast('Chọn Chủ hàng (Consignor)'); return false; }
+  if(!doc.tenNguoiNhan){ showToast('Chọn hoặc nhập Nhà nhập khẩu (Consignee)'); return false; }
+  return true;
+}
+async function saveHc(){
+  const doc = hcDraftDoc(false);
+  if(!hcValidate(doc)) return;
+  // nếu nhập nhà NK mới -> tự thêm vào Người nhận hàng của khách hàng đang chọn
+  const nkVal = document.getElementById('hcNhaNK').value;
+  if(nkVal==='__new__'){
+    const kh = khList.find(k=>k.id===doc.khachHangId);
+    if(kh){
+      const list = getReceiverList(kh);
+      if(!list.some(r=>normName(r.ten)===normName(doc.tenNguoiNhan))){
+        try{
+          await db.collection('capmalo_khachhang').doc(kh.id).update({nguoiNhanHang: [...list, {ten:doc.tenNguoiNhan, diaChi:doc.diaChiNguoiNhan, dienThoai:'', email:'', ghiChu:''}]});
+          logActivity(`Thêm nhà nhập khẩu ${doc.tenNguoiNhan} cho KH ${kh.ten} (từ tab Health)`);
+        }catch(e){ fsErr(e); }
+      }
+    }
+  }
+  autoSaveXkValue('noiDi', doc.tuNoi);
+  autoSaveXkValue('cangNhapKhau', doc.cangNhapKhau);
+  try{
+    if(hcEditingId){
+      await db.collection('capmalo_health').doc(hcEditingId).update(doc);
+      logActivity(`Cập nhật Health nháp ${doc.lotNo}`);
+      showToast('Đã cập nhật Health nháp cho '+doc.lotNo);
+    } else {
+      doc.createdBy = currentUser.displayName;
+      doc.createdAt = Date.now();
+      await db.collection('capmalo_health').add(doc);
+      logActivity(`Tạo Health nháp ${doc.lotNo}`);
+      showToast('Đã lưu Health nháp cho '+doc.lotNo);
+    }
+    resetHcForm();
+    switchHcSub('list');
+  }catch(e){ fsErr(e); }
+}
+function resetHcForm(){
+  hcEditingId = null; hcBuilt = null;
+  document.getElementById('hcKhachHang').value = '';
+  document.getElementById('hcLot').innerHTML = '<option value="">— Chọn Lot No —</option>';
+  document.getElementById('hcChuHang').value = '';
+  document.getElementById('hcChuHangInfo').textContent = '—';
+  document.getElementById('hcNhaNK').innerHTML = '<option value="">— Chọn nhà nhập khẩu —</option>';
+  document.getElementById('hcNhaNKInfo').textContent = '—';
+  document.getElementById('hcNhaNKNewWrap').classList.add('hidden');
+  ['hcNhaNKTen','hcNhaNKDiaChi','hcNoiDi','hcNoiDen','hcPhuongTien','hcNgayXuat','hcContainer','hcSeal'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('hcNoiKy').value = 'Cà Mau';
+  document.getElementById('hcSaveBtn').textContent = '💾 Lưu Health nháp';
+  renderHcAuto();
+}
+function editHc(id){
+  const h = healthList.find(x=>x.id===id);
+  if(!h) return;
+  switchHcSub('tao');
+  hcEditingId = id;
+  fillHcKHSelect(); fillHcChuHangSelect();
+  document.getElementById('hcKhachHang').value = h.khachHangId||'';
+  onHcKHChange();
+  // Lot đã tick "Đã cấp Health" sẽ không có trong danh sách -> thêm lại đúng Lot đang sửa
+  const lotSel = document.getElementById('hcLot');
+  if(h.lotNo && ![...lotSel.options].some(o=>o.value===h.lotNo)){
+    lotSel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(h.lotNo)}">${escapeHtml(h.lotNo)}</option>`);
+  }
+  lotSel.value = h.lotNo||'';
+  onHcLotChange();
+  document.getElementById('hcChuHang').value = h.chuHangIdHC || h.chuHangId || '';
+  onHcChuHangChange();
+  const kh = khList.find(k=>k.id===h.khachHangId);
+  const receivers = kh ? getReceiverList(kh) : [];
+  const idx = receivers.findIndex(r=>normName(r.ten)===normName(h.tenNguoiNhan||''));
+  fillHcNhaNKSelect(h.khachHangId, idx>=0 ? idx : '');
+  if(idx<0 && h.tenNguoiNhan){
+    document.getElementById('hcNhaNK').value = '__new__';
+    onHcNhaNKChange();
+    document.getElementById('hcNhaNKTen').value = h.tenNguoiNhan||'';
+    document.getElementById('hcNhaNKDiaChi').value = h.diaChiNguoiNhan||'';
+  }
+  const cs = splitContainerSeal(h.containerSeal);
+  document.getElementById('hcNoiDi').value = h.tuNoi||'';
+  document.getElementById('hcNoiDen').value = h.cangNhapKhau||'';
+  document.getElementById('hcPhuongTien').value = h.meansOfTransportManual||'';
+  document.getElementById('hcNgayXuat').value = h.ngayChungThu||'';
+  document.getElementById('hcContainer').value = cs.container;
+  document.getElementById('hcSeal').value = cs.seal;
+  document.getElementById('hcNoiKy').value = h.noiKy||'Cà Mau';
+  document.getElementById('hcSaveBtn').textContent = '💾 Cập nhật Health nháp';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function xoaHc(id, btn){
+  if(!requestConfirm('hc:'+id, btn)) return;
+  const h = healthList.find(x=>x.id===id);
+  db.collection('capmalo_health').doc(id).delete().then(()=>{
+    logActivity(`Xoá Health nháp ${h? h.lotNo:id}`); showToast('Đã xoá');
+  }).catch(fsErr);
+}
+function renderHcList(){
+  const wrap = document.getElementById('hcListWrap');
+  const khId = document.getElementById('hcFilterKH').value;
+  const search = (document.getElementById('hcFilterSearch').value||'').trim().toLowerCase();
+  const list = healthList.filter(h => (!khId||h.khachHangId===khId) && (!search||(h.lotNo||'').toLowerCase().includes(search)));
+  if(!list.length){ wrap.innerHTML = '<div class="card"><div class="empty"><div class="ico">🩺</div>Chưa có Health nháp nào</div></div>'; return; }
+  wrap.innerHTML = list.map(h=>{
+    const t = pdgTotals(h);
+    const items = getPdgItems(h);
+    const cs = splitContainerSeal(h.containerSeal);
+    return `<div class="card">
+      <div class="row-flex" style="align-items:flex-start;">
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:15px;">${escapeHtml(h.lotNo||'')} — ${escapeHtml(h.khachHangTen||'')}</div>
+          <div class="small muted" style="margin-top:2px;">${items.map((it,i)=>escapeHtml(items.length>1?`${i+1}./ ${it.sanPhamTen}`:it.sanPhamTen)).join(' · ')}</div>
+          <div class="small" style="margin-top:4px;">${formatNumber2(t.sumCtn)} CTNS · Net ${formatNumber2(t.sumTinh)} Kg · Gross ${formatNumber2(t.sumTong)} Kg</div>
+          <div class="small muted" style="margin-top:4px;">Consignee: ${escapeHtml(h.tenNguoiNhan||'—')} · ${escapeHtml(h.meansOfTransportManual||'—')} · Cont ${escapeHtml(cs.container||'—')} / Seal ${escapeHtml(cs.seal||'—')}</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px;">
+        <button class="btn btn-outline btn-sm" onclick="xemHealthCertTruoc('${h.id}')">👁️ Xem trước</button>
+        <button class="btn btn-primary btn-sm" onclick="xuatHealthCert('${h.id}')">📤 Xuất Health Cert</button>
+        <button class="btn btn-outline btn-sm" onclick="editHc('${h.id}')">✏️ Sửa</button>
+        <button class="btn btn-danger btn-sm" onclick="xoaHc('${h.id}', this)">🗑 Xoá</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+// Xem trước / xuất ngay từ form khi chưa lưu
+function hcPreviewDraft(){
+  const doc = hcDraftDoc(false);
+  if(!hcValidate(doc)) return;
+  xemHealthCertTruoc(doc);
+}
+function hcExportDraft(){
+  const doc = hcDraftDoc(false);
+  if(!hcValidate(doc)) return;
+  xuatHealthCert(doc);
 }
 
 /* ============ LIST CHIA NGÀY ============ */
