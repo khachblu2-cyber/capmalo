@@ -193,7 +193,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V3.7.4</div>
+      <div class="ver">Phiên bản: V3.7.5</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -2261,11 +2261,22 @@ function renderDanhSach(){
     if(!groups[l.lotNo]){ groups[l.lotNo] = []; order.push(l.lotNo); }
     groups[l.lotNo].push(l);
   });
-  order.sort((a,b)=>{
-    const maxA = Math.max(...groups[a].map(x=>x.createdAt||0));
-    const maxB = Math.max(...groups[b].map(x=>x.createdAt||0));
-    return maxB - maxA;
-  });
+  // Đã lọc theo 1 công ty -> xếp theo số thứ tự Lot No từ lớn đến nhỏ.
+  // Để "Tất cả công ty" -> giữ nguyên cách cũ (mới tạo lên trước).
+  const locTheoCongTy = !!document.getElementById('filCongTy').value;
+  if(locTheoCongTy){
+    const soLot = lotNo => {
+      const m = String(lotNo||'').match(/(\d+)\s*$/);
+      return m ? parseInt(m[1], 10) : -1;
+    };
+    order.sort((a,b)=> soLot(b) - soLot(a));
+  } else {
+    order.sort((a,b)=>{
+      const maxA = Math.max(...groups[a].map(x=>x.createdAt||0));
+      const maxB = Math.max(...groups[b].map(x=>x.createdAt||0));
+      return maxB - maxA;
+    });
+  }
   order.forEach(lotNo=> groups[lotNo].sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)));
 
   let html = '';
