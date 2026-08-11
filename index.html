@@ -193,7 +193,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V3.7.5</div>
+      <div class="ver">Phiên bản: V3.7.6</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -898,7 +898,7 @@ let activeTab = 'capLo';
 const PERM_LIST = [
   {key:'capLo', label:'Cấp lô'},
   {key:'xemDanhSach', label:'Xem/Xuất danh sách'},
-  {key:'phieuDongGoi', label:'Phiếu đóng gói'},
+  {key:'phieuDongGoi', label:'Bảng Kê - Phiếu ĐK'},
   {key:'listChiaNgay', label:'Chia Ngày Sản Xuất'},
   {key:'healthNhap', label:'Health Nháp'},
   {key:'quanLyDanhMuc', label:'Quản lý danh mục'},
@@ -1027,7 +1027,7 @@ function applyTabVisibility(){
     if(tab==='capLo') ok = hasPerm('capLo');
     if(tab==='phieuDongGoi') ok = hasPerm('phieuDongGoi');
     if(tab==='listChiaNgay') ok = hasPerm('listChiaNgay');
-    if(tab==='healthNhap') ok = hasPerm('healthNhap') || hasPerm('phieuDongGoi'); // tài khoản cũ chưa có quyền riêng vẫn dùng được
+    if(tab==='healthNhap') ok = hasPerm('healthNhap');
     if(tab==='danhMuc') ok = hasPerm('quanLyDanhMuc');
     if(tab==='taiKhoan') ok = true; // Ai cũng cần vào được để tự đổi mật khẩu — phần Quản lý tài khoản bên trong vẫn được kiểm soát riêng bằng quyền quanLyTaiKhoan
     btn.classList.toggle('hidden', !ok);
