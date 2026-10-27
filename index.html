@@ -1,4 +1,33 @@
 <!DOCTYPE html>
+<!--
+  ==========================================================
+  APP: CẤP MÃ LÔ
+  Phiên bản: V3.8.0  —  27/10/2026
+  ----------------------------------------------------------
+  V3.8.0 (27/10/2026)
+  - MỚI: Tab "🏷️ TK Decal" (quyền mới: "Thiết kế decal").
+    · Tạo decal: chọn Lot đã cấp → mỗi mặt hàng × ngày SX = 1 decal;
+      Net/Gross đọc từ "Mặt hàng - Net" (NET xKG/GROSS yKG), không đọc
+      được thì bắt nhập tay. Mỗi mặt hàng chọn mẫu (mặc định theo khách)
+      → 1 lô nhiều loại hàng dùng nhiều mẫu. Sửa/thêm/bớt dòng riêng cho
+      lô; lưu ngược vào mẫu thư viện nếu muốn. In/Xuất PDF mỗi trang 1
+      decal đúng khổ QC.
+    · Tự điền theo lô: Lot, ngày SX, vùng nuôi, tên công ty + Code, địa chỉ,
+      số ĐK GACC (3 dòng công ty luôn đi chung).
+    · Chặn in khi: công ty chưa có/chưa "Đã đối chiếu GACC", Lot không khớp
+      mã số VN của công ty, thiếu/sai Net-Gross, Net >= Gross, thiếu dòng
+      bắt buộc (Gross, Net, Lot, Ngày SX, Số ĐK GACC), ô trống, chữ < 6pt.
+    · Thư viện mẫu: tạo từ PDF nhà in (tự bốc tách) / sao chép / mẫu trống
+      + thư viện dòng hay dùng; gán mẫu mặc định cho khách hàng.
+    · Decal đã lưu: mở lại / xoá theo lô.
+  - MỚI: Danh Mục › "🏷️ Thông tin Decal": tên/địa chỉ TQ-EN, tên viết tắt,
+    số ĐK GACC theo công ty + xác nhận "Đã đối chiếu GACC" (ghi người, ngày).
+    Sửa nội dung sau khi xác nhận → tự bỏ xác nhận.
+  - Firestore mới: capmalo_decal_mau, capmalo_decal_don, capmalo_decal_congty.
+  - Không thay đổi các tab/chức năng cũ.
+  V3.7.6 — bản trước.
+  ==========================================================
+-->
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -137,6 +166,54 @@
     padding:13px;border-radius:10px;font-size:15px;font-weight:700;margin-top:16px;display:flex;align-items:center;
     justify-content:center;gap:8px;cursor:pointer;}
 
+  /* ===== TK DECAL (V3.8.0) ===== */
+  .dc-wrap{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;}
+  .dc-left{flex:1 1 340px;max-width:560px;min-width:0;}
+  .dc-right{flex:999 1 520px;min-width:0;}
+  .dc-kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;}
+  .dc-kv>div{background:#f6f8fb;border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:11.5px;color:var(--muted);}
+  .dc-kv>div b{display:block;font-size:13.5px;color:var(--text);margin-top:1px;}
+  .dc-item{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:#fbfcfe;}
+  .dc-item.err{border:1.5px solid var(--danger);background:#fff5f5;}
+  .dc-pill{display:inline-block;font-size:12px;font-weight:700;padding:4px 9px;border-radius:14px;}
+  .dc-pill.ok{color:#12703f;background:#e8f7ef;border:1px solid #a7dcbf;}
+  .dc-pill.bad{color:#a8262b;background:#fff5f5;border:1px solid #f3b8ba;}
+  .dc-bad{color:var(--danger);font-weight:700;}
+  .dc-ok{color:var(--ok);font-weight:700;}
+  .dc-status{border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:10px;}
+  .dc-status:empty{display:none;}
+  .dc-status ul{margin:4px 0 0;padding-left:18px;}
+  .dc-status.ok{background:#e8f7ef;border:1px solid #a7dcbf;color:#12703f;}
+  .dc-status.warn{background:#fff7e6;border:1px solid #f0c36d;color:#8a5a00;}
+  .dc-status.bad{background:#fff5f5;border:1.5px solid var(--danger);color:#a8262b;}
+  .dc-pv{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;overflow-x:auto;padding:4px;}
+  .dc-pv-item{display:flex;flex-direction:column;gap:4px;}
+  .dc-pv-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;color:#D6247A;font-size:12px;line-height:1.3;}
+  .dc-pv-head span:last-child{text-align:right;}
+  .dc-pv .dc-decal{outline:1.5px dashed #E04A95;}
+  .dc-fit{font-size:12px;color:var(--muted);}
+  .dc-fit.warn{color:#b7791f;} .dc-fit.bad{color:var(--danger);font-weight:700;}
+  .dc-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  .dc-tabs button{padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;}
+  .dc-tabs button.active{border:2px solid var(--primary);color:var(--primary);background:#eef4ff;}
+  .dc-ri{width:100%;min-height:42px;display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--border);background:#fff;border-radius:8px;text-align:left;cursor:pointer;font-family:inherit;}
+  .dc-ri.on{border:2px solid var(--primary);background:#eef4ff;}
+  .dc-ri .n{width:22px;flex:0 0 auto;font-size:12px;font-weight:700;color:var(--muted);}
+  .dc-ri .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .dc-ri .t b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+  .dc-ri .t span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dc-tag{flex:0 0 auto;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;background:#eef0ec;color:#4a524d;}
+  .dc-tag.var{background:#e3ecfb;color:#1d4fae;}
+  .dc-ins{width:100%;height:20px;border:0;background:transparent;color:var(--primary);font-size:11.5px;font-weight:600;opacity:.55;cursor:pointer;}
+  .dc-ins:hover{opacity:1;background:#eef4ff;border-radius:6px;}
+  .dc-editor{border:2px solid var(--primary);border-radius:10px;padding:12px;margin-top:10px;background:#fff;}
+  .dc-chks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;}
+  .dc-chks label{margin:0;font-weight:500;color:var(--text);}
+  .dc-libs{display:flex;flex-wrap:wrap;gap:6px;}
+  .dc-lib{padding:6px 10px;border-radius:16px;border:1px solid #a9c2ee;background:#fff;color:#1d4fae;font-size:12.5px;font-weight:600;cursor:pointer;}
+  #pane-tkDecal textarea,#dcCtyList textarea,#dcPdfModal textarea{font-family:inherit;}
+  .dc-lib.used{border-color:var(--border);background:#f3f4f1;color:#8a918c;font-weight:500;}
+
   footer.app-footer{text-align:center;padding:16px;color:var(--muted);font-size:11px;}
 </style>
 </head>
@@ -193,7 +270,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V3.7.6</div>
+      <div class="ver">Phiên bản: V3.8.0</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -205,6 +282,7 @@
     <button data-tab="listChiaNgay" onclick="switchTab('listChiaNgay')">📅 Chia Ngày Sản Xuất</button>
     <button data-tab="phieuDongGoi" onclick="switchTab('phieuDongGoi')">📦 Bảng Kê - Phiếu ĐK</button>
     <button data-tab="healthNhap" onclick="switchTab('healthNhap')">🩺 Health Nháp</button>
+    <button data-tab="tkDecal" onclick="switchTab('tkDecal')">🏷️ TK Decal</button>
     <button data-tab="danhMuc" onclick="switchTab('danhMuc')">🗂️ Danh Mục</button>
     <button data-tab="taiKhoan" onclick="switchTab('taiKhoan')">👤 Tài Khoản</button>
   </div>
@@ -321,6 +399,94 @@
       </div>
     </div>
 
+    <!-- ===== TAB TK DECAL (V3.8.0) ===== -->
+    <div id="pane-tkDecal" class="hidden">
+      <div class="section-tab" id="dcSubTab">
+        <button class="active" data-sub="tao" onclick="dcSwitchSub('tao')">🖨️ Tạo decal</button>
+        <button data-sub="mau" onclick="dcSwitchSub('mau')">📚 Thư viện mẫu</button>
+        <button data-sub="don" onclick="dcSwitchSub('don')">📋 Decal đã lưu</button>
+      </div>
+
+      <!-- Tạo decal -->
+      <div id="dc-tao">
+        <div class="dc-wrap">
+          <div class="dc-left">
+            <div class="card">
+              <div class="card-title">1 · Chọn lô đã cấp</div>
+              <div class="hint">Dữ liệu (Lot, ngày SX, công ty, vùng nuôi, mặt hàng) lấy thẳng từ tab Cấp Lô.</div>
+              <label>Tìm lô</label>
+              <input type="text" id="dcLotSearch" placeholder="Gõ Lot No, công ty, khách hàng..." oninput="dcFillLotSelect()">
+              <label>Lot No</label>
+              <select id="dcLot" onchange="dcPickLot(this.value)"></select>
+              <div id="dcLotInfo" class="dc-info"></div>
+            </div>
+            <div class="card" id="dcItemsCard">
+              <div class="card-title">2 · Mặt hàng của lô → decal</div>
+              <div class="hint">Mỗi mặt hàng × ngày SX = 1 decal. Net/Gross đọc từ dòng “Mặt hàng – Net” (dạng NET 8KG/GROSS 8.5KG).</div>
+              <div id="dcItems"></div>
+            </div>
+            <div class="card" id="dcRowsCard">
+              <div class="card-title">3 · Các dòng trên decal (riêng lô này)</div>
+              <div class="hint">Khách yêu cầu thêm/bớt/sửa dòng thì sửa ở đây — chỉ áp cho lô đang mở. Muốn dùng lại cho lần sau: “Lưu vào mẫu thư viện”.</div>
+              <div id="dcTplTabs" class="dc-tabs"></div>
+              <div id="dcTplTabBar" class="btn-row" style="margin:8px 0;"></div>
+              <div id="dcRows_job"></div>
+              <div id="dcRowEd_job"></div>
+            </div>
+          </div>
+          <div class="dc-right">
+            <div id="dcStatus" class="dc-status"></div>
+            <div class="card">
+              <div class="card-title" id="dcPvTitle">Xem trước</div>
+              <div id="dcPreview" class="dc-pv"></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-outline" style="flex:1;min-width:150px;" onclick="dcSaveJob()">💾 Lưu decal</button>
+              <button class="btn btn-primary" style="flex:2;min-width:200px;" id="dcPrintBtn" onclick="dcPrint()">🖨️ In / Xuất PDF</button>
+            </div>
+            <div class="hint" style="margin-top:8px;">In: chọn máy in hoặc “Lưu dưới dạng PDF”, Tỷ lệ 100%, Lề: Không. Mỗi trang 1 decal, đúng khổ QC của mẫu.</div>
+            <div class="card" style="margin-top:10px;">
+              <div class="card-title">Lịch sử chỉnh sửa decal của lô</div>
+              <div id="dcLog" class="small"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thư viện mẫu -->
+      <div id="dc-mau" class="hidden">
+        <div id="dcTplListWrap">
+          <div class="card">
+            <div class="card-title">Tạo mẫu mới</div>
+            <div class="hint">Từ file PDF nhà in (app tự bốc tách) · Sao chép từ mẫu có sẵn · Mẫu trống (ghép dòng từ thư viện dòng).</div>
+            <div class="row-flex">
+              <div class="field">
+                <label>Bắt đầu từ</label>
+                <select id="dcNewFrom"></select>
+              </div>
+              <div class="field" style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="dcNewTpl()">➕ Tạo mẫu</button>
+                <label class="btn btn-outline" style="margin:0;display:inline-block;font-size:14px;color:var(--primary);">📥 Nhập mẫu từ PDF<input type="file" id="dcPdfFile" accept=".pdf,.ai,application/pdf" style="display:none;" onchange="dcImportPdf(event)"></label>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="field"><label>Tìm mẫu</label><input type="text" id="dcTplSearch" placeholder="Tên mẫu, khách hàng..." oninput="dcRenderTplList()"></div>
+            <div id="dcTplList" style="margin-top:10px;"></div>
+          </div>
+        </div>
+        <div id="dcTplEditor" class="hidden"></div>
+      </div>
+
+      <!-- Decal đã lưu -->
+      <div id="dc-don" class="hidden">
+        <div class="card">
+          <div class="field"><label>Tìm</label><input type="text" id="dcJobSearch" placeholder="Lot No, công ty, khách hàng..." oninput="dcRenderJobs()"></div>
+          <div id="dcJobList" style="margin-top:10px;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== TAB DANH MỤC ===== -->
     <div id="pane-danhMuc" class="hidden">
       <div class="section-tab" id="danhMucSubTab">
@@ -333,6 +499,7 @@
         <button data-sub="daily" onclick="switchDanhMucSub('daily')">🤝 Đại lý</button>
         <button data-sub="honuoi" onclick="switchDanhMucSub('honuoi')">🌾 Hộ nuôi</button>
         <button data-sub="thongtinxk" onclick="switchDanhMucSub('thongtinxk')">🚢 Thông tin XK</button>
+        <button data-sub="decalinfo" onclick="switchDanhMucSub('decalinfo')">🏷️ Thông tin Decal</button>
       </div>
 
       <div id="sub-congty">
@@ -500,6 +667,15 @@
         </div>
         <div class="card"><div id="xkThongTinValueList"></div></div>
       </div>
+
+      <div id="sub-decalinfo" class="hidden">
+        <div class="card">
+          <div class="card-title">🏷️ Thông tin công ty in trên decal</div>
+          <div class="hint" style="margin-bottom:0;">Ghi ĐÚNG theo hồ sơ đăng ký GACC. 3 dòng tên – địa chỉ – số đăng ký luôn đi chung và tự điền theo công ty của lô. Công ty chưa “Đã đối chiếu GACC” thì tab TK Decal chặn in. Sửa nội dung sau khi đã đối chiếu → phải đối chiếu lại.</div>
+        </div>
+        <div id="dcCtyList"></div>
+      </div>
+
     </div>
 
     <!-- ===== TAB TÀI KHOẢN ===== -->
@@ -830,6 +1006,23 @@
 <div id="exportArea" style="position:fixed;left:-9999px;top:0;background:#fff;padding:22px;width:1150px;"></div>
 <div class="toast" id="toast"></div>
 
+<!-- TK Decal: duyệt mẫu bốc tách từ PDF (V3.8.0) -->
+<div class="modal-overlay hidden" id="dcPdfModal">
+  <div class="modal" style="max-width:1150px;">
+    <div class="modal-title">Duyệt mẫu bốc tách từ PDF<span class="x" onclick="dcClosePdf()">✕</span></div>
+    <div id="dcPdfBody"></div>
+    <div id="dcPdfFoot" class="hidden" style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
+      <div class="row-flex">
+        <div class="field"><label>Tên mẫu mới</label><input type="text" id="dcPdfName"></div>
+        <div class="field" style="display:flex;align-items:flex-end;gap:8px;">
+          <button class="btn btn-outline" onclick="dcClosePdf()">Hủy</button>
+          <button class="btn btn-primary" onclick="dcPdfToEditor()">Tiếp tục → chỉnh &amp; lưu mẫu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============ FIREBASE ============ */
 const firebaseConfig = {
@@ -901,6 +1094,7 @@ const PERM_LIST = [
   {key:'phieuDongGoi', label:'Bảng Kê - Phiếu ĐK'},
   {key:'listChiaNgay', label:'Chia Ngày Sản Xuất'},
   {key:'healthNhap', label:'Health Nháp'},
+  {key:'thietKeDecal', label:'Thiết kế decal'},
   {key:'quanLyDanhMuc', label:'Quản lý danh mục'},
   {key:'quanLyTaiKhoan', label:'Quản lý tài khoản'}
 ];
@@ -1028,6 +1222,7 @@ function applyTabVisibility(){
     if(tab==='phieuDongGoi') ok = hasPerm('phieuDongGoi');
     if(tab==='listChiaNgay') ok = hasPerm('listChiaNgay');
     if(tab==='healthNhap') ok = hasPerm('healthNhap');
+    if(tab==='tkDecal') ok = hasPerm('thietKeDecal');
     if(tab==='danhMuc') ok = hasPerm('quanLyDanhMuc');
     if(tab==='taiKhoan') ok = true; // Ai cũng cần vào được để tự đổi mật khẩu — phần Quản lý tài khoản bên trong vẫn được kiểm soát riêng bằng quyền quanLyTaiKhoan
     btn.classList.toggle('hidden', !ok);
@@ -1063,6 +1258,7 @@ function switchTab(tab){
   if(tab==='phieuDongGoi'){ switchPdgSub(pdgSection); }
   if(tab==='listChiaNgay'){ switchLcnSub(lcnSection); }
   if(tab==='healthNhap'){ switchHcSub(hcSection); }
+  if(tab==='tkDecal'){ dcEnter(); }
   if(tab==='taiKhoan'){ renderCurAccountBox(); buildNewUserPermCheckboxes(); renderUserList(); renderActivityLog(); }
 }
 let pdgSection = 'tao';
@@ -1083,7 +1279,8 @@ function switchPdgSub(sub){
 }
 function switchDanhMucSub(sub){
   document.querySelectorAll('#danhMucSubTab button').forEach(b=>b.classList.toggle('active', b.dataset.sub===sub));
-  ['congty','khachhang','vungnuoi','sanpham','size','chuhang','daily','honuoi','thongtinxk'].forEach(s=> document.getElementById('sub-'+s).classList.toggle('hidden', s!==sub));
+  ['congty','khachhang','vungnuoi','sanpham','size','chuhang','daily','honuoi','thongtinxk','decalinfo'].forEach(s=> document.getElementById('sub-'+s).classList.toggle('hidden', s!==sub));
+  if(sub==='decalinfo') dcRenderCtyInfo();
   if(sub==='congty') fillCongTyChuHangSelects();
 }
 
@@ -1171,7 +1368,9 @@ function listenAll(){
   db.collection('capmalo_lot').orderBy('createdAt','desc').onSnapshot(snap=>{
     lotList = snap.docs.map(d=>({id:d.id, ...d.data()}));
     if(activeTab==='capLo' && capSection==='list') renderDanhSach();
+    if(activeTab==='tkDecal' && dcSection==='tao'){ dcFillLotSelect(); if(dcJob){ dcRenderLotInfo(); dcRenderItems(); dcRenderRowsArea(); dcRenderPreview(); } }
   }, fsErr);
+  dcListen();
 }
 
 /* ============ DANH MỤC: CÔNG TY ============ */
@@ -4796,6 +4995,1080 @@ function doiMatKhauCuaToi(){
 
 /* ============ INIT ============ */
 window.addEventListener('load', bootFirebase);
+/* ===== Bộ đọc PDF thiết kế decal (pdf.js nạp khi cần) ===== */
+const DCPDF = (function(){
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+const num = v => parseFloat(String(v).replace(',', '.'));
+let pdfLib = null, pdfResult = null;
+function loadPdfJs() {
+  if (pdfLib) return Promise.resolve(pdfLib);
+  return new Promise((ok, fail) => {
+    const s = document.createElement('script');
+    s.src = PDFJS + 'pdf.min.js';
+    s.onload = () => { pdfLib = window.pdfjsLib; pdfLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; ok(pdfLib); };
+    s.onerror = () => fail(new Error('Không tải được thư viện đọc PDF (cần có mạng).'));
+    document.head.appendChild(s);
+  });
+}
+const mul = (m, n) => [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]];
+const apl = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+function toHex(c) {
+  if (typeof c === 'string') return c.startsWith('#') ? c.toLowerCase() : null;
+  if (c && c.length >= 3) return '#' + [c[0], c[1], c[2]].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+  if (c && typeof c === 'object' && 0 in c) return toHex([c[0], c[1], c[2]]);
+  return null;
+}
+async function readPage(page, O) {
+  const tc = await page.getTextContent();
+  const items = tc.items.filter(i => i.str !== undefined).map(i => ({ str: i.str, x: i.transform[4], y: i.transform[5], w: i.width, size: Math.abs(i.transform[3]) || Math.abs(i.transform[0]) }));
+  const ol = await page.getOperatorList();
+  let ctm = [1, 0, 0, 1, 0, 0], fill = null; const st = [], segs = [], colors = {};
+  for (let i = 0; i < ol.fnArray.length; i++) {
+    const f = ol.fnArray[i], a = ol.argsArray[i];
+    if (f === O.save) st.push([ctm.slice(), fill]);
+    else if (f === O.restore) { const p = st.pop(); if (p) { ctm = p[0]; fill = p[1]; } }
+    else if (f === O.transform) ctm = mul(ctm, a);
+    else if (f === O.setFillRGBColor) fill = toHex(a.length === 1 ? a[0] : a);
+    else if (f === O.showText || f === O.showSpacedText) { if (fill) colors[fill] = (colors[fill] || 0) + 1; }
+    else if (f === O.constructPath) {
+      const ops = a[0], args = a[1]; let k = 0, cur = null, start = null;
+      for (const op of ops) {
+        if (op === O.moveTo) { cur = apl(ctm, args[k], args[k + 1]); start = cur; k += 2; }
+        else if (op === O.lineTo) { const n = apl(ctm, args[k], args[k + 1]); k += 2; if (cur) segs.push([cur[0], cur[1], n[0], n[1]]); cur = n; }
+        else if (op === O.curveTo) { k += 6; cur = apl(ctm, args[k - 2], args[k - 1]); }
+        else if (op === O.curveTo2 || op === O.curveTo3) { k += 4; cur = apl(ctm, args[k - 2], args[k - 1]); }
+        else if (op === O.rectangle) {
+          const x = args[k], y = args[k + 1], w = args[k + 2], h = args[k + 3]; k += 4;
+          const q = [apl(ctm, x, y), apl(ctm, x + w, y), apl(ctm, x + w, y + h), apl(ctm, x, y + h)];
+          for (let j = 0; j < 4; j++) segs.push([q[j][0], q[j][1], q[(j + 1) % 4][0], q[(j + 1) % 4][1]]);
+        }
+        else if (op === O.closePath) { if (cur && start) segs.push([cur[0], cur[1], start[0], start[1]]); cur = start; }
+      }
+    }
+  }
+  return { items, segs, colors };
+}
+
+/* --- gom chữ thành dòng --- */
+function toLines(items, gapMul = 3) {
+  const s = [...items].sort((a, b) => b.y - a.y), out = [];
+  s.forEach(i => { const l = out.find(l => Math.abs(l.y - i.y) < Math.min(l.size, i.size) * 0.5); l ? (l.items.push(i), l.size = Math.max(l.size, i.size)) : out.push({ y: i.y, size: i.size, items: [i] }); });
+  const runs = [];
+  out.forEach(l => {
+    l.items.sort((a, b) => a.x - b.x); let cur = null;
+    l.items.forEach(it => {
+      if (cur) { const p = cur.items[cur.items.length - 1]; if (it.x - (p.x + p.w) > Math.max(p.size * gapMul, gapMul * 8)) { runs.push(cur); cur = null; } }
+      if (!cur) cur = { y: l.y, size: 0, items: [] };
+      cur.items.push(it); cur.size = Math.max(cur.size, it.size);
+    });
+    runs.push(cur);
+  });
+  runs.forEach(l => {
+    l.x = l.items[0].x; let t = '';
+    l.items.forEach((it, k) => {
+      if (k) { const p = l.items[k - 1]; const gap = it.x - (p.x + p.w); if (gap > Math.min(p.size, it.size) * 0.18 && !/\s$/.test(t) && !/^\s/.test(it.str)) t += ' '; }
+      t += it.str;
+    });
+    l.text = t.replace(/\s+/g, ' ').trim();
+  });
+  return runs.sort((a, b) => b.y - a.y || a.x - b.x);
+}
+
+/* --- chữ trong 1 ô; xử lý ký hiệu độ viết kiểu chữ "o" nhỏ nằm trên (-18 ᵒC) --- */
+function cellText(its, isLabel) {
+  const maxS = Math.max(0, ...its.map(i => i.size));
+  const sup = its.filter(i => /^[oO0º°]$/.test(i.str.trim()) && i.size < maxS * 0.8);
+  let t = toLines(its.filter(i => !sup.includes(i))).map(l => l.text).join(isLabel ? ' ' : '\n');
+  let n = sup.length;
+  if (n) t = t.replace(/(\d)\s?C(?![a-zA-Z])/g, (m, d) => n-- > 0 ? d + '°C' : m);
+  return isLabel ? t.replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ').trim() : t;
+}
+/* --- tìm bảng decal theo CẤU TRÚC KẺ KHUNG (không phụ thuộc chữ nhãn) ---
+   Bảng hợp lệ: >= 5 hàng, 2 cột (hoặc 3 cột: các cột trước gộp làm nhãn),
+   >= 70% hàng có cả nhãn và nội dung. */
+function parseDecals(items, segs) {
+  const MM = 25.4 / 72, isNoise = s => /^\s*\d+(\.\d+)?\s*mm\s*$/i.test(s);
+  items = items.filter(i => i.str.trim() && !isNoise(i.str));
+  let H = [], V = [];
+  segs.forEach(([x0, y0, x1, y1]) => {
+    if (Math.abs(y0 - y1) < 0.8 && Math.abs(x1 - x0) > 3) H.push({ a: Math.min(x0, x1), b: Math.max(x0, x1), y: (y0 + y1) / 2 });
+    else if (Math.abs(x0 - x1) < 0.8 && Math.abs(y1 - y0) > 3) V.push({ x: (x0 + x1) / 2, a: Math.min(y0, y1), b: Math.max(y0, y1) });
+  });
+  const merge = (arr, k) => {
+    arr.sort((p, q) => Math.round(p[k] * 2) - Math.round(q[k] * 2) || p.a - q.a);
+    const o = [];
+    arr.forEach(s => { const l = o[o.length - 1]; if (l && Math.round(l[k] * 2) === Math.round(s[k] * 2) && s.a <= l.b + 3) l.b = Math.max(l.b, s.b); else o.push({ ...s }); });
+    return o;
+  };
+  H = merge(H, 'y'); V = merge(V, 'x');
+  const lines = toLines(items);
+  const decals = [];
+  const lefts = [...new Set(H.map(h => Math.round(h.a)))];
+  for (const lx of lefts) {
+    const hs = H.filter(h => Math.abs(h.a - lx) < 2 && h.b - h.a > 40).sort((p, q) => q.y - p.y);
+    const runs = []; let run = [];
+    hs.forEach(h => {
+      if (run.length) {
+        const py = run[run.length - 1].y;
+        if (py - h.y <= 1) return;
+        const conn = V.some(v => Math.abs(v.x - lx) < 2.5 && v.a <= h.y + 1 && v.b >= py - 1);
+        if (!conn) { runs.push(run); run = []; }
+      }
+      run.push(h);
+    });
+    if (run.length) runs.push(run);
+    for (const r of runs) {
+      if (r.length < 6) continue;
+      const top = r[0].y, bot = r[r.length - 1].y, span = top - bot;
+      const right = Math.max(...r.map(h => h.b));
+      const cov = {};
+      V.forEach(v => { if (v.x < lx - 2 || v.x > right + 2) return; const o = Math.min(v.b, top) - Math.max(v.a, bot); if (o > 0) { const k = Math.round(v.x); cov[k] = (cov[k] || 0) + o; } });
+      let cols = Object.keys(cov).map(Number).filter(x => cov[x] >= span * 0.5).sort((a, b) => a - b);
+      cols = cols.filter((x, i) => i === 0 || x - cols[i - 1] > 3);
+      if (cols.length < 3 || cols.length > 4 || Math.abs(cols[0] - lx) > 3) continue;
+      const L = cols[0], S = cols[cols.length - 2], R = cols[cols.length - 1];
+      const ys = r.map(h => h.y), rows = [];
+      for (let k = 0; k < ys.length - 1; k++) {
+        const y1 = ys[k], y0 = ys[k + 1];
+        const inB = i => { const cy = i.y + i.size * 0.3; return cy > y0 && cy < y1; };
+        const li = items.filter(i => inB(i) && i.x >= L - 1 && i.x < S - 1), vi = items.filter(i => inB(i) && i.x >= S - 1 && i.x < R);
+        if (!li.length && !vi.length) continue;
+        rows.push({
+          label: cellText(li, true),
+          value: cellText(vi, false),
+          size: Math.max(0, ...li.concat(vi).map(i => i.size))
+        });
+      }
+      if (rows.length < 5 || rows.filter(x => x.label && x.value).length < rows.length * 0.7) continue;
+      // khung ngoài (QC): đường ngang bao trùm bảng, gần nhất phía trên/dưới
+      const fr = H.filter(h => h.a < L - 2 && h.b > R + 2);
+      const fTop = fr.filter(h => h.y > top && h.y - top < 60).sort((a, b) => a.y - b.y)[0];
+      const fBot = fr.filter(h => h.y < bot && bot - h.y < 60).sort((a, b) => b.y - a.y)[0];
+      let frame = null;
+      if (fTop && fBot) frame = { w: (fTop.b - fTop.a) * MM, h: (fTop.y - fBot.y) * MM, m: ((L - fTop.a) + (fTop.b - R) + (fTop.y - top) + (bot - fBot.y)) / 4 * MM };
+      const fy = fTop ? fTop.y : top, fx0 = fTop ? fTop.a : L, fx1 = fTop ? fTop.b : R;
+      const above = toLines(items.filter(i => i.y > fy && i.y < fy + 45 && i.x >= fx0 - 10 && i.x < fx1), 1.2);
+      const qcLine = above.find(l => /QC/i.test(l.text));
+      const titles = above.filter(l => !/QC/i.test(l.text) && !/^[A-Z0-9]+[-\/][A-Z0-9]+$/.test(l.text)).sort((a, b) => b.size - a.size);
+      let qc = null;
+      if (qcLine) { const m = qcLine.text.match(/([\d.,]+)\s*[*x×]\s*([\d.,]+)\s*(cm|mm)?/i); if (m) { const f = (m[3] || 'cm').toLowerCase() === 'mm' ? 1 : 10; qc = { w: num(m[1]) * f, h: num(m[2]) * f }; } }
+      decals.push({ x: L, y: top, rows, frame, qc, title: titles[0] ? titles[0].text : '', split: (S - L) / (R - L) * 100, table: { w: (R - L) * MM, h: (top - bot) * MM } });
+    }
+  }
+  decals.sort((a, b) => Math.abs(a.y - b.y) > 50 ? b.y - a.y : a.x - b.x);
+  return decals;
+}
+
+/* --- từ kết quả bảng → mẫu + quy cách --- */
+/* --- từ kết quả bảng → mẫu + quy cách (giữ nguyên định dạng gốc) --- */
+const reNum = /\d+(?:[.,]\d+)?/;
+const reDate = /(\d{4})(\s*[年.\-\/]\s*)(\d{1,2})(\s*[月.\-\/]\s*)(\d{1,2})(\s*日)?/;
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const isGrossL = l => /毛重|GROSS/i.test(l), isNetL = l => /净含量|净重|NET\s*W/i.test(l);
+/* chữ số bị lấn sang cột nhãn: "毛重 10.6 KG" | "" → "毛重" | "10.6 KG" */
+function fixRow(r) {
+  if (/\d/.test(r.value)) return r;
+  const m = r.label.match(/^(.*?[^\d\s.,])\s*(\d+(?:[.,]\d+)?\s*[A-Za-z千克公斤]*)\s*$/);
+  if (!m || !(isGrossL(m[1]) || isNetL(m[1]))) return r;
+  const v = r.value.trim();
+  return Object.assign({}, r, { label: m[1].trim(), value: m[2].trim() + (v && /^[A-Za-z]/.test(v) ? ' ' : '') + v });
+}
+function weightFmt(v) {
+  const m = v.match(reNum); if (!m) return null;
+  return { num: m[0].replace(',', '.'), fmt: v.replace(new RegExp('(?<![\\d.,])' + escRe(m[0]) + '(?![\\d.,]*\\d)', 'g'), '{v}') };
+}
+function dateFmt(v) {
+  const m = v.match(reDate); if (!m) return null;
+  const fmt = v.replace(m[0], '{Y}' + m[2] + (m[3].length === 2 ? '{M}' : '{m}') + m[4] + (m[5].length === 2 ? '{D}' : '{d}') + (m[6] || ''));
+  return { iso: `${m[1]}-${m[3].padStart(2, '0')}-${m[5].padStart(2, '0')}`, fmt };
+}
+
+return {loadPdfJs, readPage, parseDecals, fixRow, weightFmt, dateFmt, reNum, isGrossL, isNetL};
+})();
+
+/* =====================================================================
+   TK DECAL (V3.8.0) — thiết kế & in decal thùng từ lô đã cấp
+   Firestore: capmalo_decal_mau (mẫu) · capmalo_decal_don (decal theo lô)
+              capmalo_decal_congty (thông tin công ty in trên decal, id = congTyId)
+   ===================================================================== */
+const DC_SRC = {
+  fixed:'Cố định', each:'Riêng từng decal', gross:'Gross', net:'Net', date:'Ngày SX', lot:'Lot No',
+  vung:'Vùng nuôi', cty:'Tên công ty', addr:'Địa chỉ công ty', gacc:'Số ĐK GACC', code:'Code công ty'
+};
+const DC_AUTO = ['gross','net','date','lot','vung','cty','addr','gacc','code'];
+const DC_FMT = {
+  gross:'{v}千克', net:'{v}千克', date:'{Y}年{M}月{D}日', lot:'{lot}', vung:'{vung}',
+  cty:'{tenCN} {tenEN}\n({tenVT}) - {code}', addr:'{dcCN}\n{dcEN}', gacc:'{gacc}', code:'{code}'
+};
+const DC_TOKEN_HELP = {
+  gross:'{v} = số Gross. VD: {v}千克 · {v}千克/{v}KG · {v}KG',
+  net:'{v} = số Net. VD: {v}千克 · {v}千克/{v}KG(6块)',
+  date:'{Y} năm · {M} tháng · {D} ngày (01) · {m} {d} (không số 0). VD: {Y}年{M}月{D}日 · {Y}.{M}.{D}',
+  lot:'{lot} = Lot No', vung:'{vung} = vùng nuôi (tên EN) · {vungVN} = tên tiếng Việt',
+  cty:'{tenCN} {tenEN} {tenVT} {code} — lấy từ Danh Mục › Thông tin Decal',
+  addr:'{dcCN} {dcEN} — lấy từ Danh Mục › Thông tin Decal', gacc:'{gacc} = số ĐK GACC', code:'{code} = Code công ty (DL 184, TS 1097…)'
+};
+const DC_REQ = [['gross','Gross (毛重)'],['net','Net (净含量)'],['lot','Lot (批号)'],['date','Ngày sản xuất'],['gacc','Số ĐK GACC (在华注册编号)']];
+const DC_MIN_PT = 6;
+const DC_PH = '[Nhập nội dung]';
+const DC_LIB = [
+  {k:'name', cn:'商品名称', en:'COMMODITY NAME', src:'fixed', v:'冻凡纳(滨)对虾虾仁/FROZEN RAW PD VANNAMEI SHRIMP IQF'},
+  {k:'sci',  cn:'学名', en:'SCIENTIFIC NAME', src:'fixed', v:'凡纳(滨)对虾/Penaeus vannamei'},
+  {k:'spec', cn:'规格', en:'SPECIFICATION', src:'gross', fmt:'{v}千克/件'},
+  {k:'gross',cn:'毛重', en:'GROSS WEIGHT', src:'gross', big:1},
+  {k:'net',  cn:'净含量', en:'NET WEIGHT', src:'net', big:1},
+  {k:'lot',  cn:'批号', en:'LOT NO', src:'lot'},
+  {k:'date', cn:'生产日期', en:'PRODUCTION DATE', src:'date'},
+  {k:'shelf',cn:'保质期', en:'SHELF LIFE', src:'fixed', v:'24个月/24 MONTHS'},
+  {k:'store',cn:'储存条件', en:'STORAGE CONDITION', src:'fixed', v:'-18°C以下冷冻/BELOW -18°C'},
+  {k:'mode', cn:'生产方式', en:'PRODUCTION METHOD', src:'fixed', v:'养殖/AQUACULTURE'},
+  {k:'proc', cn:'加工方式', en:'PROCESSING TYPE', src:'fixed', v:'冷冻/FROZEN'},
+  {k:'area', cn:'生产地区', en:'PRODUCTION AREA', src:'fixed', v:'越南/VIETNAM'},
+  {k:'farm', cn:'养殖区域', en:'FARMING AREA', src:'vung'},
+  {k:'cty',  cn:'生产加工企业名称及注册号', en:'PRODUCTION AND PROCESSING ENTERPRISE NAME AND REGISTRATION NUMBER', src:'cty'},
+  {k:'addr', cn:'生产加工企业地址', en:'FACTORY ADDRESS', src:'addr'},
+  {k:'gacc', cn:'在华注册编号', en:'CHINA REG NO', src:'gacc'},
+  {k:'code', cn:'生产企业注册号', en:'REGISTRATION NUMBER', src:'code'},
+  {k:'dest', cn:'目的地', en:'DESTINATION', src:'fixed', v:"中华人民共和国/The People's Republic of China"},
+  {k:'note', cn:'备注', en:'REMARKS', src:'fixed', v:'非直接提供给消费者'}
+];
+const DC_CTY_FIELDS = [['tenCN','Tên tiếng Trung'],['gacc','Số ĐK GACC (在华注册编号)'],['tenEN','Tên tiếng Anh'],['tenVT','Tên viết tắt'],['dcCN','Địa chỉ tiếng Trung'],['dcEN','Địa chỉ tiếng Anh']];
+
+const DC_DECAL_CSS = `
+.dc-decal{--c:#000;--s:1;--sb:1;--fp:9pt;--fb:24pt;--m:3.5mm;--split:40%;box-sizing:border-box;background:#fff;color:var(--c);padding:var(--m);overflow:hidden;
+  font-family:'Noto Sans SC','Microsoft YaHei',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.dc-decal table{width:100%;height:100%;border-collapse:collapse;table-layout:fixed;}
+.dc-decal td{border:0.25mm solid var(--c);padding:calc(0.6mm * var(--s)) 1.2mm;font-size:calc(var(--fp) * var(--s));line-height:1.25;
+  vertical-align:middle;white-space:pre-line;word-break:break-word;color:var(--c);background:#fff;}
+.dc-decal td.l{width:var(--split);}
+.dc-decal tr.big td{font-family:'Oswald','Noto Sans SC',sans-serif;font-weight:400;line-height:1.1;padding:calc(0.8mm * var(--s)) 1.2mm;}
+.dc-decal tr.big td.l{font-size:calc(var(--fb) * 0.8 * var(--s) * var(--sb));white-space:nowrap;}
+.dc-decal tr.big td.v{font-size:calc(var(--fb) * var(--s) * var(--sb));}
+.dc-decal tr.sel td{background:#FFF3B8;}
+.dc-decal td.bad{background:#ffe3e3;}
+`;
+const DC_FONT_URL = 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Oswald:wght@400;500&display=swap';
+
+let dcTplList = [], dcJobList = [], dcCtyMap = {};
+let dcSection = 'tao', dcJob = null, dcDirty = false, dcSelTab = null, dcFits = [], dcErrors = [];
+const dcREsel = {job:null, tpl:null};
+let dcTplEd = null;          // {id|null, data}
+let dcPdfRes = null;
+let dcFontsReady = false, dcFontWarn = false;
+
+const dcClone = o => JSON.parse(JSON.stringify(o));
+const dcUid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const dcNum = v => parseFloat(String(v).replace(',', '.'));
+const dcJobId = lotNo => String(lotNo).replace(/[\/\\#?\s]/g,'_');
+const dcR1 = v => Math.round(v*10)/10;
+
+/* ---------- khởi động ---------- */
+(function(){ const st=document.createElement('style'); st.id='dcDecalCss'; st.textContent=DC_DECAL_CSS; document.head.appendChild(st); })();
+function dcEnsureFonts(){
+  if(document.getElementById('dcFontLink')) return;
+  const l=document.createElement('link'); l.id='dcFontLink'; l.rel='stylesheet'; l.href=DC_FONT_URL;
+  const done = ()=>{ dcFontsReady=true; if(activeTab==='tkDecal'&&dcSection==='tao') dcRenderPreview(); if(dcTplEd) dcTplEdPreview(); };
+  l.onload=()=>{ (document.fonts&&document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(done); };
+  l.onerror=()=>{ dcFontWarn=true; done(); };
+  document.head.appendChild(l);
+}
+function dcListen(){
+  db.collection('capmalo_decal_mau').onSnapshot(snap=>{
+    dcTplList = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.ten||'').localeCompare(b.ten||''));
+    if(activeTab==='tkDecal'){
+      if(dcSection==='mau' && !dcTplEd) dcRenderTplList();
+      if(dcSection==='mau') dcFillNewFrom();
+      if(dcSection==='tao' && dcJob){ dcRenderItems(); dcRenderRowsArea(); dcRenderPreview(); }
+    }
+  }, fsErr);
+  db.collection('capmalo_decal_don').onSnapshot(snap=>{
+    dcJobList = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(activeTab==='tkDecal' && dcSection==='don') dcRenderJobs();
+    if(activeTab==='tkDecal' && dcSection==='tao') dcFillLotSelect();
+  }, fsErr);
+  db.collection('capmalo_decal_congty').onSnapshot(snap=>{
+    dcCtyMap = {}; snap.docs.forEach(d=>dcCtyMap[d.id]=d.data());
+    if(activeTab==='tkDecal' && dcSection==='tao' && dcJob){ dcRenderLotInfo(); dcRenderPreview(); }
+    if(activeTab==='danhMuc' && !document.getElementById('sub-decalinfo').classList.contains('hidden')){
+      const list=document.getElementById('dcCtyList');
+      if(!list.contains(document.activeElement)) dcRenderCtyInfo();
+    }
+  }, fsErr);
+}
+function dcEnter(){ dcEnsureFonts(); dcSwitchSub(dcSection); }
+function dcSwitchSub(sub){
+  dcSection = sub;
+  document.querySelectorAll('#dcSubTab button').forEach(b=>b.classList.toggle('active', b.dataset.sub===sub));
+  ['tao','mau','don'].forEach(s=>document.getElementById('dc-'+s).classList.toggle('hidden', s!==sub));
+  if(sub==='tao'){ dcFillLotSelect(); dcRenderJobArea(); }
+  if(sub==='mau'){ dcFillNewFrom(); if(dcTplEd) dcRenderTplEditor(); else dcRenderTplList(); }
+  if(sub==='don') dcRenderJobs();
+}
+
+/* ---------- dữ liệu lô ---------- */
+function dcLotGroups(){
+  const g = {};
+  lotList.forEach(l=>{ (g[l.lotNo] = g[l.lotNo] || []).push(l); });
+  Object.values(g).forEach(a=>a.sort((x,y)=>(x.createdAt||0)-(y.createdAt||0)));
+  return g;
+}
+function dcParseNet(s){
+  s = String(s||'');
+  const N = s.match(/NET\s*(?:WEIGHT|WT)?\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*KGS?\b/i);
+  const G = s.match(/GROSS\s*(?:WEIGHT|WT)?\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*KGS?\b/i);
+  if(!N || !G) return null;
+  return {net:N[1].replace(',','.'), gross:G[1].replace(',','.')};
+}
+function dcFillLotSelect(){
+  const sel = document.getElementById('dcLot'); if(!sel) return;
+  const q = boDauVN(document.getElementById('dcLotSearch').value);
+  const g = dcLotGroups();
+  const keys = Object.keys(g).sort((a,b)=>Math.max(...g[b].map(x=>x.createdAt||0)) - Math.max(...g[a].map(x=>x.createdAt||0)));
+  const saved = new Set(dcJobList.map(j=>j.lotNo));
+  const opts = keys.filter(k=>{
+    if(!q) return true;
+    const r=g[k][0]; return boDauVN(`${k} ${r.congTyTen} ${r.khachHangTen} ${r.maCode}`).includes(q);
+  }).slice(0, 300).map(k=>{
+    const r=g[k][0];
+    return `<option value="${escapeHtml(k)}" ${dcJob&&dcJob.lotNo===k?'selected':''}>${escapeHtml(k)} — ${escapeHtml(r.congTyTen||'')} · ${escapeHtml(r.khachHangTen||'')} · ${g[k].length} mặt hàng${saved.has(k)?' · ✓ đã có decal':''}</option>`;
+  });
+  sel.innerHTML = '<option value="">— Chọn Lot No —</option>' + opts.join('');
+  if(dcJob && !opts.some(o=>o.includes(`value="${escapeHtml(dcJob.lotNo)}"`))) sel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(dcJob.lotNo)}" selected>${escapeHtml(dcJob.lotNo)} (đang mở)</option>`);
+}
+function dcDefaultTpl(khId){ const t = dcTplList.find(t=>(t.khachHangIds||[]).includes(khId)); return t ? t.id : ''; }
+function dcSnapFromLib(tplId){
+  const t = dcTplList.find(x=>x.id===tplId); if(!t) return null;
+  const s = dcClone(t); delete s.id; s.rows = (s.rows||[]).map(r=>Object.assign({key:dcUid()}, r));
+  s.libAt = t.updatedAt || 0;
+  return s;
+}
+function dcPickLot(lotNo){
+  if(dcDirty && dcJob && dcJob.lotNo!==lotNo && !confirm('Decal của lô '+dcJob.lotNo+' chưa lưu. Vẫn mở lô khác?')){ dcFillLotSelect(); return; }
+  if(!lotNo){ dcJob=null; dcDirty=false; dcRenderJobArea(); return; }
+  const saved = dcJobList.find(j=>j.id===dcJobId(lotNo));
+  dcJob = saved ? dcClone(saved) : {lotNo, items:{}, tpls:{}, each:{}, log:[]};
+  delete dcJob.id;
+  dcJob.items = dcJob.items||{}; dcJob.tpls = dcJob.tpls||{}; dcJob.each = dcJob.each||{}; dcJob.log = dcJob.log||[];
+  const recs = dcLotGroups()[lotNo] || [];
+  recs.forEach(r=>{
+    if(!dcJob.items[r.id]) dcJob.items[r.id] = {tplId: dcDefaultTpl(r.khachHangId), netM:'', grossM:''};
+    const tid = dcJob.items[r.id].tplId;
+    if(tid && !dcJob.tpls[tid]){ const s=dcSnapFromLib(tid); if(s) dcJob.tpls[tid]=s; }
+  });
+  dcDirty = false; dcREsel.job = null;
+  dcSelTab = dcUsedTpls()[0] || null;
+  dcRenderJobArea();
+}
+function dcUsedTpls(){
+  if(!dcJob) return [];
+  const recs = dcLotGroups()[dcJob.lotNo] || [];
+  const out = [];
+  recs.forEach(r=>{ const t = dcJob.items[r.id] && dcJob.items[r.id].tplId; if(t && dcJob.tpls[t] && !out.includes(t)) out.push(t); });
+  return out;
+}
+function dcLog(msg){ if(!dcJob) return; dcJob.log.unshift({t:Date.now(), u:currentUser?currentUser.displayName:'', msg}); dcJob.log = dcJob.log.slice(0,60); dcDirty = true; dcRenderLog(); }
+
+/* ---------- decal = mặt hàng × ngày SX ---------- */
+function dcDecals(){
+  if(!dcJob) return [];
+  const recs = dcLotGroups()[dcJob.lotNo] || [];
+  const out = [];
+  recs.forEach((r, ri)=>{
+    const it = dcJob.items[r.id] || {}; const T = it.tplId ? dcJob.tpls[it.tplId] : null;
+    const p = dcParseNet(r.matHangNet);
+    const net = p ? p.net : String(it.netM||'').trim().replace(',','.');
+    const gross = p ? p.gross : String(it.grossM||'').trim().replace(',','.');
+    [...(r.ngaySX||[])].sort().forEach(date=>{ out.push({r, ri, it, T, tplId:it.tplId, date, net, gross, key:r.id+'|'+date}); });
+  });
+  return out;
+}
+function dcVars(d){
+  const c = congTyList.find(x=>x.id===d.r.congTyId) || {};
+  const ci = dcCtyMap[d.r.congTyId] || {};
+  const vn = vungNuoiList.find(v=>v.id===d.r.vungNuoiId) || {};
+  const [Y,M,D] = d.date.split('-');
+  return {Y, M, D, m:String(+M), d:String(+D), lot:d.r.lotNo, code:c.maCode||'',
+    tenCN:ci.tenCN, tenEN:ci.tenEN, tenVT:ci.tenVT, dcCN:ci.dcCN, dcEN:ci.dcEN, gacc:ci.gacc,
+    vung:vn.tenEN||vn.ten||d.r.vungNuoiTen||'', vungVN:vn.ten||d.r.vungNuoiTen||''};
+}
+function dcFill(fmt, vars, errs, where){
+  return String(fmt||'').replace(/\{(\w+)\}/g, (m,k)=>{
+    if(!(k in vars)){ errs.push(`${where}: không hiểu “{${k}}”`); return m; }
+    const v = vars[k];
+    if(v===undefined || v===null || String(v).trim()===''){ errs.push(`${where}: thiếu giá trị {${k}}`); return ''; }
+    return String(v);
+  });
+}
+function dcCell(row, d, vars, errs, where, eachMap){
+  if(row.src==='fixed'){
+    if(!String(row.value||'').trim() || String(row.value).includes(DC_PH)) errs.push(`${where}: chưa nhập nội dung`);
+    return row.value||'';
+  }
+  if(row.src==='each'){
+    const v = (eachMap||{})[d.key+'|'+row.key] || '';
+    if(!v.trim()) errs.push(`${where}: chưa nhập nội dung riêng`);
+    return v;
+  }
+  const vv = Object.assign({}, vars);
+  if(row.src==='gross') vv.v = d.gross; if(row.src==='net') vv.v = d.net;
+  return dcFill(row.fmt || DC_FMT[row.src] || '', vv, errs, where);
+}
+function dcDecalHTML(T, cells, opt){
+  opt = opt || {};
+  const rows = T.rows.map((r,i)=>`<tr class="${r.kind==='big'?'big':''} ${opt.selKey&&r.key===opt.selKey?'sel':''}"><td class="l">${escapeHtml(r.label)}</td><td class="v ${cells[i].bad?'bad':''}">${escapeHtml(cells[i].v||'—')}</td></tr>`).join('');
+  return `<div class="dc-decal" data-w="${+T.w}" data-h="${+T.h}" style="width:${+T.w}mm;height:${+T.h}mm;--c:${escapeHtml(T.color||'#000')};--fp:${+T.fp||9}pt;--fb:${+T.fb||24}pt;--m:${+T.margin}mm;--split:${+T.split||40}%"><table>${rows}</table></div>`;
+}
+const dcWide = cells => [...cells].some(td=>td.scrollWidth > td.clientWidth + 1);
+function dcFitOne(el){
+  const cs = getComputedStyle(el);
+  const availH = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const tb = el.querySelector('table');
+  const big = tb.querySelectorAll('tr.big td'), all = tb.querySelectorAll('td');
+  let s=1, sb=1; el.style.setProperty('--s',1); el.style.setProperty('--sb',1);
+  for(let k=0;k<20 && sb>0.5 && dcWide(big);k++){ sb*=0.96; el.style.setProperty('--sb', sb.toFixed(3)); }
+  for(let k=0;k<25;k++){
+    const tall = tb.offsetHeight > availH + 0.5;
+    if(!tall && !dcWide(all)) break;
+    s *= tall ? Math.min(availH/tb.offsetHeight, 0.99) : 0.96;
+    el.style.setProperty('--s', s.toFixed(3));
+  }
+  return s;
+}
+function dcTplProblems(T, name){
+  const errs = [];
+  DC_REQ.forEach(([src,lab])=>{ if(!T.rows.some(r=>r.src===src)) errs.push(`Mẫu “${name}” thiếu dòng ${lab}`); });
+  if(!(T.w>0 && T.h>0)) errs.push(`Mẫu “${name}”: khổ không hợp lệ`);
+  T.rows.forEach((r,i)=>{ if(!String(r.label||'').trim()) errs.push(`Mẫu “${name}”, dòng ${i+1}: chưa có nhãn`); });
+  return errs;
+}
+
+/* ---------- render: khu Tạo decal ---------- */
+function dcRenderJobArea(){
+  const has = !!dcJob;
+  ['dcItemsCard','dcRowsCard'].forEach(id=>document.getElementById(id).classList.toggle('hidden', !has));
+  dcRenderLotInfo(); dcRenderItems(); dcRenderRowsArea(); dcRenderPreview(); dcRenderLog();
+}
+function dcRenderLotInfo(){
+  const el = document.getElementById('dcLotInfo');
+  if(!dcJob){ el.innerHTML = '<div class="hint" style="margin:10px 0 0;">Chọn 1 lô để bắt đầu.</div>'; return; }
+  const recs = dcLotGroups()[dcJob.lotNo] || [];
+  if(!recs.length){ el.innerHTML = '<div class="dc-status bad" style="margin-top:10px;">Lô này không còn trong danh sách lô (có thể đã bị xoá).</div>'; return; }
+  const r = recs[0], c = congTyList.find(x=>x.id===r.congTyId)||{}, ci = dcCtyMap[r.congTyId];
+  const ctyState = !ci ? '<span class="dc-bad">chưa có Thông tin Decal</span>' : (ci.daDoiChieu ? '<span class="dc-ok">✓ đã đối chiếu GACC</span>' : '<span class="dc-bad">chưa đối chiếu GACC</span>');
+  el.innerHTML = `<div class="dc-kv">
+    <div>Công ty · Code<b>${escapeHtml(r.congTyTen||'')} · ${escapeHtml(c.maCode||r.maCode||'')}</b></div>
+    <div>Khách hàng<b>${escapeHtml(r.khachHangTen||'')}</b></div>
+    <div>Vùng nuôi<b>${escapeHtml(r.vungNuoiTen||'')}</b></div>
+    <div>Thông tin công ty trên decal<b>${ctyState}</b></div></div>
+    ${dcJob && dcJobList.some(j=>j.id===dcJobId(dcJob.lotNo)) ? '<div class="hint" style="margin:8px 0 0;">Đã mở decal đã lưu của lô này.</div>' : ''}`;
+}
+function dcTplOptions(sel){
+  return '<option value="">— Chọn mẫu —</option>' + dcTplList.map(t=>`<option value="${t.id}" ${t.id===sel?'selected':''}>${escapeHtml(t.ten)} (${+t.w/10}×${+t.h/10}cm)</option>`).join('');
+}
+function dcRenderItems(){
+  const el = document.getElementById('dcItems'); if(!dcJob){ el.innerHTML=''; return; }
+  const recs = dcLotGroups()[dcJob.lotNo] || [];
+  el.innerHTML = recs.map((r,ri)=>{
+    const it = dcJob.items[r.id] || {}; const p = dcParseNet(r.matHangNet);
+    const T = it.tplId ? dcJob.tpls[it.tplId] : null;
+    const def = dcDefaultTpl(r.khachHangId);
+    const dates = [...(r.ngaySX||[])].sort();
+    const eachRows = T ? T.rows.filter(x=>x.src==='each') : [];
+    const netOk = p || (it.netM && it.grossM);
+    const tplHint = !it.tplId ? '<span class="dc-bad">Chưa chọn mẫu — khách này chưa có mẫu mặc định (gán ở Thư viện mẫu).</span>'
+      : !dcTplList.some(t=>t.id===it.tplId) ? '<span class="dc-bad">Mẫu này đã bị xoá khỏi thư viện — lô vẫn giữ bản riêng.</span>'
+      : (it.tplId===def ? 'Theo mẫu mặc định của khách' : 'Đã đổi mẫu cho mặt hàng này');
+    return `<div class="dc-item ${(!netOk||!it.tplId)?'err':''}">
+      <div class="small" style="font-weight:600;line-height:1.45;">Mặt hàng ${ri+1}: ${escapeHtml(r.matHangNet||'')}</div>
+      ${p ? `<div style="margin-top:6px;"><span class="dc-pill ok">NET ${escapeHtml(p.net)}kg · GROSS ${escapeHtml(p.gross)}kg</span> <span class="small muted">→ ${dates.length} decal</span></div>`
+        : `<div class="dc-bad small" style="margin-top:6px;">⚠ Không đọc được NET/GROSS trong mặt hàng — nhập tay (hoặc sửa dòng Mặt hàng bên tab Cấp Lô):</div>
+           <div class="row-flex"><div class="field"><label>Net (kg)</label><input type="text" inputmode="decimal" value="${escapeHtml(it.netM||'')}" oninput="dcSetItem('${r.id}','netM',this.value)"></div>
+           <div class="field"><label>Gross (kg)</label><input type="text" inputmode="decimal" value="${escapeHtml(it.grossM||'')}" oninput="dcSetItem('${r.id}','grossM',this.value)"></div></div>`}
+      <div class="date-chips">${dates.map(d=>`<span class="date-chip">${fmtDateVN(d)}</span>`).join('') || '<span class="dc-bad small">Lô chưa có ngày SX</span>'}</div>
+      <label>Mẫu decal</label>
+      <select onchange="dcSetItemTpl('${r.id}', this.value)">${dcTplOptions(it.tplId)}</select>
+      <div class="small muted" style="margin-top:4px;">${tplHint}</div>
+      ${eachRows.length ? dates.map(d=>eachRows.map(er=>`<label>${escapeHtml(er.label)} — ${fmtDateVN(d)} <span style="color:var(--primary);">(riêng decal này)</span></label>
+        <textarea rows="2" oninput="dcSetEach('${r.id}|${d}|${er.key}', this.value)">${escapeHtml(dcJob.each[r.id+'|'+d+'|'+er.key]||'')}</textarea>`).join('')).join('') : ''}
+    </div>`;
+  }).join('') || '<div class="empty">Lô không có mặt hàng.</div>';
+}
+function dcSetItem(rid, f, v){ dcJob.items[rid][f] = v; dcDirty = true; dcRenderPreview(); }
+function dcSetEach(k, v){ dcJob.each[k] = v; dcDirty = true; dcRenderPreview(); }
+function dcSetItemTpl(rid, tid){
+  const it = dcJob.items[rid]; it.tplId = tid;
+  if(tid && !dcJob.tpls[tid]){ const s = dcSnapFromLib(tid); if(s) dcJob.tpls[tid] = s; }
+  if(tid) dcSelTab = tid;
+  const t = dcTplList.find(x=>x.id===tid);
+  dcLog(`Đổi mẫu mặt hàng → ${t?t.ten:'(trống)'}`);
+  dcRenderItems(); dcRenderRowsArea(); dcRenderPreview();
+}
+
+/* ---------- các dòng (dùng chung cho lô & thư viện) ---------- */
+function dcRERows(ctx){
+  if(ctx==='job') return (dcJob && dcSelTab && dcJob.tpls[dcSelTab]) ? dcJob.tpls[dcSelTab].rows : null;
+  return dcTplEd ? dcTplEd.data.rows : null;
+}
+function dcREChanged(ctx, msg, full){
+  if(ctx==='job'){ if(msg) dcLog(msg); dcDirty = true; dcRenderPreview(); if(full) dcRenderItems(); dcRenderTplTabs(); }
+  else dcTplEdPreview();
+}
+function dcRERender(ctx){
+  const box = document.getElementById('dcRows_'+ctx); const rows = dcRERows(ctx);
+  if(!box) return;
+  if(!rows){ box.innerHTML=''; document.getElementById('dcRowEd_'+ctx).innerHTML=''; return; }
+  const h = [`<button class="dc-ins" onclick="dcREIns('${ctx}',0)">＋ chèn dòng ở đầu</button>`];
+  rows.forEach((r,i)=>{
+    const v = r.src==='fixed' ? (r.value||'(trống)').replace(/\n/g,' ') : r.src==='each' ? 'Nhập riêng ở từng decal' : (r.fmt||DC_FMT[r.src]||'').replace(/\n/g,' ⏎ ');
+    h.push(`<button class="dc-ri ${r.key===dcREsel[ctx]?'on':''}" onclick="dcRESel('${ctx}','${r.key}')">
+      <span class="n">${i+1}</span><span class="t"><b>${escapeHtml(r.label||'(chưa có nhãn)')}</b><span>${escapeHtml(v)}</span></span>
+      <span class="dc-tag ${r.src==='fixed'?'':'var'}">${r.kind==='big'?'Chữ lớn · ':''}${DC_SRC[r.src]||r.src}</span></button>`);
+    h.push(`<button class="dc-ins" onclick="dcREIns('${ctx}',${i+1})">＋ chèn dòng dưới ${i+1}</button>`);
+  });
+  box.innerHTML = h.join('');
+  dcREEditor(ctx);
+}
+function dcRESel(ctx, key){ dcREsel[ctx] = dcREsel[ctx]===key ? null : key; dcRERender(ctx); if(ctx==='job') dcRenderPreview(); else dcTplEdPreview(); }
+function dcREIns(ctx, pos){
+  const rows = dcRERows(ctx); if(!rows) return;
+  const r = {key:dcUid(), label:'新增项目/NEW ITEM', src:'fixed', kind:'normal', value:DC_PH, fmt:''};
+  rows.splice(pos, 0, r); dcREsel[ctx] = r.key;
+  dcRERender(ctx); dcREChanged(ctx, `Chèn dòng mới ở vị trí ${pos+1}`);
+  setTimeout(()=>{ const e=document.getElementById('dcREl_'+ctx); if(e){ e.focus(); e.select(); } }, 0);
+}
+function dcREMove(ctx, d){
+  const rows = dcRERows(ctx); const i = rows.findIndex(r=>r.key===dcREsel[ctx]); const j = i+d;
+  if(i<0 || j<0 || j>=rows.length) return;
+  [rows[i], rows[j]] = [rows[j], rows[i]];
+  dcRERender(ctx); dcREChanged(ctx, `Đưa dòng ${i+1} ${d<0?'lên':'xuống'} vị trí ${j+1}`);
+}
+function dcREDel(ctx, btn){
+  const rows = dcRERows(ctx); const i = rows.findIndex(r=>r.key===dcREsel[ctx]); if(i<0) return;
+  if(!requestConfirm('dcDel'+ctx, btn, '⚠️ Bấm lần nữa để xoá')) return;
+  const lab = rows[i].label; rows.splice(i,1); dcREsel[ctx] = null;
+  dcRERender(ctx); dcREChanged(ctx, `Xoá dòng ${i+1}: ${lab}`, true);
+}
+let dcRELastLogged = null;
+function dcRESet(ctx, f, v){
+  const rows = dcRERows(ctx); const r = rows.find(x=>x.key===dcREsel[ctx]); if(!r) return;
+  r[f] = v;
+  if(f==='src'){ r.fmt = DC_FMT[v] || ''; if(v==='fixed' && !r.value) r.value = DC_PH; }
+  const msg = dcRELastLogged===r.key ? null : `Sửa dòng ${rows.indexOf(r)+1}`; dcRELastLogged = r.key;
+  if(f==='src' || f==='kind'){ dcRERender(ctx); dcREChanged(ctx, msg, true); return; }
+  const box = document.getElementById('dcRows_'+ctx); const keep = document.activeElement;
+  dcRERenderListOnly(ctx); if(keep && document.contains(keep)) keep.focus();
+  dcREChanged(ctx, msg);
+}
+function dcRERenderListOnly(ctx){
+  // cập nhật danh sách dòng nhưng giữ nguyên ô đang gõ
+  const ed = document.getElementById('dcRowEd_'+ctx); const html = ed.innerHTML; const act = document.activeElement && document.activeElement.id;
+  const pos = document.activeElement && document.activeElement.selectionStart;
+  const rows = dcRERows(ctx); const box = document.getElementById('dcRows_'+ctx);
+  box.querySelectorAll('.dc-ri').forEach((b,i)=>{
+    const r = rows[i]; if(!r) return;
+    const v = r.src==='fixed' ? (r.value||'(trống)').replace(/\n/g,' ') : r.src==='each' ? 'Nhập riêng ở từng decal' : (r.fmt||DC_FMT[r.src]||'').replace(/\n/g,' ⏎ ');
+    b.querySelector('.t b').textContent = r.label || '(chưa có nhãn)'; b.querySelector('.t span').textContent = v;
+  });
+}
+function dcREEditor(ctx){
+  const ed = document.getElementById('dcRowEd_'+ctx); const rows = dcRERows(ctx);
+  const i = rows ? rows.findIndex(r=>r.key===dcREsel[ctx]) : -1;
+  if(i<0){ ed.innerHTML=''; return; }
+  const r = rows[i]; const auto = DC_AUTO.includes(r.src);
+  ed.innerHTML = `<div class="dc-editor">
+    <div class="row" style="flex-wrap:wrap;"><b>Sửa dòng ${i+1}</b>
+      <div class="btn-row"><button class="btn btn-outline btn-sm" onclick="dcREMove('${ctx}',-1)">↑</button><button class="btn btn-outline btn-sm" onclick="dcREMove('${ctx}',1)">↓</button>
+      <button class="btn btn-danger btn-sm" onclick="dcREDel('${ctx}',this)">Xoá dòng</button><button class="btn btn-outline btn-sm" onclick="dcRESel('${ctx}',null)">Đóng</button></div></div>
+    <label>Nhãn (Trung/Anh)</label><input type="text" id="dcREl_${ctx}" value="${escapeHtml(r.label)}" oninput="dcRESet('${ctx}','label',this.value)">
+    <div class="row-flex">
+      <div class="field"><label>Lấy giá trị từ</label><select onchange="dcRESet('${ctx}','src',this.value)">${Object.keys(DC_SRC).map(k=>`<option value="${k}" ${k===r.src?'selected':''}>${DC_SRC[k]}</option>`).join('')}</select></div>
+      <div class="field"><label>Kiểu dòng</label><select onchange="dcRESet('${ctx}','kind',this.value)"><option value="normal" ${r.kind!=='big'?'selected':''}>Thường</option><option value="big" ${r.kind==='big'?'selected':''}>Chữ lớn</option></select></div>
+    </div>
+    ${r.src==='fixed' ? `<label>Nội dung (Enter để xuống dòng)</label><textarea rows="3" oninput="dcRESet('${ctx}','value',this.value)">${escapeHtml(r.value||'')}</textarea>` : ''}
+    ${auto ? `<label>Cách ghi (định dạng)</label><textarea rows="2" oninput="dcRESet('${ctx}','fmt',this.value)">${escapeHtml(r.fmt||DC_FMT[r.src])}</textarea><div class="small muted" style="margin-top:4px;">${escapeHtml(DC_TOKEN_HELP[r.src]||'')}</div>` : ''}
+    ${r.src==='each' ? `<div class="small muted" style="margin-top:8px;">Nhập nội dung riêng cho từng decal ở phần “Mặt hàng”.</div>` : ''}
+  </div>`;
+}
+function dcRenderTplTabs(){
+  const tabs = document.getElementById('dcTplTabs'), bar = document.getElementById('dcTplTabBar');
+  const used = dcUsedTpls();
+  if(!used.includes(dcSelTab)) dcSelTab = used[0] || null;
+  const decals = dcDecals();
+  tabs.innerHTML = used.map(tid=>{
+    const T = dcJob.tpls[tid]; const n = decals.filter(d=>d.tplId===tid).length;
+    return `<button class="${tid===dcSelTab?'active':''}" onclick="dcSelTab='${tid}';dcREsel.job=null;dcRenderRowsArea();dcRenderPreview();">${escapeHtml(T.ten)} (${n} decal)${dcSnapDiff(tid)?' ✎':''}</button>`;
+  }).join('') || '<div class="small muted">Chọn mẫu cho mặt hàng ở phần 2.</div>';
+  if(!dcSelTab){ bar.innerHTML=''; return; }
+  const diff = dcSnapDiff(dcSelTab); const inLib = dcTplList.some(t=>t.id===dcSelTab);
+  bar.innerHTML = `${diff ? '<span class="small" style="color:#b7791f;align-self:center;">✎ Lô này đã sửa riêng so với thư viện</span>' : '<span class="small muted" style="align-self:center;">Giống bản thư viện</span>'}
+    ${inLib && diff ? `<button class="btn btn-outline btn-sm" onclick="dcResetSnap(this)">↺ Lấy lại theo thư viện</button><button class="btn btn-amber btn-sm" onclick="dcSnapToLib(this)">⬆ Lưu vào mẫu thư viện</button>` : ''}`;
+}
+function dcRowsSig(rows){ return JSON.stringify((rows||[]).map(r=>[r.label,r.src,r.kind,r.src==='fixed'?r.value:'',DC_AUTO.includes(r.src)?(r.fmt||DC_FMT[r.src]):''])); }
+function dcSnapDiff(tid){ const t = dcTplList.find(x=>x.id===tid); const s = dcJob && dcJob.tpls[tid]; return !!(t && s && dcRowsSig(t.rows)!==dcRowsSig(s.rows)); }
+function dcResetSnap(btn){
+  if(!requestConfirm('dcReset', btn, '⚠️ Bấm lần nữa: bỏ phần sửa riêng')) return;
+  const s = dcSnapFromLib(dcSelTab); if(!s) return;
+  dcJob.tpls[dcSelTab] = s; dcREsel.job = null; dcLog(`Lấy lại mẫu “${s.ten}” theo thư viện`);
+  dcRenderItems(); dcRenderRowsArea(); dcRenderPreview();
+}
+function dcSnapToLib(btn){
+  const t = dcTplList.find(x=>x.id===dcSelTab); if(!t) return;
+  const errs = dcTplProblems(dcJob.tpls[dcSelTab], t.ten);
+  if(errs.length){ showToast('Không lưu được: '+errs[0]); return; }
+  if(!requestConfirm('dcToLib', btn, '⚠️ Bấm lần nữa: ghi đè mẫu thư viện')) return;
+  const rows = dcJob.tpls[dcSelTab].rows.map(r=>({key:r.key, label:r.label, src:r.src, kind:r.kind||'normal', value:r.value||'', fmt:r.fmt||''}));
+  db.collection('capmalo_decal_mau').doc(t.id).update({rows, updatedAt:Date.now(), updatedBy:currentUser.displayName}).then(()=>{
+    dcJob.tpls[dcSelTab].libAt = Date.now(); dcLog(`Lưu phần sửa vào mẫu thư viện “${t.ten}”`);
+    logActivity(`Decal: cập nhật mẫu ${t.ten} từ lô ${dcJob.lotNo}`); showToast('Đã lưu vào mẫu thư viện');
+  }).catch(fsErr);
+}
+function dcRenderRowsArea(){ if(!dcJob){ return; } dcRenderTplTabs(); dcRERender('job'); }
+
+/* ---------- xem trước + kiểm tra ---------- */
+function dcRenderPreview(){
+  const pv = document.getElementById('dcPreview'), st = document.getElementById('dcStatus'), btn = document.getElementById('dcPrintBtn');
+  dcErrors = []; const warns = [];
+  if(!dcJob){ pv.innerHTML = '<div class="empty"><div class="ico">🏷️</div>Chọn lô để xem decal</div>'; st.className='dc-status'; st.innerHTML=''; btn.disabled=true; btn.textContent='🖨️ In / Xuất PDF'; document.getElementById('dcPvTitle').textContent='Xem trước'; return; }
+  const recs = dcLotGroups()[dcJob.lotNo] || [];
+  const errs = [];
+  if(!recs.length) errs.push('Lô không còn trong danh sách lô.');
+  const ctyIds = [...new Set(recs.map(r=>r.congTyId))];
+  ctyIds.forEach(id=>{
+    const c = congTyList.find(x=>x.id===id); const ci = dcCtyMap[id];
+    if(!c){ errs.push('Không tìm thấy công ty của lô trong Danh Mục.'); return; }
+    if(!ci) errs.push(`Công ty ${c.ten} chưa có Thông tin Decal (Danh Mục › Thông tin Decal).`);
+    else if(!ci.daDoiChieu) errs.push(`Công ty ${c.ten}: thông tin trên decal chưa “Đã đối chiếu GACC”.`);
+    recs.filter(r=>r.congTyId===id).forEach(r=>{ if(!String(r.lotNo).toUpperCase().startsWith('VN'+c.maSoVN)) errs.push(`Lot ${r.lotNo} không khớp mã số VN${c.maSoVN} của công ty ${c.ten} — kiểm tra lại lô.`); });
+  });
+  recs.forEach((r,ri)=>{
+    const it = dcJob.items[r.id] || {};
+    if(!it.tplId || !dcJob.tpls[it.tplId]) errs.push(`Mặt hàng ${ri+1}: chưa chọn mẫu decal.`);
+    const p = dcParseNet(r.matHangNet);
+    const nn = p ? p.net : String(it.netM||'').trim().replace(',','.'), gg = p ? p.gross : String(it.grossM||'').trim().replace(',','.');
+    const n = dcNum(nn), g = dcNum(gg);
+    if(!nn || !gg || isNaN(n) || isNaN(g) || n<=0 || g<=0) errs.push(`Mặt hàng ${ri+1}: chưa có hoặc sai Net/Gross${p?'':' (nhập tay ở ô đỏ)'}.`);
+    else if(n>=g) errs.push(`Mặt hàng ${ri+1}: Net phải nhỏ hơn Gross.`);
+    if(!(r.ngaySX||[]).length) errs.push(`Mặt hàng ${ri+1}: lô chưa có ngày SX.`);
+  });
+  dcUsedTpls().forEach(tid=>dcTplProblems(dcJob.tpls[tid], dcJob.tpls[tid].ten).forEach(e=>errs.push(e+'.')));
+  const decals = dcDecals().filter(d=>d.T);
+  const html = decals.map((d,i)=>{
+    const where = `Decal ${i+1}`;
+    const vars = dcVars(d);
+    const cells = d.T.rows.map((row,k)=>{ const e=[]; const v = dcCell(row, d, vars, e, `${where}, dòng ${k+1}`, dcJob.each); e.forEach(x=>errs.push(x+'.')); return {v, bad:e.length>0}; });
+    return `<div class="dc-pv-item"><div class="dc-pv-head"><span>${escapeHtml(d.T.title||'Decal')}<br>QC: ${+d.T.w/10}*${+d.T.h/10}cm · Decal ${i+1} · ${fmtDateVN(d.date)}</span><span>${escapeHtml(d.T.ten)}<br>${escapeHtml(dcJob.lotNo.replace(/\//g,'-'))}</span></div>
+      ${dcDecalHTML(d.T, cells, {selKey: d.tplId===dcSelTab ? dcREsel.job : null})}<div class="dc-fit" data-fit="${i}"></div></div>`;
+  }).join('');
+  pv.innerHTML = html || '<div class="empty"><div class="ico">🏷️</div>Chưa có decal (chọn mẫu cho mặt hàng)</div>';
+  document.getElementById('dcPvTitle').textContent = `Xem trước (${decals.length} decal)`;
+  dcFits = [];
+  pv.querySelectorAll('.dc-decal').forEach((el,i)=>{
+    const s = dcFitOne(el); const pt = (+decals[i].T.fp||9) * s; dcFits[i] = {s, pt};
+    const box = pv.querySelector(`[data-fit="${i}"]`);
+    if(pt < DC_MIN_PT){ box.className='dc-fit bad'; box.textContent=`Chữ quá nhỏ: ${pt.toFixed(1)}pt (tối thiểu ${DC_MIN_PT}pt) — bỏ bớt dòng, rút gọn hoặc tăng khổ.`; errs.push(`Decal ${i+1}: chữ quá nhỏ (${pt.toFixed(1)}pt).`); }
+    else if(s < 0.999){ box.className='dc-fit warn'; box.textContent=`Đã tự thu nhỏ còn ${Math.round(s*100)}% — cỡ chữ in ${pt.toFixed(1)}pt.`; warns.push(`Decal ${i+1} tự thu nhỏ còn ${Math.round(s*100)}%.`); }
+    else { box.className='dc-fit'; box.textContent=`Vừa khổ — cỡ chữ in ${pt.toFixed(1)}pt.`; }
+  });
+  if(!dcFontsReady) warns.push('Đang tải font chữ Trung — bản xem trước sẽ tự cập nhật.');
+  if(dcFontWarn) warns.push('Không tải được font chữ Trung (mất mạng?) — đang dùng font của máy, kiểm tra kỹ chữ Trung trước khi in.');
+  dcErrors = [...new Set(errs)];
+  if(dcErrors.some(e=>/chưa có Thông tin Decal/.test(e))) dcErrors = dcErrors.filter(e=>!/thiếu giá trị \{(tenCN|tenEN|tenVT|dcCN|dcEN|gacc)\}/.test(e));
+  if(dcErrors.some(e=>/Net\/Gross/.test(e))) dcErrors = dcErrors.filter(e=>!/thiếu giá trị \{v\}/.test(e));
+  if(dcErrors.length){
+    st.className = 'dc-status bad';
+    st.innerHTML = `<b>Chặn in — còn ${dcErrors.length} lỗi</b><ul>${dcErrors.slice(0,12).map(e=>`<li>${escapeHtml(e)}</li>`).join('')}${dcErrors.length>12?`<li>… và ${dcErrors.length-12} lỗi khác</li>`:''}</ul>`;
+  } else if(warns.length){
+    st.className = 'dc-status warn'; st.innerHTML = `<b>In được — lưu ý</b><ul>${warns.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul>`;
+  } else { st.className = 'dc-status ok'; st.innerHTML = `<b>Sẵn sàng in ${decals.length} decal · Lot ${escapeHtml(dcJob.lotNo)}</b>`; }
+  btn.disabled = dcErrors.length>0 || !decals.length || !dcFontsReady;
+  btn.textContent = dcErrors.length ? `Còn ${dcErrors.length} lỗi — chưa in được` : !dcFontsReady ? 'Đang tải font…' : `🖨️ In / Xuất PDF (${decals.length} decal)`;
+}
+function dcRenderLog(){
+  const el = document.getElementById('dcLog');
+  if(!dcJob || !dcJob.log.length){ el.innerHTML = '<span class="muted">Chưa có thay đổi.</span>'; return; }
+  el.innerHTML = dcJob.log.slice(0,20).map(l=>`<div style="margin-bottom:3px;"><span class="muted">${fmtActivityTs(l.t)} · ${escapeHtml(l.u||'')}</span> — ${escapeHtml(l.msg)}</div>`).join('');
+}
+
+/* ---------- lưu / in ---------- */
+function dcSaveJob(){
+  if(!dcJob){ showToast('Chọn lô trước'); return; }
+  const decals = dcDecals();
+  const data = {lotNo:dcJob.lotNo, items:dcJob.items, tpls:dcJob.tpls, each:dcJob.each, log:dcJob.log, soDecal:decals.length,
+    updatedAt:Date.now(), updatedBy:currentUser.displayName};
+  db.collection('capmalo_decal_don').doc(dcJobId(dcJob.lotNo)).set(data).then(()=>{
+    dcDirty = false; logActivity(`Decal: lưu decal lô ${dcJob.lotNo} (${decals.length} decal)`); showToast('Đã lưu decal');
+  }).catch(fsErr);
+}
+function dcPrint(){
+  dcRenderPreview();
+  if(dcErrors.length || !dcFontsReady) return;
+  const els = [...document.querySelectorAll('#dcPreview .dc-decal')];
+  if(!els.length) return;
+  const sizes = {};
+  const body = els.map(el=>{
+    const c = el.cloneNode(true); c.querySelectorAll('tr.sel').forEach(tr=>tr.classList.remove('sel'));
+    const name = `p${String(c.dataset.w).replace('.','_')}x${String(c.dataset.h).replace('.','_')}`;
+    sizes[name] = [c.dataset.w, c.dataset.h]; c.style.setProperty('page', name);
+    return c.outerHTML;
+  }).join('');
+  const pages = Object.entries(sizes).map(([n,[w,h]])=>`@page ${n}{size:${w}mm ${h}mm;margin:0}`).join('\n');
+  const first = Object.values(sizes)[0];
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Trình duyệt chặn cửa sổ in — cho phép popup rồi thử lại'); return; }
+  const title = `Decal_${dcJob.lotNo.replace(/[^\w-]+/g,'-')}`;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><link rel="stylesheet" href="${DC_FONT_URL}">
+    <style>${DC_DECAL_CSS}\n@page{size:${first[0]}mm ${first[1]}mm;margin:0}\n${pages}\nhtml,body{margin:0;padding:0;background:#fff}
+    .dc-decal{break-after:page;page-break-after:always}.dc-decal:last-child{break-after:auto;page-break-after:auto}</style></head>
+    <body>${body}<scr` + `ipt>(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>setTimeout(()=>window.print(),300));</scr` + `ipt></body></html>`);
+  w.document.close();
+  dcLog(`In / xuất PDF ${els.length} decal`);
+  logActivity(`Decal: in ${els.length} decal lô ${dcJob.lotNo}`);
+  dcSaveJob();   // lưu luôn bản đã in để tra lại
+}
+
+/* ---------- Decal đã lưu ---------- */
+function dcRenderJobs(){
+  const el = document.getElementById('dcJobList');
+  const q = boDauVN(document.getElementById('dcJobSearch').value);
+  const g = dcLotGroups();
+  const list = dcJobList.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(j=>{
+    const r = (g[j.lotNo]||[])[0] || {}; return !q || boDauVN(`${j.lotNo} ${r.congTyTen||''} ${r.khachHangTen||''}`).includes(q);
+  });
+  el.innerHTML = list.map(j=>{
+    const r = (g[j.lotNo]||[])[0];
+    return `<div class="list-row"><div class="left"><div><b>${escapeHtml(j.lotNo)}</b> ${r?'':'<span class="dc-bad small">(lô không còn)</span>'}
+      <div class="small muted">${r?escapeHtml(r.congTyTen+' · '+r.khachHangTen):''} · ${j.soDecal||0} decal · ${escapeHtml(j.updatedBy||'')} ${j.updatedAt?fmtActivityTs(j.updatedAt):''}</div></div></div>
+      <div class="btn-row"><button class="btn btn-outline btn-sm" onclick="dcOpenJob('${escapeHtml(j.lotNo)}')">Mở</button>
+      <button class="btn btn-danger btn-sm" onclick="dcDelJob('${j.id}',this)">Xoá</button></div></div>`;
+  }).join('') || '<div class="empty"><div class="ico">📋</div>Chưa có decal nào được lưu</div>';
+}
+function dcOpenJob(lotNo){ dcSwitchSub('tao'); document.getElementById('dcLotSearch').value=''; dcPickLot(lotNo); dcFillLotSelect(); }
+function dcDelJob(id, btn){
+  if(!requestConfirm('dcDelJob'+id, btn, '⚠️ Bấm lần nữa')) return;
+  const j = dcJobList.find(x=>x.id===id);
+  db.collection('capmalo_decal_don').doc(id).delete().then(()=>{ logActivity(`Decal: xoá decal đã lưu lô ${j?j.lotNo:id}`); showToast('Đã xoá'); }).catch(fsErr);
+}
+
+/* ---------- Thư viện mẫu ---------- */
+function dcFillNewFrom(){
+  const s = document.getElementById('dcNewFrom'); if(!s) return; const v = s.value;
+  s.innerHTML = '<option value="">— Mẫu trống —</option>' + dcTplList.map(t=>`<option value="${t.id}">Sao chép: ${escapeHtml(t.ten)}</option>`).join('');
+  s.value = v;
+}
+function dcRenderTplList(){
+  document.getElementById('dcTplListWrap').classList.remove('hidden');
+  document.getElementById('dcTplEditor').classList.add('hidden');
+  const el = document.getElementById('dcTplList');
+  const q = boDauVN(document.getElementById('dcTplSearch').value);
+  const khName = id => (khList.find(k=>k.id===id)||{}).ten || '?';
+  const list = dcTplList.filter(t=>!q || boDauVN(t.ten+' '+(t.khachHangIds||[]).map(khName).join(' ')).includes(q));
+  el.innerHTML = list.map(t=>`<div class="list-row"><div class="left"><span class="color-dot" style="background:${escapeHtml(t.color||'#000')}"></span>
+      <div><b>${escapeHtml(t.ten)}</b><div class="small muted">QC ${+t.w/10}×${+t.h/10}cm · ${(t.rows||[]).length} dòng · Mặc định cho: ${(t.khachHangIds||[]).map(khName).map(escapeHtml).join(', ')||'—'}</div>
+      <div class="small muted">${t.updatedBy?'Sửa: '+escapeHtml(t.updatedBy)+' '+fmtActivityTs(t.updatedAt):''}</div></div></div>
+      <div class="btn-row"><button class="btn btn-outline btn-sm" onclick="dcOpenTplEd('${t.id}')">✏️ Sửa</button>
+      <button class="btn btn-outline btn-sm" onclick="dcOpenTplEd(null,'${t.id}')">📄 Nhân bản</button>
+      <button class="btn btn-danger btn-sm" onclick="dcDelTpl('${t.id}',this)">🗑️</button></div></div>`).join('')
+    || '<div class="empty"><div class="ico">📚</div>Chưa có mẫu nào. Tạo mẫu mới hoặc nhập từ PDF.</div>';
+}
+function dcDelTpl(id, btn){
+  if(!requestConfirm('dcDelTpl'+id, btn, '⚠️ Bấm lần nữa')) return;
+  const t = dcTplList.find(x=>x.id===id);
+  db.collection('capmalo_decal_mau').doc(id).delete().then(()=>{ logActivity(`Decal: xoá mẫu ${t?t.ten:id}`); showToast('Đã xoá mẫu (các lô đã lưu vẫn giữ bản riêng)'); }).catch(fsErr);
+}
+function dcNewTpl(){ const from = document.getElementById('dcNewFrom').value; dcOpenTplEd(null, from||null); }
+function dcBlankTpl(){ return {ten:'', title:'Decal', w:150, h:120, margin:3.5, split:40, color:'#000000', fp:9, fb:24, lang:'cnen', rows:[], khachHangIds:[]}; }
+function dcOpenTplEd(id, copyFrom, preset){
+  let data;
+  if(preset) data = preset;
+  else if(id){ const t = dcTplList.find(x=>x.id===id); if(!t) return; data = dcClone(t); delete data.id; }
+  else if(copyFrom){ const t = dcTplList.find(x=>x.id===copyFrom); data = dcClone(t); delete data.id; data.ten = t.ten + ' (bản sao)'; data.khachHangIds = []; }
+  else data = dcBlankTpl();
+  data.rows = (data.rows||[]).map(r=>Object.assign({key:dcUid()}, r)); data.khachHangIds = data.khachHangIds||[];
+  ['margin','split','fp','fb'].forEach(k=>{ if(typeof data[k]!=='number') data[k] = dcBlankTpl()[k]; });
+  dcTplEd = {id: id||null, data}; dcREsel.tpl = null;
+  if(dcSection!=='mau') dcSwitchSub('mau'); else dcRenderTplEditor();
+}
+function dcRenderTplEditor(){
+  document.getElementById('dcTplListWrap').classList.add('hidden');
+  const box = document.getElementById('dcTplEditor'); box.classList.remove('hidden');
+  const t = dcTplEd.data;
+  const f = (k, lab, type, extra) => `<div class="field"><label>${lab}</label><input type="${type||'text'}" value="${escapeHtml(t[k])}" ${extra||''} oninput="dcTplSet('${k}', this.value, '${type||'text'}')"></div>`;
+  box.innerHTML = `<div class="dc-wrap">
+    <div class="dc-left">
+      <div class="card"><div class="row"><div class="card-title">${dcTplEd.id?'Sửa mẫu':'Mẫu mới'}</div><button class="btn btn-outline btn-sm" onclick="dcCloseTplEd()">✕ Đóng</button></div>
+        <div class="row-flex">${f('ten','Tên mẫu')}${f('title','Tiêu đề (in phía trên khung)')}</div>
+        <div class="row-flex">${f('w','QC rộng (mm)','number','min="30" max="400"')}${f('h','QC cao (mm)','number','min="30" max="400"')}
+          <div class="field"><label>Màu in</label><input type="color" value="${escapeHtml(t.color)}" oninput="dcTplSet('color', this.value)"></div></div>
+        <div class="row-flex">${f('margin','Lề trong (mm)','number','step="0.5" min="0"')}${f('split','Cột nhãn (%)','number','step="0.5" min="15" max="70"')}
+          ${f('fp','Chữ thường (pt)','number','step="0.5" min="5"')}${f('fb','Chữ lớn (pt)','number','step="1" min="10"')}</div>
+        <label>Mặc định cho khách hàng</label>
+        <div class="dc-chks">${khList.map(k=>`<label class="perm-item"><input type="checkbox" ${t.khachHangIds.includes(k.id)?'checked':''} onchange="dcTplKh('${k.id}', this.checked)"> ${escapeHtml(k.ten)}</label>`).join('') || '<span class="small muted">Chưa có khách hàng trong Danh Mục.</span>'}</div>
+        <div class="hint" style="margin:6px 0 0;">Mỗi khách chỉ 1 mẫu mặc định — lưu mẫu này sẽ bỏ khách đó khỏi mẫu mặc định cũ.</div>
+      </div>
+      <div class="card"><div class="card-title">Thư viện dòng hay dùng</div>
+        <div class="row-flex"><div class="field"><label>Kiểu nhãn</label><select onchange="dcTplSet('lang', this.value)">
+          <option value="cnen" ${t.lang==='cnen'?'selected':''}>中文/ENGLISH</option><option value="cn" ${t.lang==='cn'?'selected':''}>Chỉ tiếng Trung</option><option value="encn" ${t.lang==='encn'?'selected':''}>English 中文</option></select></div></div>
+        <div class="dc-libs" id="dcLibChips"></div>
+        <button class="dc-ins" style="margin-top:8px;opacity:1;" onclick="dcREIns('tpl', dcTplEd.data.rows.length)">＋ Dòng tự do (gõ nhãn mới)</button>
+      </div>
+      <div class="card"><div class="card-title">Các dòng của mẫu</div><div id="dcRows_tpl"></div><div id="dcRowEd_tpl"></div></div>
+    </div>
+    <div class="dc-right">
+      <div id="dcTplStatus" class="dc-status"></div>
+      <div class="card"><div class="card-title">Xem trước với dữ liệu mẫu</div><div class="hint">Lot VN000/CN000 · Net 9.44 · Gross 10 · hôm nay · công ty đầu tiên có Thông tin Decal.</div><div id="dcTplPv" class="dc-pv"></div></div>
+      <div class="btn-row"><button class="btn btn-outline" style="flex:1;" onclick="dcCloseTplEd()">Huỷ</button><button class="btn btn-primary" style="flex:2;" id="dcTplSaveBtn" onclick="dcSaveTpl()">💾 Lưu mẫu</button></div>
+    </div></div>`;
+  dcRenderLibChips(); dcRERender('tpl'); dcTplEdPreview();
+}
+function dcTplSet(k, v, type){
+  const t = dcTplEd.data; t[k] = type==='number' ? (parseFloat(v)||0) : v;
+  if(k==='lang') dcRenderLibChips();
+  dcTplEdPreview();
+}
+function dcTplKh(id, on){ const a = dcTplEd.data.khachHangIds; if(on && !a.includes(id)) a.push(id); if(!on) dcTplEd.data.khachHangIds = a.filter(x=>x!==id); }
+function dcLibLabel(x, lang){ return lang==='cn' ? x.cn : lang==='encn' ? `${x.en} ${x.cn}` : `${x.cn}/${x.en}`; }
+function dcRenderLibChips(){
+  const t = dcTplEd.data; const used = new Set(t.rows.map(r=>r.libK).filter(Boolean));
+  document.getElementById('dcLibChips').innerHTML = DC_LIB.map(x=>`<button class="dc-lib ${used.has(x.k)?'used':''}" onclick="dcAddLib('${x.k}')">${used.has(x.k)?'✓':'+'} ${escapeHtml(x.cn)}</button>`).join('');
+}
+function dcAddLib(k){
+  const x = DC_LIB.find(z=>z.k===k); const t = dcTplEd.data;
+  const r = {key:dcUid(), libK:k, label:dcLibLabel(x, t.lang), src:x.src, kind:x.big?'big':'normal', value:x.v||'', fmt:x.fmt||DC_FMT[x.src]||''};
+  const i = t.rows.findIndex(z=>z.key===dcREsel.tpl);
+  t.rows.splice(i>=0 ? i+1 : t.rows.length, 0, r); dcREsel.tpl = r.key;
+  dcRenderLibChips(); dcRERender('tpl'); dcTplEdPreview();
+}
+function dcSampleDecal(){
+  const cid = Object.keys(dcCtyMap)[0];
+  const r = {id:'sample', lotNo:'VN000/CN000', congTyId:cid||'', vungNuoiId:'', vungNuoiTen:'Phu My - Ca Mau Province', ngaySX:[]};
+  return {r, ri:0, date:new Date().toISOString().slice(0,10), net:'9.44', gross:'10', key:'sample'};
+}
+function dcTplEdPreview(){
+  if(!dcTplEd) return;
+  const t = dcTplEd.data, d = dcSampleDecal(), vars = dcVars(d);
+  const errs = [];
+  if(!String(t.ten||'').trim()) errs.push('Chưa đặt tên mẫu.');
+  if(dcTplList.some(x=>x.id!==dcTplEd.id && boDauVN(x.ten)===boDauVN(t.ten))) errs.push('Đã có mẫu trùng tên.');
+  dcTplProblems(t, t.ten||'mới').forEach(e=>errs.push(e+'.'));
+  const cells = t.rows.map((row,k)=>{
+    const e = []; let v;
+    if(row.src==='each') v = '(riêng từng decal)';
+    else if(row.src==='fixed'){ v = row.value||''; if(!v.trim()||v.includes(DC_PH)) errs.push(`Dòng ${k+1}: chưa nhập nội dung.`); }
+    else {
+      v = dcCell(row, d, vars, e, `Dòng ${k+1}`);
+      e.filter(x=>x.includes('không hiểu')).forEach(x=>errs.push(x+'.'));   // thiếu dữ liệu công ty mẫu không phải lỗi của mẫu
+    }
+    return {v, bad:e.length>0};
+  });
+  const pv = document.getElementById('dcTplPv');
+  pv.innerHTML = t.rows.length ? `<div class="dc-pv-item"><div class="dc-pv-head"><span>${escapeHtml(t.title||'')}<br>QC: ${+t.w/10}*${+t.h/10}cm</span></div>${dcDecalHTML(t, cells, {selKey:dcREsel.tpl})}<div class="dc-fit" id="dcTplFit"></div></div>` : '<div class="empty">Chưa có dòng — thêm từ “Thư viện dòng”.</div>';
+  const el = pv.querySelector('.dc-decal');
+  if(el){
+    const s = dcFitOne(el), pt = (+t.fp||9)*s, fb = document.getElementById('dcTplFit');
+    if(pt < DC_MIN_PT){ fb.className='dc-fit bad'; fb.textContent=`Chữ quá nhỏ: ${pt.toFixed(1)}pt`; errs.push(`Chữ in quá nhỏ (${pt.toFixed(1)}pt) — bớt dòng hoặc tăng khổ.`); }
+    else { fb.className = s<0.999?'dc-fit warn':'dc-fit'; fb.textContent = `${s<0.999?'Tự thu nhỏ '+Math.round(s*100)+'% — ':''}cỡ chữ in ${pt.toFixed(1)}pt`; }
+  }
+  const st = document.getElementById('dcTplStatus'), btn = document.getElementById('dcTplSaveBtn');
+  const E = [...new Set(errs)];
+  st.className = 'dc-status ' + (E.length?'bad':'ok');
+  st.innerHTML = E.length ? `<b>Chưa lưu được — ${E.length} mục</b><ul>${E.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul>` : '<b>Mẫu hợp lệ — có thể lưu</b>';
+  btn.disabled = E.length>0;
+  dcTplEd.errs = E;
+}
+function dcCloseTplEd(){ dcTplEd = null; dcRenderTplList(); }
+async function dcSaveTpl(){
+  dcTplEdPreview(); if(!dcTplEd || dcTplEd.errs.length) return;
+  const t = dcTplEd.data;
+  const data = {ten:t.ten.trim(), title:t.title||'', w:+t.w, h:+t.h, margin:+t.margin, split:+t.split, color:t.color, fp:+t.fp, fb:+t.fb, lang:t.lang||'cnen',
+    khachHangIds:[...t.khachHangIds],
+    rows:t.rows.map(r=>({key:r.key, label:r.label, src:r.src, kind:r.kind||'normal', value:r.value||'', fmt:r.fmt||'', ...(r.libK?{libK:r.libK}:{})})),
+    updatedAt:Date.now(), updatedBy:currentUser.displayName};
+  try{
+    let id = dcTplEd.id;
+    if(id) await db.collection('capmalo_decal_mau').doc(id).update(data);
+    else { const ref = await db.collection('capmalo_decal_mau').add(data); id = ref.id; }
+    // mỗi khách chỉ 1 mẫu mặc định
+    for(const o of dcTplList){
+      if(o.id===id) continue;
+      const keep = (o.khachHangIds||[]).filter(k=>!data.khachHangIds.includes(k));
+      if(keep.length !== (o.khachHangIds||[]).length) await db.collection('capmalo_decal_mau').doc(o.id).update({khachHangIds:keep});
+    }
+    logActivity(`Decal: ${dcTplEd.id?'sửa':'tạo'} mẫu ${data.ten}`); showToast('Đã lưu mẫu');
+    dcTplEd = null; dcRenderTplList();
+  }catch(e){ fsErr(e); }
+}
+
+/* ---------- Nhập mẫu từ PDF ---------- */
+function dcToFmt(value, ci, code){
+  const t = dcToFmt1(value, ci, code); if(t.clean) return t;
+  return dcToFmt1(value.replace(/\s*\n\s*/g,' '), ci, code);   // dòng bị ngắt do khổ chữ
+}
+function dcToFmt1(value, ci, code){
+  let s = value;
+  const pairs = [['tenCN',ci.tenCN],['tenEN',ci.tenEN],['tenVT',ci.tenVT],['dcCN',ci.dcCN],['dcEN',ci.dcEN],['gacc',ci.gacc],['code',code]]
+    .filter(p=>p[1] && String(p[1]).trim()).sort((a,b)=>String(b[1]).length-String(a[1]).length);
+  pairs.forEach(([k,v])=>{ s = s.split(String(v).trim()).join(`{${k}}`); });
+  const rest = s.replace(/\{\w+\}/g,'').replace(/[\s\/\-–(),.:;，。（）]/g,'');
+  return {fmt:s, clean: rest.length===0};
+}
+function dcBuildFromPdf(decals, allText, colors){
+  const P = DCPDF, warns = [];
+  decals.forEach(d=>{ d.rows = d.rows.map(P.fixRow); });
+  const d0 = decals[0];
+  const sizes = d0.rows.map(r=>r.size).sort((a,b)=>a-b); const med = sizes[Math.floor(sizes.length/2)] || 8.5;
+  const cell = (d,i)=>{ const lab = d0.rows[i].label; const m = d.rows.find(x=>x.label===lab) || d.rows[i]; return m ? m.value.trim() : ''; };
+  const g0 = d0.rows.findIndex(r=>P.isGrossL(r.label) && P.reNum.test(r.value));
+  const n0 = d0.rows.findIndex(r=>P.isNetL(r.label) && P.reNum.test(r.value));
+  // công ty: nhận theo số GACC có trong file
+  let cid = Object.keys(dcCtyMap).find(id=>dcCtyMap[id].gacc && allText.includes(dcCtyMap[id].gacc));
+  const ci = cid ? dcCtyMap[cid] : null; const co = cid ? congTyList.find(c=>c.id===cid) : null;
+  if(!ci) warns.push('Chưa nhận ra công ty (số GACC trong file chưa có ở Danh Mục › Thông tin Decal) — các dòng tên/địa chỉ/số ĐK dùng cách ghi mặc định, kiểm tra lại.');
+  const rows = d0.rows.map((r,i)=>{
+    const base = {key:dcUid(), label:r.label, kind:r.size>med*1.6?'big':'normal', value:'', fmt:''};
+    const vals = decals.map(d=>cell(d,i)); const same = vals.every(v=>v===vals[0]);
+    const L = r.label;
+    const wf = P.weightFmt(r.value);
+    if(i===g0) return Object.assign(base,{src:'gross', fmt:wf.fmt});
+    if(i===n0) return Object.assign(base,{src:'net', fmt:wf.fmt});
+    if(/在华|China\s*Reg/i.test(L)) return Object.assign(base,{src:'gacc', fmt:'{gacc}'});
+    if(/LOT|批号|批次/i.test(L)) return Object.assign(base,{src:'lot', fmt:'{lot}'});
+    const df = P.dateFmt(r.value);
+    if(df && (/日期|DATE/i.test(L) || !same)) return Object.assign(base,{src:'date', fmt:df.fmt});
+    if(/养殖区域|养殖场|FARM/i.test(L)) return Object.assign(base,{src:'vung', fmt:'{vung}'});
+    const isCty = /企业.*(名称|编号)|enterprise\s*name|processing\s*name/i.test(L);
+    const isAddr = /地址|address/i.test(L);
+    const isCode = !isCty && /注册号|registration\s*number/i.test(L);
+    if(isCty || isAddr || isCode){
+      const src = isCty?'cty':isAddr?'addr':'code';
+      if(ci){ const t = dcToFmt(r.value, ci, co?co.maCode:''); if(t.clean) return Object.assign(base,{src, fmt:t.fmt});
+        warns.push(`Dòng ${i+1} “${L}”: file ghi “${r.value.replace(/\n/g,' ')}” KHÁC thông tin chuẩn của công ty — mẫu sẽ dùng thông tin chuẩn (cách ghi mặc định).`); }
+      return Object.assign(base,{src, fmt:DC_FMT[src]});
+    }
+    if(wf && /规格|SPEC|SIZE|PACKING/i.test(L)){
+      const ok = (idx)=> idx>=0 && decals.every(d=>{ const a=P.weightFmt(cell(d,i)), b=P.weightFmt(cell(d,idx)); return a && b && a.num===b.num; });
+      if(ok(g0)) return Object.assign(base,{src:'gross', fmt:wf.fmt});
+      if(ok(n0)) return Object.assign(base,{src:'net', fmt:wf.fmt});
+    }
+    if(!same){ warns.push(`Dòng ${i+1} “${L}”: mỗi decal ghi khác nhau → để “Riêng từng decal”.`); return Object.assign(base,{src:'each'}); }
+    return Object.assign(base,{src:'fixed', value:r.value});
+  });
+  rows.forEach((r,i)=>{ if(/PRODUCT METHOD/.test(r.label)) warns.push(`Dòng ${i+1}: “PRODUCT METHOD” có thể sai, đúng là “PRODUCTION METHOD”.`); });
+  decals.forEach((d,k)=>{ if(k && d.rows.length!==d0.rows.length) warns.push(`Decal ${k+1} có ${d.rows.length} dòng, khác decal 1 (${d0.rows.length}) — mẫu lấy theo decal 1. Nên tách thành 2 mẫu.`); });
+  rows.forEach((r,i)=>{ if(['gross','net','date'].includes(r.src)){ decals.forEach((d,k)=>{ if(!k) return; const v = cell(d,i); const x = r.src==='date'?P.dateFmt(v):P.weightFmt(v); if(x && x.fmt!==r.fmt) warns.push(`Decal ${k+1}, dòng ${i+1}: cách ghi “${v}” khác decal 1 — mẫu dùng cách ghi của decal 1.`); }); } });
+  let w, h, margin;
+  if(d0.frame){ w=dcR1(d0.frame.w); h=dcR1(d0.frame.h); margin=dcR1(d0.frame.m); }
+  else if(d0.qc){ w=d0.qc.w; h=d0.qc.h; margin=dcR1(Math.max(0,(w-d0.table.w)/2)); warns.push('Không thấy khung ngoài, lấy khổ theo chữ “QC”.'); }
+  else { w=dcR1(d0.table.w+7); h=dcR1(d0.table.h+7); margin=3.5; warns.push('Không thấy khung ngoài và chữ QC — tạm lấy khổ = bảng + lề 3,5mm. Kiểm tra lại khổ!'); }
+  const bigs = d0.rows.filter(r=>r.size>med*1.6).map(r=>r.size);
+  const color = Object.entries(colors).sort((a,b)=>b[1]-a[1])[0];
+  const tpl = {ten:'', title:d0.title||'Decal', w, h, margin, split:dcR1(d0.split), color:color?color[0]:'#000000',
+    fp:Math.round(med*2)/2, fb:bigs.length?Math.min(Math.round(Math.max(...bigs)),60):24, lang:'cnen', rows, khachHangIds:[]};
+  DC_REQ.forEach(([src,lab])=>{ if(!rows.some(r=>r.src===src)) warns.push(`Không nhận ra dòng ${lab} — thêm/chỉnh ở bước sau.`); });
+  return {tpl, warns, nDecal:decals.length, company: co ? co.ten : ''};
+}
+async function dcImportPdf(ev){
+  const file = ev.target.files[0]; ev.target.value=''; if(!file) return;
+  const modal = document.getElementById('dcPdfModal'), body = document.getElementById('dcPdfBody');
+  modal.classList.remove('hidden'); document.getElementById('dcPdfFoot').classList.add('hidden'); dcPdfRes = null;
+  body.innerHTML = '<div class="empty">Đang đọc file…</div>';
+  try{
+    const lib = await DCPDF.loadPdfJs();
+    const pdf = await lib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+    let decals=[], text='', colors={}, nText=0;
+    for(let p=1;p<=Math.min(pdf.numPages,10);p++){
+      const r = await DCPDF.readPage(await pdf.getPage(p), lib.OPS);
+      nText += r.items.filter(i=>i.str.trim()).length; text += ' '+r.items.map(i=>i.str).join(' ');
+      Object.entries(r.colors).forEach(([k,v])=>colors[k]=(colors[k]||0)+v);
+      decals = decals.concat(DCPDF.parseDecals(r.items, r.segs));
+    }
+    const p1 = await pdf.getPage(1); const vp0 = p1.getViewport({scale:1}); const vp = p1.getViewport({scale:Math.min(3, 1400/vp0.width)});
+    const cv = document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height; cv.style.width='100%';
+    await p1.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
+    if(!nText) throw new Error('File KHÔNG có lớp chữ (chữ đã convert outline hoặc là ảnh scan). Xin nhà in bản PDF còn giữ chữ.');
+    if(!decals.length) throw new Error('Không tìm thấy bảng decal (cần bảng 2 cột có kẻ khung: nhãn | nội dung).');
+    dcPdfRes = dcBuildFromPdf(decals, text, colors); dcPdfRes.file = file.name;
+    const t = dcPdfRes.tpl;
+    body.innerHTML = `<div class="dc-wrap"><div class="dc-left" style="max-width:none;flex:1 1 380px;"><div class="small muted">File gốc: ${escapeHtml(file.name)}</div><div id="dcPdfCv" style="border:1px solid var(--border);border-radius:8px;max-height:65vh;overflow:auto;margin-top:6px;"></div></div>
+      <div class="dc-right" style="flex:1 1 420px;">
+        ${dcPdfRes.warns.length ? `<div class="dc-status warn"><b>Cần kiểm tra (${dcPdfRes.warns.length})</b><ul>${dcPdfRes.warns.map(w=>`<li>${escapeHtml(w)}</li>`).join('')}</ul></div>` : '<div class="dc-status ok"><b>Bốc tách xong — không phát hiện bất thường</b></div>'}
+        <div class="dc-kv" style="margin:10px 0;"><div>QC<b>${t.w}×${t.h} mm</b></div><div>Lề / cột nhãn<b>${t.margin} mm / ${t.split}%</b></div><div>Màu<b><span class="color-dot" style="background:${escapeHtml(t.color)}"></span> ${escapeHtml(t.color)}</b></div>
+          <div>Chữ thường / lớn<b>${t.fp} / ${t.fb} pt</b></div><div>Số decal trong file<b>${dcPdfRes.nDecal}</b></div><div>Công ty nhận ra<b>${escapeHtml(dcPdfRes.company||'—')}</b></div></div>
+        <div class="table-scroll"><table class="grid-table"><thead><tr><th>#</th><th>Nhãn</th><th>Nội dung / nguồn</th></tr></thead><tbody>
+          ${t.rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r.label)}${r.kind==='big'?' <span class="dc-tag">Chữ lớn</span>':''}</td><td style="white-space:pre-line;">${r.src==='fixed'?escapeHtml(r.value):`<span class="dc-tag var">${DC_SRC[r.src]}</span> ${escapeHtml(r.fmt||'')}`}</td></tr>`).join('')}
+        </tbody></table></div></div></div>`;
+    document.getElementById('dcPdfCv').appendChild(cv);
+    document.getElementById('dcPdfName').value = (t.title||'').replace(/^Decal\s*/i,'') || file.name.replace(/\.(pdf|ai)$/i,'');
+    document.getElementById('dcPdfFoot').classList.remove('hidden');
+  }catch(e){
+    body.innerHTML = `<div class="dc-status bad"><b>Không bốc tách được</b><div>${escapeHtml(e.message||String(e))}</div></div>`;
+  }
+}
+function dcClosePdf(){ document.getElementById('dcPdfModal').classList.add('hidden'); document.getElementById('dcPdfBody').innerHTML=''; dcPdfRes=null; }
+function dcPdfToEditor(){
+  if(!dcPdfRes) return;
+  const t = dcPdfRes.tpl; t.ten = document.getElementById('dcPdfName').value.trim();
+  const file = dcPdfRes.file; dcClosePdf();
+  dcOpenTplEd(null, null, t);
+  showToast('Kiểm tra lại, chọn khách hàng mặc định rồi bấm Lưu mẫu');
+  logActivity(`Decal: bốc tách mẫu từ PDF ${file}`);
+}
+
+/* ---------- Danh Mục › Thông tin Decal ---------- */
+function dcRenderCtyInfo(){
+  const el = document.getElementById('dcCtyList'); if(!el) return;
+  el.innerHTML = congTyList.map(c=>{
+    const ci = dcCtyMap[c.id] || {};
+    const val = k => ci[k]!==undefined ? ci[k] : (k==='tenEN' ? (c.tenEN||'') : k==='dcEN' ? (c.diaChiEN||'') : '');
+    return `<div class="card" style="${ci.daDoiChieu?'':'border:1.5px solid #f3b8ba;'}">
+      <div class="row" style="flex-wrap:wrap;"><div><div class="card-title">${escapeHtml(c.ten)}</div><div class="small muted">Code ${escapeHtml(c.maCode||'')} · tiền tố lô VN${escapeHtml(String(c.maSoVN||''))}</div></div>
+        <span class="dc-pill ${ci.daDoiChieu?'ok':'bad'}">${ci.daDoiChieu?`✓ Đã đối chiếu GACC · ${escapeHtml(ci.doiChieuBy||'')} ${ci.doiChieuAt?fmtActivityTs(ci.doiChieuAt):''}`:'✕ Chưa đối chiếu GACC — decal công ty này bị chặn in'}</span></div>
+      <div class="dc-wrap" style="margin-top:6px;">
+        <div class="dc-left" style="max-width:none;flex:1 1 420px;"><div class="row-flex" style="flex-wrap:wrap;">
+          ${DC_CTY_FIELDS.map(([k,lab])=>`<div class="field" style="min-width:220px;"><label>${lab}</label><textarea rows="${k.startsWith('dc')||k==='tenEN'?2:1}" id="dci_${c.id}_${k}" style="min-height:38px;${/CN/.test(k)?"font-family:'Noto Sans SC',sans-serif;":''}" oninput="dcCtyPreview('${c.id}')">${escapeHtml(val(k))}</textarea></div>`).join('')}
+        </div></div>
+        <div class="dc-right" style="flex:1 1 340px;"><label>Khối công ty trên decal (cách ghi mặc định)</label><div id="dcip_${c.id}"></div></div>
+      </div>
+      <div class="btn-row" style="margin-top:10px;">
+        <button class="btn btn-primary btn-sm" onclick="dcSaveCty('${c.id}',false)">💾 Lưu</button>
+        ${ci.daDoiChieu ? `<button class="btn btn-outline btn-sm" onclick="dcUnconfirmCty('${c.id}',this)">Bỏ xác nhận</button>`
+          : `<button class="btn btn-ok btn-sm" onclick="dcSaveCty('${c.id}',true,this)">✓ Lưu &amp; xác nhận đã đối chiếu GACC</button>`}
+      </div></div>`;
+  }).join('') || '<div class="empty">Chưa có công ty trong Danh Mục › Công ty.</div>';
+  congTyList.forEach(c=>dcCtyPreview(c.id));
+}
+function dcCtyRead(id){ const o = {}; DC_CTY_FIELDS.forEach(([k])=>{ const e=document.getElementById(`dci_${id}_${k}`); o[k] = e ? e.value.trim() : ''; }); return o; }
+function dcCtyPreview(id){
+  const c = congTyList.find(x=>x.id===id); const o = dcCtyRead(id); const box = document.getElementById('dcip_'+id); if(!box||!c) return;
+  const v1 = `${o.tenCN} ${o.tenEN}\n(${o.tenVT}) - ${c.maCode||''}`, v2 = `${o.dcCN}\n${o.dcEN}`;
+  const row = (l,v)=>`<tr><td class="l">${l}</td><td class="v">${escapeHtml(v)}</td></tr>`;
+  box.innerHTML = `<div class="dc-decal" style="width:100%;height:auto;padding:0;--c:#1c2430;--fp:8.5pt;--split:34%"><table style="height:auto;">${row('生产加工企业名称及注册号',v1)}${row('生产加工企业地址',v2)}${row('在华注册编号',o.gacc)}</table></div>`;
+}
+function dcSaveCty(id, confirmIt, btn){
+  const c = congTyList.find(x=>x.id===id); const o = dcCtyRead(id); const old = dcCtyMap[id] || {};
+  const changed = DC_CTY_FIELDS.some(([k])=>(old[k]||'')!==o[k]);
+  if(confirmIt){
+    const miss = DC_CTY_FIELDS.filter(([k])=>!o[k]).map(([,l])=>l);
+    if(miss.length){ showToast('Nhập đủ trước khi xác nhận: '+miss.join(', ')); return; }
+    if(!requestConfirm('dcCty'+id, btn, '⚠️ Bấm lần nữa: tôi đã đối chiếu với hồ sơ GACC')) return;
+  }
+  const data = Object.assign({}, o, {updatedAt:Date.now(), updatedBy:currentUser.displayName});
+  if(confirmIt) Object.assign(data, {daDoiChieu:true, doiChieuBy:currentUser.displayName, doiChieuAt:Date.now()});
+  else if(changed && old.daDoiChieu) Object.assign(data, {daDoiChieu:false, doiChieuBy:'', doiChieuAt:0});
+  db.collection('capmalo_decal_congty').doc(id).set(data, {merge:true}).then(()=>{
+    logActivity(`Decal: ${confirmIt?'xác nhận đối chiếu GACC':'sửa thông tin decal'} công ty ${c?c.ten:id}`);
+    showToast(confirmIt ? 'Đã lưu & xác nhận' : (changed && old.daDoiChieu ? 'Đã lưu — nội dung đổi nên cần đối chiếu GACC lại' : 'Đã lưu'));
+    dcRenderCtyInfo();
+  }).catch(fsErr);
+}
+function dcUnconfirmCty(id, btn){
+  if(!requestConfirm('dcUnc'+id, btn, '⚠️ Bấm lần nữa')) return;
+  const c = congTyList.find(x=>x.id===id);
+  db.collection('capmalo_decal_congty').doc(id).set({daDoiChieu:false, doiChieuBy:'', doiChieuAt:0}, {merge:true}).then(()=>{
+    logActivity(`Decal: bỏ xác nhận GACC công ty ${c?c.ten:id}`); dcRenderCtyInfo();
+  }).catch(fsErr);
+}
+window.addEventListener('beforeunload', e=>{ if(dcDirty){ e.preventDefault(); e.returnValue=''; } });
+
 </script>
 </body>
 </html>
