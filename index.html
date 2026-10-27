@@ -2,8 +2,37 @@
 <!--
   ==========================================================
   APP: CẤP MÃ LÔ
-  Phiên bản: V3.8.0  —  27/10/2026
+  Phiên bản: V3.9.0  —  28/10/2026
   ----------------------------------------------------------
+  V3.9.0 (28/10/2026) — chỉ sửa tab TK Decal
+  - QC = đúng kích thước decal = bảng viền màu (nhà in cắt đúng bảng),
+    bỏ lề trong. Nhập khổ QC bằng cm.
+  - Ký hiệu dưới decal (M, AQ, MCK…): ô ký hiệu, vị trí, cỡ chữ; có ký hiệu
+    thì decal dài thêm phần "chừa thêm dưới" (mặc định 5 mm).
+  - Toàn bộ chữ Times New Roman (chữ Trung: Tống thể). Chữ lớn đặt theo
+    chiều cao chữ KG (mm, mặc định 8 mm), co ngang mặc định 78%; tràn ô thì
+    tự co ngang thêm tới 60% (báo vàng), quá nữa thì chặn in.
+  - Bỏ "Mẫu mặc định cho khách hàng": mỗi mặt hàng tự chọn mẫu (bắt buộc).
+  - Ô chọn lô: Lot No — Khách hàng — Số mặt hàng (🔒 = đã lưu).
+  - 2 loại file: "File gửi khách xác nhận" (1 PDF: bảng thiết kế + bảng lô +
+    tất cả decal, tiêu đề QC, chú thích chiều cao chữ KG) và "File in đúng
+    kích thước" (mỗi trang 1 decal, không chú thích; bấm = chốt).
+  - Thông tin bảng thiết kế (đơn vị, mã số, ngày, chất liệu, màu in…) lưu
+    theo lô.
+  - Nhập mẫu từ PDF: lấy khổ theo chữ "QC", nhận ký hiệu dưới bảng và số
+    "x mm" chú thích chiều cao chữ KG.
+  - Mẫu cũ (V3.8.x) tự chuyển: bỏ lề, bỏ cỡ chữ lớn pt → KG 8 mm.
+  V3.8.1 (28/10/2026) — chỉ sửa tab TK Decal
+  - Decal ĐÃ LƯU = CHỐT: lưu nguyên nội dung từng decal lúc lưu; mở lại /
+    in lại ra đúng bản đó. Sửa mẫu, Thông tin Decal, dữ liệu lô sau này
+    KHÔNG làm đổi bản đã lưu (chỉ báo "hiện tại đã khác bản đã lưu").
+    Muốn đổi: "Sửa decal này" → sửa → Lưu lại (có "Huỷ, quay về bản đã lưu").
+  - Lô CHƯA lưu: luôn theo mẫu thư viện mới nhất (sửa mẫu là thấy ngay).
+    Sửa dòng ngay trong lô → lô dùng bản riêng (✎), có "Lấy lại theo thư viện".
+  - Chỉ lưu được khi không còn lỗi; In = tự lưu (chốt) đúng bản vừa in.
+  - Sửa mẫu: chọn "Xem với công ty"; công ty chưa có Thông tin Decal thì
+    hiện chữ xám [Tên TQ]... và báo vàng, không còn báo "hợp lệ" kèm ô đỏ.
+  - Xem trước tự phóng to theo bề rộng màn hình (bản in không đổi).
   V3.8.0 (27/10/2026)
   - MỚI: Tab "🏷️ TK Decal" (quyền mới: "Thiết kế decal").
     · Tạo decal: chọn Lot đã cấp → mỗi mặt hàng × ngày SX = 1 decal;
@@ -190,7 +219,6 @@
   .dc-pv-item{display:flex;flex-direction:column;gap:4px;}
   .dc-pv-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;color:#D6247A;font-size:12px;line-height:1.3;}
   .dc-pv-head span:last-child{text-align:right;}
-  .dc-pv .dc-decal{outline:1.5px dashed #E04A95;}
   .dc-fit{font-size:12px;color:var(--muted);}
   .dc-fit.warn{color:#b7791f;} .dc-fit.bad{color:var(--danger);font-weight:700;}
   .dc-tabs{display:flex;gap:6px;flex-wrap:wrap;}
@@ -214,6 +242,15 @@
   #pane-tkDecal textarea,#dcCtyList textarea,#dcPdfModal textarea{font-family:inherit;}
   .dc-lib.used{border-color:var(--border);background:#f3f4f1;color:#8a918c;font-weight:500;}
 
+  .dc-lock{background:#eef4ff;border:1px solid #b9cdf3;border-radius:9px;padding:10px 12px;margin-bottom:8px;color:var(--text);font-size:13px;}
+  .dc-decal td.ph{color:#9aa1ac;font-style:italic;}
+  .dc-zw{position:relative;overflow:hidden;}
+  .dc-export{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:10px;}
+  .dc-exp{border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;}
+  .dc-exp.a{background:#eef4ff;border:1px solid #b9cdf3;} .dc-exp.b{background:#e8f7ef;border:1px solid #a7dcbf;}
+  .dc-exp .btn{width:100%;}
+  .dc-markbox{background:#eef4ff;border:1px solid #b9cdf3;border-radius:10px;padding:10px 12px;margin-top:10px;}
+  .dc-pv .dc-decal{box-shadow:0 1px 6px rgba(20,30,50,.12);}
   footer.app-footer{text-align:center;padding:16px;color:var(--muted);font-size:11px;}
 </style>
 </head>
@@ -270,7 +307,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V3.8.0</div>
+      <div class="ver">Phiên bản: V3.9.0</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -415,7 +452,7 @@
               <div class="card-title">1 · Chọn lô đã cấp</div>
               <div class="hint">Dữ liệu (Lot, ngày SX, công ty, vùng nuôi, mặt hàng) lấy thẳng từ tab Cấp Lô.</div>
               <label>Tìm lô</label>
-              <input type="text" id="dcLotSearch" placeholder="Gõ Lot No, công ty, khách hàng..." oninput="dcFillLotSelect()">
+              <input type="text" id="dcLotSearch" placeholder="Gõ Lot No hoặc khách hàng..." oninput="dcFillLotSelect()">
               <label>Lot No</label>
               <select id="dcLot" onchange="dcPickLot(this.value)"></select>
               <div id="dcLotInfo" class="dc-info"></div>
@@ -441,10 +478,20 @@
               <div id="dcPreview" class="dc-pv"></div>
             </div>
             <div class="btn-row">
-              <button class="btn btn-outline" style="flex:1;min-width:150px;" onclick="dcSaveJob()">💾 Lưu decal</button>
-              <button class="btn btn-primary" style="flex:2;min-width:200px;" id="dcPrintBtn" onclick="dcPrint()">🖨️ In / Xuất PDF</button>
+              <button class="btn btn-outline hidden" style="flex:1;min-width:150px;" id="dcSaveBtn" onclick="dcSaveJob()">💾 Lưu (chốt) decal</button>
             </div>
-            <div class="hint" style="margin-top:8px;">In: chọn máy in hoặc “Lưu dưới dạng PDF”, Tỷ lệ 100%, Lề: Không. Mỗi trang 1 decal, đúng khổ QC của mẫu.</div>
+            <div class="dc-export">
+              <div class="dc-exp a"><button class="btn btn-outline" id="dcProofBtn" onclick="dcProof()">📄 File gửi khách xác nhận</button>
+                <div class="small">1 file PDF: bảng thiết kế + bảng lô + tất cả decal, có tiêu đề QC và chú thích chiều cao chữ KG. Không dùng để in.</div></div>
+              <div class="dc-exp b"><button class="btn btn-primary" id="dcPrintBtn" onclick="dcPrint()">🖨️ File in đúng kích thước</button>
+                <div class="small">1 file PDF, mỗi trang = 1 decal đúng khổ (bảng = QC, + phần ký hiệu nếu có). Bấm = chốt (lưu) decal.</div></div>
+            </div>
+            <div class="hint" style="margin-top:8px;">Khi lưu PDF: chọn “Lưu dưới dạng PDF”, Tỷ lệ 100%, Lề: Không.</div>
+            <div class="card hidden" id="dcProofCard" style="margin-top:10px;">
+              <div class="card-title">Thông tin bảng thiết kế (file gửi khách)</div>
+              <div class="hint">In ở đầu file xác nhận. Lưu kèm decal của lô (sửa được cả khi decal đã chốt).</div>
+              <div class="row-flex" id="dcProofFields" style="flex-wrap:wrap;"></div>
+            </div>
             <div class="card" style="margin-top:10px;">
               <div class="card-title">Lịch sử chỉnh sửa decal của lô</div>
               <div id="dcLog" class="small"></div>
@@ -458,7 +505,7 @@
         <div id="dcTplListWrap">
           <div class="card">
             <div class="card-title">Tạo mẫu mới</div>
-            <div class="hint">Từ file PDF nhà in (app tự bốc tách) · Sao chép từ mẫu có sẵn · Mẫu trống (ghép dòng từ thư viện dòng).</div>
+            <div class="hint">Từ file PDF nhà in (app tự bốc tách: khổ QC, ký hiệu, các dòng) · Sao chép từ mẫu có sẵn · Mẫu trống (ghép dòng từ thư viện dòng).</div>
             <div class="row-flex">
               <div class="field">
                 <label>Bắt đầu từ</label>
@@ -5187,7 +5234,7 @@ return {loadPdfJs, readPage, parseDecals, fixRow, weightFmt, dateFmt, reNum, isG
 })();
 
 /* =====================================================================
-   TK DECAL (V3.8.0) — thiết kế & in decal thùng từ lô đã cấp
+   TK DECAL (V3.8.0 · sửa V3.8.1, V3.9.0) — thiết kế & in decal thùng từ lô đã cấp
    Firestore: capmalo_decal_mau (mẫu) · capmalo_decal_don (decal theo lô)
               capmalo_decal_congty (thông tin công ty in trên decal, id = congTyId)
    ===================================================================== */
@@ -5235,24 +5282,29 @@ const DC_LIB = [
 const DC_CTY_FIELDS = [['tenCN','Tên tiếng Trung'],['gacc','Số ĐK GACC (在华注册编号)'],['tenEN','Tên tiếng Anh'],['tenVT','Tên viết tắt'],['dcCN','Địa chỉ tiếng Trung'],['dcEN','Địa chỉ tiếng Anh']];
 
 const DC_DECAL_CSS = `
-.dc-decal{--c:#000;--s:1;--sb:1;--fp:9pt;--fb:24pt;--m:3.5mm;--split:40%;box-sizing:border-box;background:#fff;color:var(--c);padding:var(--m);overflow:hidden;
-  font-family:'Noto Sans SC','Microsoft YaHei',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-.dc-decal table{width:100%;height:100%;border-collapse:collapse;table-layout:fixed;}
-.dc-decal td{border:0.25mm solid var(--c);padding:calc(0.6mm * var(--s)) 1.2mm;font-size:calc(var(--fp) * var(--s));line-height:1.25;
+.dc-decal{--c:#000;--s:1;--sx:.78;--fp:9pt;--fbig:12mm;--fbl:7.5mm;--split:40%;position:relative;box-sizing:border-box;background:#fff;color:var(--c);overflow:hidden;
+  font-family:'Times New Roman',Tinos,'SimSun','Songti SC','Noto Serif SC',serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.dc-decal table{position:absolute;left:0;top:0;width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;box-sizing:border-box;border-top:0.25mm solid var(--c);border-left:0.25mm solid var(--c);}
+.dc-decal td{border:0;border-right:0.25mm solid var(--c);border-bottom:0.25mm solid var(--c);padding:calc(0.5mm * var(--s)) 1.2mm;font-size:calc(var(--fp) * var(--s));line-height:1.18;
   vertical-align:middle;white-space:pre-line;word-break:break-word;color:var(--c);background:#fff;}
 .dc-decal td.l{width:var(--split);}
-.dc-decal tr.big td{font-family:'Oswald','Noto Sans SC',sans-serif;font-weight:400;line-height:1.1;padding:calc(0.8mm * var(--s)) 1.2mm;}
-.dc-decal tr.big td.l{font-size:calc(var(--fb) * 0.8 * var(--s) * var(--sb));white-space:nowrap;}
-.dc-decal tr.big td.v{font-size:calc(var(--fb) * var(--s) * var(--sb));}
+.dc-decal tr.big td{white-space:nowrap;overflow:hidden;padding:0.8mm 1.2mm;line-height:1.05;}
+.dc-decal tr.big td.v{font-size:var(--fbig);}
+.dc-decal tr.big td.l{font-size:var(--fbl);}
+.dc-decal .sx{display:inline-block;transform:scaleX(var(--sx));transform-origin:0 50%;}
+.dc-decal .dc-mark{position:absolute;line-height:1;white-space:nowrap;color:var(--c);}
 .dc-decal tr.sel td{background:#FFF3B8;}
 .dc-decal td.bad{background:#ffe3e3;}
+.dc-decal td.ph{color:#9aa1ac;font-style:italic;}
+.dc-decal.dc-static{position:static;height:auto;}
+.dc-decal.dc-static table{position:static;}
 `;
-const DC_FONT_URL = 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Oswald:wght@400;500&display=swap';
+const DC_FONT_URL = 'https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700&family=Noto+Serif+SC:wght@400;600&display=swap';
 
 let dcTplList = [], dcJobList = [], dcCtyMap = {};
 let dcSection = 'tao', dcJob = null, dcDirty = false, dcSelTab = null, dcFits = [], dcErrors = [];
 const dcREsel = {job:null, tpl:null};
-let dcTplEd = null;          // {id|null, data}
+let dcTplEd = null, dcTplPvCty = '';          // {id|null, data}
 let dcPdfRes = null;
 let dcFontsReady = false, dcFontWarn = false;
 
@@ -5274,11 +5326,12 @@ function dcEnsureFonts(){
 }
 function dcListen(){
   db.collection('capmalo_decal_mau').onSnapshot(snap=>{
-    dcTplList = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.ten||'').localeCompare(b.ten||''));
+    dcTplList = snap.docs.map(d=>dcNormTpl({id:d.id, ...d.data()})).sort((a,b)=>(a.ten||'').localeCompare(b.ten||''));
+    dcSyncLiveTpls();   // lô chưa lưu luôn theo mẫu mới nhất; lô đã lưu không đổi
     if(activeTab==='tkDecal'){
       if(dcSection==='mau' && !dcTplEd) dcRenderTplList();
       if(dcSection==='mau') dcFillNewFrom();
-      if(dcSection==='tao' && dcJob){ dcRenderItems(); dcRenderRowsArea(); dcRenderPreview(); }
+      if(dcSection==='tao' && dcJob) dcRenderJobArea();
     }
   }, fsErr);
   db.collection('capmalo_decal_don').onSnapshot(snap=>{
@@ -5324,37 +5377,326 @@ function dcFillLotSelect(){
   const q = boDauVN(document.getElementById('dcLotSearch').value);
   const g = dcLotGroups();
   const keys = Object.keys(g).sort((a,b)=>Math.max(...g[b].map(x=>x.createdAt||0)) - Math.max(...g[a].map(x=>x.createdAt||0)));
-  const saved = new Set(dcJobList.map(j=>j.lotNo));
+  const saved = new Set(dcJobList.filter(j=>j.snap).map(j=>j.lotNo));
   const opts = keys.filter(k=>{
     if(!q) return true;
-    const r=g[k][0]; return boDauVN(`${k} ${r.congTyTen} ${r.khachHangTen} ${r.maCode}`).includes(q);
+    const r=g[k][0]; return boDauVN(`${k} ${r.khachHangTen}`).includes(q);
   }).slice(0, 300).map(k=>{
     const r=g[k][0];
-    return `<option value="${escapeHtml(k)}" ${dcJob&&dcJob.lotNo===k?'selected':''}>${escapeHtml(k)} — ${escapeHtml(r.congTyTen||'')} · ${escapeHtml(r.khachHangTen||'')} · ${g[k].length} mặt hàng${saved.has(k)?' · ✓ đã có decal':''}</option>`;
+    return `<option value="${escapeHtml(k)}" ${dcJob&&dcJob.lotNo===k?'selected':''}>${escapeHtml(k)} — ${escapeHtml(r.khachHangTen||'')} — ${g[k].length} mặt hàng${saved.has(k)?' 🔒':''}</option>`;
   });
   sel.innerHTML = '<option value="">— Chọn Lot No —</option>' + opts.join('');
   if(dcJob && !opts.some(o=>o.includes(`value="${escapeHtml(dcJob.lotNo)}"`))) sel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(dcJob.lotNo)}" selected>${escapeHtml(dcJob.lotNo)} (đang mở)</option>`);
 }
-function dcDefaultTpl(khId){ const t = dcTplList.find(t=>(t.khachHangIds||[]).includes(khId)); return t ? t.id : ''; }
+function dcNormTpl(t){
+  if(!t) return t;
+  t.w = +t.w || 150; t.h = +t.h || 120; t.split = +t.split || 40; t.fp = +t.fp || 9;
+  if(typeof t.capMM !== 'number' || !(t.capMM > 0)) t.capMM = 8;
+  if(typeof t.sx !== 'number' || !(t.sx > 0)) t.sx = 0.78;
+  t.markText = t.markText || ''; t.markPos = t.markPos || 'right';
+  if(typeof t.markSpace !== 'number') t.markSpace = 5; if(typeof t.markSize !== 'number') t.markSize = 3.5;
+  delete t.margin; delete t.fb; delete t.khachHangIds;
+  return t;
+}
+const DC_SX_MIN = 0.6;
+const dcCapCache = {};
+function dcCapRatio(fam){
+  if(dcCapCache[fam]) return dcCapCache[fam];
+  let r = 0.662;
+  try{ const c = document.createElement('canvas').getContext('2d'); c.font = `100px ${fam}`; const m = c.measureText('HKG'); if(m.actualBoundingBoxAscent > 20) r = m.actualBoundingBoxAscent/100; }catch(e){}
+  if(dcFontsReady) dcCapCache[fam] = r;
+  return r;
+}
+function dcFitOne(el){
+  // chữ lớn: giữ đúng chiều cao chữ KG (mm), co ngang cho vừa ô; chữ thường: thu nhỏ nếu cao quá khổ
+  const tb = el.querySelector('table'); const fam = getComputedStyle(el).fontFamily;
+  const pxmm = el.offsetWidth / (+el.dataset.w || 1);
+  const cap = +el.dataset.cap || 8, sx0 = +el.dataset.sx || 0.78;
+  const F = cap / dcCapRatio(fam);
+  el.style.setProperty('--fbig', F.toFixed(3)+'mm');
+  el.style.setProperty('--fbl', (F*0.62).toFixed(3)+'mm');
+  el.style.setProperty('--s', 1);
+  let sx = sx0;
+  const inner = td => { const cs = getComputedStyle(td); return td.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); };
+  tb.querySelectorAll('tr.big td.v .bv').forEach(sp=>{ const w0 = sp.offsetWidth; if(w0) sx = Math.min(sx, inner(sp.parentNode) / w0 * 0.995); });
+  el.style.setProperty('--sx', Math.max(sx, 0.3).toFixed(3));
+  let lf = 1;
+  tb.querySelectorAll('tr.big td.l .bl').forEach(sp=>{ const w0 = sp.offsetWidth; if(w0) lf = Math.min(lf, inner(sp.parentNode) / (w0 * Math.max(sx,0.3)) * 0.995); });
+  if(lf < 1) el.style.setProperty('--fbl', (F*0.62*lf).toFixed(3)+'mm');
+  const availH = (+el.dataset.th || 0) * pxmm;
+  let s = 1;
+  for(let k=0;k<25;k++){
+    if(tb.offsetHeight <= availH + 0.5) break;
+    s *= Math.min(availH/tb.offsetHeight, 0.99); el.style.setProperty('--s', s.toFixed(3));
+  }
+  return {s, sx, sx0, cap, bigOk: sx >= DC_SX_MIN - 1e-6};
+}
+function dcProofDefaults(){
+  const recs = dcJob ? (dcLotGroups()[dcJob.lotNo] || []) : [];
+  const c = recs[0] ? congTyList.find(x=>x.id===recs[0].congTyId) : null;
+  return {donVi: c ? String(c.ten||'').toUpperCase() : '', maSo:'', ngay:new Date().toISOString().slice(0,10), nguoiLam: currentUser?currentUser.displayName:'',
+    tenHang:'Decal', chatLieu:'Decal nhựa đục', mauIn:'', ppIn:'Offset', ghiChu:''};
+}
+const DC_PROOF_FIELDS = [['donVi','Đơn vị'],['maSo','Mã số'],['ngay','Ngày','date'],['nguoiLam','Người làm'],['tenHang','Tên hàng'],['chatLieu','Chất liệu'],['mauIn','Màu in'],['ppIn','PP in'],['ghiChu','Ghi chú']];
+let dcProofTimer = null;
+function dcRenderProof(){
+  const el = document.getElementById('dcProofFields'); if(!el || !dcJob) return;
+  const P = Object.assign(dcProofDefaults(), dcJob.proof||{}); dcJob.proof = P;
+  el.innerHTML = DC_PROOF_FIELDS.map(([k,lab,type])=>`<div class="field"><label>${lab}</label><input type="${type||'text'}" value="${escapeHtml(P[k]||'')}" ${k==='mauIn'?'placeholder="VD: 1 màu xanh lá"':''} oninput="dcSetProof('${k}', this.value)"></div>`).join('');
+}
+function dcSetProof(k, v){
+  dcJob.proof[k] = v;
+  if(dcJob.locked){ clearTimeout(dcProofTimer); const lot = dcJob.lotNo, P = dcClone(dcJob.proof); dcProofTimer = setTimeout(()=>db.collection('capmalo_decal_don').doc(dcJobId(lot)).update({proof:P}).catch(fsErr), 700); }
+  else dcDirty = true;
+}
+function dcLotRows(){
+  const recs = dcLotGroups()[dcJob.lotNo] || [];
+  return recs.map(r=>{
+    const c = congTyList.find(x=>x.id===r.congTyId) || {}; const vn = vungNuoiList.find(v=>v.id===r.vungNuoiId) || {};
+    return {lotNo:r.lotNo, code:c.maCode||r.maCode||'', ngay:[...(r.ngaySX||[])].sort().map(fmtDateVN).join(', '), vung:vn.tenEN||vn.ten||r.vungNuoiTen||'', kh:r.khachHangTen||'', mh:r.matHangNet||''};
+  });
+}
+const DC_PROOF_CSS = `
+.dcp{font-family:Arial,sans-serif;color:#1c2430;background:#fff;}
+.dcp .wrap{padding:10mm;display:inline-block;}
+.dcp .hd{border-collapse:collapse;margin:0 auto 4mm;font-size:9.5pt;}
+.dcp .hd td{border:0.3mm solid #1c2430;padding:1.2mm 2.2mm;}
+.dcp .hd td.k{color:#555;white-space:nowrap;} .dcp .hd td.b{font-weight:700;} .dcp .hd td.red{color:#d0021b;font-weight:700;}
+.dcp .hd td.tt{text-align:center;font-family:'Times New Roman',Tinos,serif;} .dcp .hd td.tt b{font-size:14pt;letter-spacing:.02em;} .dcp .hd td.tt div{font-size:8pt;color:#555;margin-top:1mm;}
+.dcp .lt{border-collapse:collapse;margin:0 auto 6mm;font-size:8.5pt;}
+.dcp .lt th{background:#3ad3e0;text-align:left;padding:1.8mm 2.2mm;} .dcp .lt td{border-top:0.2mm solid #d5e0ec;padding:1.6mm 2.2mm;vertical-align:middle;}
+.dcp .grid{display:flex;flex-wrap:wrap;gap:10mm 12mm;}
+.dcp .pd-h{display:flex;justify-content:space-between;align-items:flex-end;color:#E0207A;font-size:10pt;line-height:1.25;margin-bottom:1mm;}
+.dcp .dim{position:absolute;height:0;border-top:0.2mm solid #E0207A;pointer-events:none;}
+.dcp .dimt{position:absolute;font:2.6mm/1 Arial,sans-serif;color:#E0207A;white-space:nowrap;background:#fff;padding:0 0.6mm;}
+`;
+function dcProof(){
+  dcRenderPreview();
+  if(dcErrors.length || !dcFontsReady) return;
+  const els = [...document.querySelectorAll('#dcPreview .dc-decal')]; if(!els.length) return;
+  const Ts = dcJob.locked ? dcJob.snap.decals.map(x=>x.T) : dcCompute().decals.map(x=>x.T);
+  const P = Object.assign(dcProofDefaults(), dcJob.proof||{});
+  const lot = (dcJob.locked && dcJob.snap.lotRows) ? dcJob.snap.lotRows : dcLotRows();
+  const e = escapeHtml, lotDash = e(dcJob.lotNo.replace(/\//g,'-'));
+  const decalsHTML = els.map((el,i)=>{
+    const c = el.cloneNode(true); c.style.transform=''; c.style.transformOrigin=''; c.querySelectorAll('tr.sel').forEach(tr=>tr.classList.remove('sel'));
+    const T = Ts[i] || {};
+    return `<div class="pd"><div class="pd-h"><span>${e(T.title||'Decal')}<br>QC: ${+T.w/10}*${+T.h/10}cm</span><span>${lotDash}</span></div>${c.outerHTML}</div>`;
+  }).join('');
+  const maxW = Math.max(...Ts.map(T=>+T.w||150)); const per = Math.min(3, els.length);
+  const cell = (k,v,b)=>`<td class="k">${k}</td><td class="${b||''}">${e(v||'')}</td>`;
+  const quyCach = [...new Set(Ts.map(T=>`${+T.w/10} × ${+T.h/10} cm`))].join('; ');
+  const head = `<table class="hd"><tr><td rowspan="3" class="tt"><b>BẢNG THIẾT KẾ DECAL</b><div>Xác nhận mẫu với khách hàng</div></td>
+      ${cell('Đơn vị',P.donVi,'b')}${cell('Tên hàng',P.tenHang)}${cell('Màu in',P.mauIn,'b')}</tr>
+    <tr>${cell('Ngày',P.ngay?fmtDateVN(P.ngay):'')}${cell('Quy cách',quyCach)}${cell('PP in',P.ppIn)}</tr>
+    <tr>${cell('Mã số',P.maSo,'b')}${cell('Chất liệu',P.chatLieu,'red')}${cell('Người làm',P.nguoiLam)}</tr>
+    ${P.ghiChu?`<tr><td class="k">Ghi chú</td><td colspan="6">${e(P.ghiChu)}</td></tr>`:''}</table>`;
+  const lt = `<table class="lt"><tr><th>Lot No</th><th>Code</th><th>Ngày sản xuất</th><th>Vùng nuôi</th><th>Khách hàng</th><th>Mặt hàng - Net</th></tr>
+    ${lot.map((r,i)=>`<tr>${i===0?`<td rowspan="${lot.length}"><b>${e(r.lotNo)}</b></td><td rowspan="${lot.length}">${e(r.code)}</td>`:''}<td>${e(r.ngay)}</td>${i===0?`<td rowspan="${lot.length}">${e(r.vung)}</td><td rowspan="${lot.length}">${e(r.kh)}</td>`:''}<td>${e(r.mh)}</td></tr>`).join('')}</table>`;
+  // dựng & đo ngay trên trang chính (font đã tải) → file xác nhận không phụ thuộc máy in
+  if(!document.getElementById('dcpCss')){ const st = document.createElement('style'); st.id = 'dcpCss'; st.textContent = DC_PROOF_CSS; document.head.appendChild(st); }
+  const host = document.createElement('div'); host.className = 'dcp'; host.style.cssText = 'position:fixed;left:-30000px;top:0;';
+  host.innerHTML = `<div class="wrap"><div style="width:${per*maxW + (per-1)*12}mm">${head}${lt}<div class="grid">${decalsHTML}</div></div></div>`;
+  document.body.appendChild(host);
+  const pxmm = 96/25.4, mm = v => (v/pxmm).toFixed(2)+'mm';
+  try{
+    host.querySelectorAll('.dc-decal').forEach(d=>{
+      const bv = d.querySelector('tr.big td.v .bv'); if(!bv) return;
+      const cap = +d.dataset.cap || 8, td = bv.parentNode, dr = d.getBoundingClientRect();
+      const mk = document.createElement('i'); mk.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline'; bv.appendChild(mk);
+      const base = mk.getBoundingClientRect().top - dr.top; mk.remove();
+      const br = bv.getBoundingClientRect(), tr = td.getBoundingClientRect();
+      const capPx = cap*pxmm, topY = base - capPx, x1 = br.left - dr.left + br.width*0.45, x2 = tr.right - dr.left - 1.5*pxmm;
+      [topY, base].forEach(y=>{ const l = document.createElement('div'); l.className='dim'; l.style.left = mm(x1); l.style.width = mm(Math.max(0,x2-x1)); l.style.top = mm(y); d.appendChild(l); });
+      const t = document.createElement('div'); t.className='dimt'; t.textContent = cap.toFixed(1)+' mm'; d.appendChild(t);
+      t.style.left = mm(x2 - t.offsetWidth); t.style.top = mm((topY+base)/2 - t.offsetHeight/2);
+    });
+  }catch(err){ console.error(err); }
+  const wrap = host.querySelector('.wrap');
+  const W = Math.ceil(wrap.offsetWidth/pxmm)+1, H = Math.ceil(wrap.offsetHeight/pxmm)+1;
+  const body = host.innerHTML; host.remove();
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Trình duyệt chặn cửa sổ — cho phép popup rồi thử lại'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>XacNhan_Decal_${e(dcJob.lotNo.replace(/[^\w-]+/g,'-'))}</title><link rel="stylesheet" href="${DC_FONT_URL}">
+    <style>${DC_DECAL_CSS}\n${DC_PROOF_CSS}\nhtml,body{margin:0;padding:0;background:#fff;}\n@page{size:${W}mm ${H}mm;margin:0}</style></head>
+    <body><div class="dcp">${body}</div><scr` + `ipt>window.addEventListener('load',function(){(document.fonts?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print();},300);});});</scr` + `ipt></body></html>`);
+  w.document.close();
+  logActivity(`Decal: xuất file xác nhận lô ${dcJob.lotNo} (${els.length} decal)`);
+  dcJob.log.unshift({t:Date.now(), u:currentUser.displayName, msg:`Xuất file gửi khách xác nhận (${els.length} decal)`}); dcJob.log = dcJob.log.slice(0,60);
+  if(dcJob.locked) db.collection('capmalo_decal_don').doc(dcJobId(dcJob.lotNo)).update({log:dcJob.log}).catch(()=>{}); else dcDirty = true;
+  dcRenderLog();
+}
+function dcDetectExtras(d, items){
+  const MM = 72/25.4, bot = d.y - d.table.h*MM, L = d.x, R = d.x + d.table.w*MM;
+  const below = items.filter(it=>it.str.trim() && !/mm\s*$/i.test(it.str) && !/[㐀-鿿]/.test(it.str) && it.y < bot && it.y > bot - 7*MM && it.x > L-5 && it.x < R+5).sort((a,b)=>a.x-b.x);
+  const mk = below.map(it=>it.str.trim()).join('');
+  d.mark = (mk && mk.length<=6 && /^[A-Za-z0-9]+$/.test(mk)) ? mk : '';
+  const ann = items.find(it=>/^\s*\d+(\.\d+)?\s*mm\s*$/i.test(it.str) && it.x > L && it.x < R+40*MM && it.y < d.y && it.y > bot);
+  d.capAnn = ann ? parseFloat(ann.str) : 0;
+}
 function dcSnapFromLib(tplId){
   const t = dcTplList.find(x=>x.id===tplId); if(!t) return null;
-  const s = dcClone(t); delete s.id; s.rows = (s.rows||[]).map(r=>Object.assign({key:dcUid()}, r));
-  s.libAt = t.updatedAt || 0;
+  const s = dcNormTpl(dcClone(t)); delete s.id; s.rows = (s.rows||[]).map((r,i)=>Object.assign({key:'r'+i}, r));
+  s.libAt = t.updatedAt || 0; s.own = false;
   return s;
+}
+function dcCompute(getT){
+  // tính nội dung decal (không đụng giao diện) — dùng cho xem trước, lưu & so sánh
+  const recs = dcLotGroups()[dcJob.lotNo] || [];
+  const errs = [];
+  if(!recs.length) errs.push('Lô không còn trong danh sách lô.');
+  [...new Set(recs.map(r=>r.congTyId))].forEach(id=>{
+    const c = congTyList.find(x=>x.id===id); const ci = dcCtyMap[id];
+    if(!c){ errs.push('Không tìm thấy công ty của lô trong Danh Mục.'); return; }
+    if(!ci) errs.push(`Công ty ${c.ten} chưa có Thông tin Decal (Danh Mục › Thông tin Decal).`);
+    else if(!ci.daDoiChieu) errs.push(`Công ty ${c.ten}: thông tin trên decal chưa “Đã đối chiếu GACC”.`);
+    recs.filter(r=>r.congTyId===id).forEach(r=>{ if(!String(r.lotNo).toUpperCase().startsWith('VN'+c.maSoVN)) errs.push(`Lot ${r.lotNo} không khớp mã số VN${c.maSoVN} của công ty ${c.ten} — kiểm tra lại lô.`); });
+  });
+  getT = getT || (tid=>dcJob.tpls[tid]);
+  recs.forEach((r,ri)=>{
+    const it = dcJob.items[r.id] || {};
+    if(!it.tplId || !getT(it.tplId)) errs.push(`Mặt hàng ${ri+1}: chưa chọn mẫu decal.`);
+    const p = dcParseNet(r.matHangNet);
+    const nn = p ? p.net : String(it.netM||'').trim().replace(',','.'), gg = p ? p.gross : String(it.grossM||'').trim().replace(',','.');
+    const n = dcNum(nn), g = dcNum(gg);
+    if(!nn || !gg || isNaN(n) || isNaN(g) || n<=0 || g<=0) errs.push(`Mặt hàng ${ri+1}: chưa có hoặc sai Net/Gross${p?'':' (nhập tay ở ô đỏ)'}.`);
+    else if(n>=g) errs.push(`Mặt hàng ${ri+1}: Net phải nhỏ hơn Gross.`);
+    if(!(r.ngaySX||[]).length) errs.push(`Mặt hàng ${ri+1}: lô chưa có ngày SX.`);
+  });
+  const usedT = [...new Set(recs.map(r=>(dcJob.items[r.id]||{}).tplId).filter(t=>t && getT(t)))];
+  usedT.forEach(tid=>{ const T = getT(tid); dcTplProblems(T, T.ten).forEach(e=>errs.push(e+'.')); });
+  const decals = dcDecals(getT).filter(d=>d.T).map((d,i)=>{
+    const vars = dcVars(d);
+    const cells = d.T.rows.map((row,k)=>{ const e=[]; const v = dcCell(row, d, vars, e, `Decal ${i+1}, dòng ${k+1}`, dcJob.each); e.forEach(x=>errs.push(x+'.')); return {v, bad:e.length>0}; });
+    return {d, T:d.T, cells};
+  });
+  let E = [...new Set(errs)];
+  if(E.some(e=>/chưa có Thông tin Decal/.test(e))) E = E.filter(e=>!/thiếu giá trị \{(tenCN|tenEN|tenVT|dcCN|dcEN|gacc)\}/.test(e));
+  if(E.some(e=>/Net\/Gross/.test(e))) E = E.filter(e=>!/thiếu giá trị \{v\}/.test(e));
+  return {decals, errs:E};
+}
+function dcSnapOf(list){
+  return list.map(x=>({T:{ten:x.T.ten, title:x.T.title||'', w:+x.T.w, h:+x.T.h, split:+x.T.split, color:x.T.color, fp:+x.T.fp, capMM:+x.T.capMM||8, sx:+x.T.sx||0.78,
+      markText:x.T.markText||'', markPos:x.T.markPos||'right', markSpace:+x.T.markSpace||0, markSize:+x.T.markSize||3.5,
+      rows:x.T.rows.map(r=>({label:r.label, kind:r.kind||'normal'}))}, cells:x.cells.map(c=>c.v), date:x.d.date, item:x.d.r.id}));
+}
+function dcPvItemHTML(T, cellObjs, i, date, selKey){
+  return `<div class="dc-pv-item"><div class="dc-pv-head"><span>${escapeHtml(T.title||'Decal')}<br>QC: ${+T.w/10}*${+T.h/10}cm · Decal ${i+1} · ${fmtDateVN(date)}</span><span>${escapeHtml(T.ten)}<br>${escapeHtml(dcJob.lotNo.replace(/\//g,'-'))}</span></div>
+    ${dcDecalHTML(T, cellObjs, {selKey})}<div class="dc-fit" data-fit="${i}"></div></div>`;
+}
+function dcFitMsg(i, f, pt){
+  const pct = v => Math.round(v*100)+'%';
+  if(!f.bigOk) return {cls:'bad', txt:`Chữ lớn (KG cao ${f.cap}mm) không vừa ô — phải co ngang còn ${pct(f.sx)} (tối thiểu ${pct(DC_SX_MIN)}). Giảm % cột nhãn, rút gọn cách ghi hoặc tăng khổ.`,
+    err:`Decal ${i+1}: chữ lớn không vừa ô dù đã co ngang tối đa — giảm % cột nhãn, rút gọn cách ghi (vd bỏ “(6块)”) hoặc tăng khổ.`};
+  if(pt < DC_MIN_PT) return {cls:'bad', txt:`Chữ thường quá nhỏ: ${pt.toFixed(1)}pt (tối thiểu ${DC_MIN_PT}pt) — bỏ bớt dòng, rút gọn hoặc tăng khổ.`, err:`Decal ${i+1}: chữ thường quá nhỏ (${pt.toFixed(1)}pt).`};
+  const notes = [];
+  if(f.sx < f.sx0 - 0.005) notes.push(`chữ lớn đã co ngang còn ${pct(f.sx)}`);
+  if(f.s < 0.999) notes.push(`chữ thường thu nhỏ còn ${pt.toFixed(1)}pt`);
+  if(notes.length) return {cls:'warn', txt:`KG cao ${f.cap}mm · ${notes.join(' · ')}.`, warn:`Decal ${i+1}: ${notes.join(', ')}.`};
+  return {cls:'', txt:`Vừa khổ — KG cao ${f.cap}mm, co ngang ${pct(f.sx)} · chữ thường ${pt.toFixed(1)}pt.`};
+}
+function dcFitPreview(pv, fps, errs, warns){
+  dcFits = [];
+  pv.querySelectorAll('.dc-decal').forEach((el,i)=>{
+    const f = dcFitOne(el); const pt = (+el.dataset.fp||9) * f.s; dcFits[i] = Object.assign({pt}, f);
+    const m = dcFitMsg(i, f, pt); const box = pv.querySelector(`[data-fit="${i}"]`);
+    if(box){ box.className = 'dc-fit '+m.cls; box.textContent = m.txt; }
+    if(m.err) errs.push(m.err); if(m.warn) warns.push(m.warn);
+  });
+  dcZoomIn(pv);
+}
+function dcZoomIn(pv){
+  // phóng to bản xem trước cho dễ nhìn (không ảnh hưởng bản in)
+  const avail = Math.max(300, pv.clientWidth - 24);
+  pv.querySelectorAll('.dc-decal').forEach(el=>{
+    const w = el.offsetWidth, h = el.offsetHeight; if(!w) return;
+    const z = Math.max(1, Math.min(1.8, avail / w));
+    if(z <= 1.01) return;
+    const wrap = document.createElement('div'); wrap.className = 'dc-zw'; wrap.style.width = (w*z)+'px'; wrap.style.height = (h*z)+'px';
+    el.parentNode.insertBefore(wrap, el); wrap.appendChild(el);
+    el.style.transform = `scale(${z})`; el.style.transformOrigin = '0 0';
+    const item = wrap.closest('.dc-pv-item'); if(item) item.style.width = (w*z)+'px';
+  });
+}
+function dcSetStatus(errs, warns, n, extraHTML){
+  const st = document.getElementById('dcStatus'), btn = document.getElementById('dcPrintBtn');
+  if(errs.length){
+    st.className = 'dc-status bad';
+    st.innerHTML = `${extraHTML||''}<b>Chặn in — còn ${errs.length} lỗi</b><ul>${errs.slice(0,12).map(e=>`<li>${escapeHtml(e)}</li>`).join('')}${errs.length>12?`<li>… và ${errs.length-12} lỗi khác</li>`:''}</ul>`;
+  } else if(warns.length){
+    st.className = 'dc-status warn'; st.innerHTML = `${extraHTML||''}<b>In được — lưu ý</b><ul>${warns.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul>`;
+  } else { st.className = 'dc-status ok'; st.innerHTML = `${extraHTML||''}<b>Sẵn sàng in ${n} decal · Lot ${escapeHtml(dcJob.lotNo)}</b>`; }
+  btn.disabled = errs.length>0 || !n || !dcFontsReady;
+  btn.textContent = errs.length ? `Còn ${errs.length} lỗi — chưa in được` : !dcFontsReady ? 'Đang tải font…' : `🖨️ File in đúng kích thước (${n} decal)`;
+  const pb = document.getElementById('dcProofBtn');
+  if(pb){ pb.disabled = btn.disabled; pb.textContent = errs.length ? '📄 Còn lỗi — chưa xuất được' : '📄 File gửi khách xác nhận'; }
+  const sv = document.getElementById('dcSaveBtn');
+  if(sv){ sv.classList.toggle('hidden', !!dcJob.locked); sv.disabled = errs.length>0 || !n; sv.textContent = errs.length ? '💾 Còn lỗi — chưa lưu được' : '💾 Lưu (chốt) decal'; }
+}
+function dcRenderPreview(){
+  const pv = document.getElementById('dcPreview');
+  dcErrors = []; const warns = [];
+  if(!dcJob){ pv.innerHTML = '<div class="empty"><div class="ico">🏷️</div>Chọn lô để xem decal</div>'; const st=document.getElementById('dcStatus'); st.className='dc-status'; st.innerHTML=''; const btn=document.getElementById('dcPrintBtn'); btn.disabled=true; btn.textContent='🖨️ In / Xuất PDF'; document.getElementById('dcSaveBtn').classList.add('hidden'); document.getElementById('dcPvTitle').textContent='Xem trước'; return; }
+  if(!dcFontsReady) warns.push('Đang tải font chữ Trung — bản xem trước sẽ tự cập nhật.');
+  if(dcFontWarn) warns.push('Không tải được font chữ Trung (mất mạng?) — đang dùng font của máy, kiểm tra kỹ chữ Trung trước khi in.');
+  if(dcJob.locked){
+    // BẢN ĐÃ LƯU: hiện đúng nội dung lúc lưu, không tính lại
+    const S = dcJob.snap.decals;
+    pv.innerHTML = S.map((x,i)=>dcPvItemHTML(Object.assign({}, x.T), x.cells.map(v=>({v})), i, x.date)).join('');
+    document.getElementById('dcPvTitle').textContent = `Bản đã lưu (${S.length} decal)`;
+    const errs = [];
+    dcFitPreview(pv, S.map(x=>x.T.fp), errs, warns);
+    let changed = false;
+    try{ const live = dcCompute(tid=>dcSnapFromLib(tid) || dcJob.tpls[tid]); changed = JSON.stringify(dcSnapOf(live.decals)) !== JSON.stringify(S); }catch(e){ changed = false; }
+    const lockHTML = `<div class="dc-lock">🔒 <b>Decal đã lưu</b> — ${escapeHtml(dcJob.snap.savedBy||'')} ${dcJob.snap.savedAt?fmtActivityTs(dcJob.snap.savedAt):''}. Giữ nguyên như lúc lưu, sửa mẫu / danh mục sau này KHÔNG làm thay đổi bản này.
+      ${changed ? '<div style="margin-top:6px;color:#8a5a00;">⚠ Dữ liệu lô, mẫu hoặc thông tin công ty hiện tại đã khác bản đã lưu. In bây giờ vẫn ra đúng bản đã lưu; muốn cập nhật thì bấm “Sửa decal này”.</div>' : ''}
+      <div class="btn-row" style="margin-top:8px;"><button class="btn btn-amber btn-sm" onclick="dcUnlock()">✏️ Sửa decal này</button></div></div>`;
+    dcErrors = errs; dcSetStatus(errs, warns, S.length, lockHTML);
+    return;
+  }
+  const res = dcCompute();
+  const errs = res.errs.slice();
+  pv.innerHTML = res.decals.map((x,i)=>dcPvItemHTML(x.T, x.cells, i, x.d.date, x.d.tplId===dcSelTab ? dcREsel.job : null)).join('')
+    || '<div class="empty"><div class="ico">🏷️</div>Chưa có decal (chọn mẫu cho mặt hàng)</div>';
+  document.getElementById('dcPvTitle').textContent = `Xem trước (${res.decals.length} decal) — chưa lưu`;
+  dcFitPreview(pv, res.decals.map(x=>x.T.fp), errs, warns);
+  dcErrors = [...new Set(errs)];
+  const saved = dcJobList.some(j=>j.id===dcJobId(dcJob.lotNo));
+  const editHTML = saved ? `<div class="dc-lock" style="background:#fff7e6;border-color:#f0c36d;">✏️ Đang sửa lại decal đã lưu — bản đã lưu chỉ đổi khi bấm “Lưu”. <button class="btn btn-outline btn-sm" style="margin-left:6px;" onclick="dcCancelEdit()">Huỷ, quay về bản đã lưu</button></div>` : '';
+  dcSetStatus(dcErrors, warns, res.decals.length, editHTML);
+}
+function dcUnlock(){
+  if(!dcJob) return;
+  dcJob.locked = false; dcEnsureItems();
+  dcSelTab = dcUsedTpls()[0] || null; dcREsel.job = null;
+  dcLog('Mở để sửa lại decal đã lưu'); dcDirty = false;
+  dcRenderJobArea();
+}
+function dcCancelEdit(){
+  if(dcDirty && !confirm('Bỏ các thay đổi, quay về bản đã lưu?')) return;
+  const lot = dcJob.lotNo; dcDirty = false; dcJob = null; dcPickLot(lot);
+}
+function dcEnsureItems(){
+  const recs = dcLotGroups()[dcJob.lotNo] || [];
+  recs.forEach(r=>{ if(!dcJob.items[r.id]) dcJob.items[r.id] = {tplId:'', netM:'', grossM:''}; });
+  if(!dcJob.proof) dcJob.proof = dcProofDefaults();
+}
+function dcSyncLiveTpls(){
+  // lô CHƯA lưu: mẫu nào chưa sửa riêng thì luôn theo bản thư viện mới nhất
+  if(!dcJob || dcJob.locked) return;
+  Object.keys(dcJob.tpls).forEach(tid=>{ if(!dcJob.tpls[tid].own){ const s = dcSnapFromLib(tid); if(s) dcJob.tpls[tid] = s; } });
 }
 function dcPickLot(lotNo){
   if(dcDirty && dcJob && dcJob.lotNo!==lotNo && !confirm('Decal của lô '+dcJob.lotNo+' chưa lưu. Vẫn mở lô khác?')){ dcFillLotSelect(); return; }
   if(!lotNo){ dcJob=null; dcDirty=false; dcRenderJobArea(); return; }
   const saved = dcJobList.find(j=>j.id===dcJobId(lotNo));
-  dcJob = saved ? dcClone(saved) : {lotNo, items:{}, tpls:{}, each:{}, log:[]};
-  delete dcJob.id;
+  if(saved){
+    dcJob = dcClone(saved); delete dcJob.id;
+    dcJob.locked = !!(dcJob.snap && dcJob.snap.decals);
+    Object.values(dcJob.tpls||{}).forEach(t=>t.own = true);      // bản đã lưu: giữ nguyên mẫu lúc lưu
+  } else dcJob = {lotNo, items:{}, tpls:{}, each:{}, log:[], locked:false};
   dcJob.items = dcJob.items||{}; dcJob.tpls = dcJob.tpls||{}; dcJob.each = dcJob.each||{}; dcJob.log = dcJob.log||[];
-  const recs = dcLotGroups()[lotNo] || [];
-  recs.forEach(r=>{
-    if(!dcJob.items[r.id]) dcJob.items[r.id] = {tplId: dcDefaultTpl(r.khachHangId), netM:'', grossM:''};
-    const tid = dcJob.items[r.id].tplId;
-    if(tid && !dcJob.tpls[tid]){ const s=dcSnapFromLib(tid); if(s) dcJob.tpls[tid]=s; }
-  });
+  dcEnsureItems();
   dcDirty = false; dcREsel.job = null;
   dcSelTab = dcUsedTpls()[0] || null;
   dcRenderJobArea();
@@ -5369,12 +5711,13 @@ function dcUsedTpls(){
 function dcLog(msg){ if(!dcJob) return; dcJob.log.unshift({t:Date.now(), u:currentUser?currentUser.displayName:'', msg}); dcJob.log = dcJob.log.slice(0,60); dcDirty = true; dcRenderLog(); }
 
 /* ---------- decal = mặt hàng × ngày SX ---------- */
-function dcDecals(){
+function dcDecals(getT){
   if(!dcJob) return [];
+  getT = getT || (tid=>dcJob.tpls[tid]);
   const recs = dcLotGroups()[dcJob.lotNo] || [];
   const out = [];
   recs.forEach((r, ri)=>{
-    const it = dcJob.items[r.id] || {}; const T = it.tplId ? dcJob.tpls[it.tplId] : null;
+    const it = dcJob.items[r.id] || {}; const T = it.tplId ? getT(it.tplId) : null;
     const p = dcParseNet(r.matHangNet);
     const net = p ? p.net : String(it.netM||'').trim().replace(',','.');
     const gross = p ? p.gross : String(it.grossM||'').trim().replace(',','.');
@@ -5415,24 +5758,17 @@ function dcCell(row, d, vars, errs, where, eachMap){
 }
 function dcDecalHTML(T, cells, opt){
   opt = opt || {};
-  const rows = T.rows.map((r,i)=>`<tr class="${r.kind==='big'?'big':''} ${opt.selKey&&r.key===opt.selKey?'sel':''}"><td class="l">${escapeHtml(r.label)}</td><td class="v ${cells[i].bad?'bad':''}">${escapeHtml(cells[i].v||'—')}</td></tr>`).join('');
-  return `<div class="dc-decal" data-w="${+T.w}" data-h="${+T.h}" style="width:${+T.w}mm;height:${+T.h}mm;--c:${escapeHtml(T.color||'#000')};--fp:${+T.fp||9}pt;--fb:${+T.fb||24}pt;--m:${+T.margin}mm;--split:${+T.split||40}%"><table>${rows}</table></div>`;
-}
-const dcWide = cells => [...cells].some(td=>td.scrollWidth > td.clientWidth + 1);
-function dcFitOne(el){
-  const cs = getComputedStyle(el);
-  const availH = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  const tb = el.querySelector('table');
-  const big = tb.querySelectorAll('tr.big td'), all = tb.querySelectorAll('td');
-  let s=1, sb=1; el.style.setProperty('--s',1); el.style.setProperty('--sb',1);
-  for(let k=0;k<20 && sb>0.5 && dcWide(big);k++){ sb*=0.96; el.style.setProperty('--sb', sb.toFixed(3)); }
-  for(let k=0;k<25;k++){
-    const tall = tb.offsetHeight > availH + 0.5;
-    if(!tall && !dcWide(all)) break;
-    s *= tall ? Math.min(availH/tb.offsetHeight, 0.99) : 0.96;
-    el.style.setProperty('--s', s.toFixed(3));
-  }
-  return s;
+  const mark = String(T.markText||'').trim(); const sp = mark ? (+T.markSpace||0) : 0; const H = +T.h + sp;
+  const rows = T.rows.map((r,i)=>{
+    const big = r.kind==='big', c = cells[i] || {};
+    const lab = big ? `<span class="sx bl">${escapeHtml(r.label)}</span>` : escapeHtml(r.label);
+    const val = big ? `<span class="sx bv">${escapeHtml(c.v||'—')}</span>` : escapeHtml(c.v||'—');
+    return `<tr class="${big?'big':''} ${opt.selKey&&r.key===opt.selKey?'sel':''}"><td class="l">${lab}</td><td class="v ${c.bad?'bad':''} ${c.ph?'ph':''}">${val}</td></tr>`;
+  }).join('');
+  const ms = +T.markSize||3.5, mt = +T.h + Math.max(0,(sp-ms)/2);
+  const mpos = T.markPos==='left' ? 'left:1.5mm;' : T.markPos==='center' ? 'left:0;right:0;text-align:center;' : 'right:1.5mm;';
+  const markHTML = mark ? `<div class="dc-mark" style="top:${mt}mm;${mpos}font-size:${ms}mm;">${escapeHtml(mark)}</div>` : '';
+  return `<div class="dc-decal" data-w="${+T.w}" data-h="${H}" data-th="${+T.h}" data-cap="${+T.capMM||8}" data-sx="${+T.sx||0.78}" data-fp="${+T.fp||9}" style="width:${+T.w}mm;height:${H}mm;--c:${escapeHtml(T.color||'#000')};--fp:${+T.fp||9}pt;--split:${+T.split||40}%"><table style="height:${+T.h}mm">${rows}</table>${markHTML}</div>`;
 }
 function dcTplProblems(T, name){
   const errs = [];
@@ -5444,9 +5780,10 @@ function dcTplProblems(T, name){
 
 /* ---------- render: khu Tạo decal ---------- */
 function dcRenderJobArea(){
-  const has = !!dcJob;
-  ['dcItemsCard','dcRowsCard'].forEach(id=>document.getElementById(id).classList.toggle('hidden', !has));
-  dcRenderLotInfo(); dcRenderItems(); dcRenderRowsArea(); dcRenderPreview(); dcRenderLog();
+  const has = !!dcJob, locked = has && dcJob.locked;
+  ['dcItemsCard','dcRowsCard'].forEach(id=>document.getElementById(id).classList.toggle('hidden', !has || locked));
+  document.getElementById('dcProofCard').classList.toggle('hidden', !has); if(has) dcRenderProof();
+  dcRenderLotInfo(); if(!locked){ dcRenderItems(); dcRenderRowsArea(); } dcRenderPreview(); dcRenderLog();
 }
 function dcRenderLotInfo(){
   const el = document.getElementById('dcLotInfo');
@@ -5463,7 +5800,7 @@ function dcRenderLotInfo(){
     ${dcJob && dcJobList.some(j=>j.id===dcJobId(dcJob.lotNo)) ? '<div class="hint" style="margin:8px 0 0;">Đã mở decal đã lưu của lô này.</div>' : ''}`;
 }
 function dcTplOptions(sel){
-  return '<option value="">— Chọn mẫu —</option>' + dcTplList.map(t=>`<option value="${t.id}" ${t.id===sel?'selected':''}>${escapeHtml(t.ten)} (${+t.w/10}×${+t.h/10}cm)</option>`).join('');
+  return '<option value="">— Chọn mẫu —</option>' + dcTplList.map(t=>`<option value="${t.id}" ${t.id===sel?'selected':''}>${escapeHtml(t.ten)} (${+t.w/10}×${+t.h/10} cm${t.markText?' · '+escapeHtml(t.markText):''})</option>`).join('');
 }
 function dcRenderItems(){
   const el = document.getElementById('dcItems'); if(!dcJob){ el.innerHTML=''; return; }
@@ -5471,13 +5808,11 @@ function dcRenderItems(){
   el.innerHTML = recs.map((r,ri)=>{
     const it = dcJob.items[r.id] || {}; const p = dcParseNet(r.matHangNet);
     const T = it.tplId ? dcJob.tpls[it.tplId] : null;
-    const def = dcDefaultTpl(r.khachHangId);
     const dates = [...(r.ngaySX||[])].sort();
     const eachRows = T ? T.rows.filter(x=>x.src==='each') : [];
     const netOk = p || (it.netM && it.grossM);
-    const tplHint = !it.tplId ? '<span class="dc-bad">Chưa chọn mẫu — khách này chưa có mẫu mặc định (gán ở Thư viện mẫu).</span>'
-      : !dcTplList.some(t=>t.id===it.tplId) ? '<span class="dc-bad">Mẫu này đã bị xoá khỏi thư viện — lô vẫn giữ bản riêng.</span>'
-      : (it.tplId===def ? 'Theo mẫu mặc định của khách' : 'Đã đổi mẫu cho mặt hàng này');
+    const tplHint = !it.tplId ? '<span class="dc-bad">Chưa chọn mẫu — chọn mẫu cho mặt hàng này.</span>'
+      : !dcTplList.some(t=>t.id===it.tplId) ? '<span class="dc-bad">Mẫu này đã bị xoá khỏi thư viện — lô vẫn giữ bản riêng.</span>' : '';
     return `<div class="dc-item ${(!netOk||!it.tplId)?'err':''}">
       <div class="small" style="font-weight:600;line-height:1.45;">Mặt hàng ${ri+1}: ${escapeHtml(r.matHangNet||'')}</div>
       ${p ? `<div style="margin-top:6px;"><span class="dc-pill ok">NET ${escapeHtml(p.net)}kg · GROSS ${escapeHtml(p.gross)}kg</span> <span class="small muted">→ ${dates.length} decal</span></div>`
@@ -5486,8 +5821,8 @@ function dcRenderItems(){
            <div class="field"><label>Gross (kg)</label><input type="text" inputmode="decimal" value="${escapeHtml(it.grossM||'')}" oninput="dcSetItem('${r.id}','grossM',this.value)"></div></div>`}
       <div class="date-chips">${dates.map(d=>`<span class="date-chip">${fmtDateVN(d)}</span>`).join('') || '<span class="dc-bad small">Lô chưa có ngày SX</span>'}</div>
       <label>Mẫu decal</label>
-      <select onchange="dcSetItemTpl('${r.id}', this.value)">${dcTplOptions(it.tplId)}</select>
-      <div class="small muted" style="margin-top:4px;">${tplHint}</div>
+      <select onchange="dcSetItemTpl('${r.id}', this.value)" ${!it.tplId?'style="border:1.5px solid var(--danger);"':''}>${dcTplOptions(it.tplId)}</select>
+      ${tplHint ? `<div class="small" style="margin-top:4px;">${tplHint}</div>` : ''}
       ${eachRows.length ? dates.map(d=>eachRows.map(er=>`<label>${escapeHtml(er.label)} — ${fmtDateVN(d)} <span style="color:var(--primary);">(riêng decal này)</span></label>
         <textarea rows="2" oninput="dcSetEach('${r.id}|${d}|${er.key}', this.value)">${escapeHtml(dcJob.each[r.id+'|'+d+'|'+er.key]||'')}</textarea>`).join('')).join('') : ''}
     </div>`;
@@ -5510,7 +5845,10 @@ function dcRERows(ctx){
   return dcTplEd ? dcTplEd.data.rows : null;
 }
 function dcREChanged(ctx, msg, full){
-  if(ctx==='job'){ if(msg) dcLog(msg); dcDirty = true; dcRenderPreview(); if(full) dcRenderItems(); dcRenderTplTabs(); }
+  if(ctx==='job'){
+    const T = dcJob && dcJob.tpls[dcSelTab]; if(T) T.own = true;   // sửa trong lô → tách bản riêng, không theo thư viện nữa
+    if(msg) dcLog(msg); dcDirty = true; dcRenderPreview(); if(full) dcRenderItems(); dcRenderTplTabs();
+  }
   else dcTplEdPreview();
 }
 function dcRERender(ctx){
@@ -5596,17 +5934,20 @@ function dcRenderTplTabs(){
   const decals = dcDecals();
   tabs.innerHTML = used.map(tid=>{
     const T = dcJob.tpls[tid]; const n = decals.filter(d=>d.tplId===tid).length;
-    return `<button class="${tid===dcSelTab?'active':''}" onclick="dcSelTab='${tid}';dcREsel.job=null;dcRenderRowsArea();dcRenderPreview();">${escapeHtml(T.ten)} (${n} decal)${dcSnapDiff(tid)?' ✎':''}</button>`;
+    return `<button class="${tid===dcSelTab?'active':''}" onclick="dcSelTab='${tid}';dcREsel.job=null;dcRenderRowsArea();dcRenderPreview();">${escapeHtml(T.ten)} (${n} decal)${T.own?' ✎':''}</button>`;
   }).join('') || '<div class="small muted">Chọn mẫu cho mặt hàng ở phần 2.</div>';
   if(!dcSelTab){ bar.innerHTML=''; return; }
-  const diff = dcSnapDiff(dcSelTab); const inLib = dcTplList.some(t=>t.id===dcSelTab);
-  bar.innerHTML = `${diff ? '<span class="small" style="color:#b7791f;align-self:center;">✎ Lô này đã sửa riêng so với thư viện</span>' : '<span class="small muted" style="align-self:center;">Giống bản thư viện</span>'}
-    ${inLib && diff ? `<button class="btn btn-outline btn-sm" onclick="dcResetSnap(this)">↺ Lấy lại theo thư viện</button><button class="btn btn-amber btn-sm" onclick="dcSnapToLib(this)">⬆ Lưu vào mẫu thư viện</button>` : ''}`;
+  const T = dcJob.tpls[dcSelTab]; const inLib = dcTplList.some(t=>t.id===dcSelTab);
+  const libChanged = T.own && inLib && dcSnapDiff(dcSelTab);
+  bar.innerHTML = !T.own ? '<span class="small muted" style="align-self:center;">Đang theo mẫu thư viện — sửa mẫu ở Thư viện là lô này đổi theo (cho tới khi lưu).</span>'
+    : `<span class="small" style="color:#b7791f;align-self:center;">✎ Lô này dùng bản riêng${libChanged?' (khác bản thư viện hiện tại)':''} — không tự đổi theo thư viện.</span>
+       ${inLib ? `<button class="btn btn-outline btn-sm" onclick="dcResetSnap(this)">↺ Lấy lại theo thư viện</button>` : ''}
+       ${inLib && libChanged ? `<button class="btn btn-amber btn-sm" onclick="dcSnapToLib(this)">⬆ Lưu vào mẫu thư viện</button>` : ''}`;
 }
 function dcRowsSig(rows){ return JSON.stringify((rows||[]).map(r=>[r.label,r.src,r.kind,r.src==='fixed'?r.value:'',DC_AUTO.includes(r.src)?(r.fmt||DC_FMT[r.src]):''])); }
 function dcSnapDiff(tid){ const t = dcTplList.find(x=>x.id===tid); const s = dcJob && dcJob.tpls[tid]; return !!(t && s && dcRowsSig(t.rows)!==dcRowsSig(s.rows)); }
 function dcResetSnap(btn){
-  if(!requestConfirm('dcReset', btn, '⚠️ Bấm lần nữa: bỏ phần sửa riêng')) return;
+  if(!requestConfirm('dcReset', btn, '⚠️ Bấm lần nữa: dùng lại bản thư viện')) return;
   const s = dcSnapFromLib(dcSelTab); if(!s) return;
   dcJob.tpls[dcSelTab] = s; dcREsel.job = null; dcLog(`Lấy lại mẫu “${s.ten}” theo thư viện`);
   dcRenderItems(); dcRenderRowsArea(); dcRenderPreview();
@@ -5625,64 +5966,6 @@ function dcSnapToLib(btn){
 function dcRenderRowsArea(){ if(!dcJob){ return; } dcRenderTplTabs(); dcRERender('job'); }
 
 /* ---------- xem trước + kiểm tra ---------- */
-function dcRenderPreview(){
-  const pv = document.getElementById('dcPreview'), st = document.getElementById('dcStatus'), btn = document.getElementById('dcPrintBtn');
-  dcErrors = []; const warns = [];
-  if(!dcJob){ pv.innerHTML = '<div class="empty"><div class="ico">🏷️</div>Chọn lô để xem decal</div>'; st.className='dc-status'; st.innerHTML=''; btn.disabled=true; btn.textContent='🖨️ In / Xuất PDF'; document.getElementById('dcPvTitle').textContent='Xem trước'; return; }
-  const recs = dcLotGroups()[dcJob.lotNo] || [];
-  const errs = [];
-  if(!recs.length) errs.push('Lô không còn trong danh sách lô.');
-  const ctyIds = [...new Set(recs.map(r=>r.congTyId))];
-  ctyIds.forEach(id=>{
-    const c = congTyList.find(x=>x.id===id); const ci = dcCtyMap[id];
-    if(!c){ errs.push('Không tìm thấy công ty của lô trong Danh Mục.'); return; }
-    if(!ci) errs.push(`Công ty ${c.ten} chưa có Thông tin Decal (Danh Mục › Thông tin Decal).`);
-    else if(!ci.daDoiChieu) errs.push(`Công ty ${c.ten}: thông tin trên decal chưa “Đã đối chiếu GACC”.`);
-    recs.filter(r=>r.congTyId===id).forEach(r=>{ if(!String(r.lotNo).toUpperCase().startsWith('VN'+c.maSoVN)) errs.push(`Lot ${r.lotNo} không khớp mã số VN${c.maSoVN} của công ty ${c.ten} — kiểm tra lại lô.`); });
-  });
-  recs.forEach((r,ri)=>{
-    const it = dcJob.items[r.id] || {};
-    if(!it.tplId || !dcJob.tpls[it.tplId]) errs.push(`Mặt hàng ${ri+1}: chưa chọn mẫu decal.`);
-    const p = dcParseNet(r.matHangNet);
-    const nn = p ? p.net : String(it.netM||'').trim().replace(',','.'), gg = p ? p.gross : String(it.grossM||'').trim().replace(',','.');
-    const n = dcNum(nn), g = dcNum(gg);
-    if(!nn || !gg || isNaN(n) || isNaN(g) || n<=0 || g<=0) errs.push(`Mặt hàng ${ri+1}: chưa có hoặc sai Net/Gross${p?'':' (nhập tay ở ô đỏ)'}.`);
-    else if(n>=g) errs.push(`Mặt hàng ${ri+1}: Net phải nhỏ hơn Gross.`);
-    if(!(r.ngaySX||[]).length) errs.push(`Mặt hàng ${ri+1}: lô chưa có ngày SX.`);
-  });
-  dcUsedTpls().forEach(tid=>dcTplProblems(dcJob.tpls[tid], dcJob.tpls[tid].ten).forEach(e=>errs.push(e+'.')));
-  const decals = dcDecals().filter(d=>d.T);
-  const html = decals.map((d,i)=>{
-    const where = `Decal ${i+1}`;
-    const vars = dcVars(d);
-    const cells = d.T.rows.map((row,k)=>{ const e=[]; const v = dcCell(row, d, vars, e, `${where}, dòng ${k+1}`, dcJob.each); e.forEach(x=>errs.push(x+'.')); return {v, bad:e.length>0}; });
-    return `<div class="dc-pv-item"><div class="dc-pv-head"><span>${escapeHtml(d.T.title||'Decal')}<br>QC: ${+d.T.w/10}*${+d.T.h/10}cm · Decal ${i+1} · ${fmtDateVN(d.date)}</span><span>${escapeHtml(d.T.ten)}<br>${escapeHtml(dcJob.lotNo.replace(/\//g,'-'))}</span></div>
-      ${dcDecalHTML(d.T, cells, {selKey: d.tplId===dcSelTab ? dcREsel.job : null})}<div class="dc-fit" data-fit="${i}"></div></div>`;
-  }).join('');
-  pv.innerHTML = html || '<div class="empty"><div class="ico">🏷️</div>Chưa có decal (chọn mẫu cho mặt hàng)</div>';
-  document.getElementById('dcPvTitle').textContent = `Xem trước (${decals.length} decal)`;
-  dcFits = [];
-  pv.querySelectorAll('.dc-decal').forEach((el,i)=>{
-    const s = dcFitOne(el); const pt = (+decals[i].T.fp||9) * s; dcFits[i] = {s, pt};
-    const box = pv.querySelector(`[data-fit="${i}"]`);
-    if(pt < DC_MIN_PT){ box.className='dc-fit bad'; box.textContent=`Chữ quá nhỏ: ${pt.toFixed(1)}pt (tối thiểu ${DC_MIN_PT}pt) — bỏ bớt dòng, rút gọn hoặc tăng khổ.`; errs.push(`Decal ${i+1}: chữ quá nhỏ (${pt.toFixed(1)}pt).`); }
-    else if(s < 0.999){ box.className='dc-fit warn'; box.textContent=`Đã tự thu nhỏ còn ${Math.round(s*100)}% — cỡ chữ in ${pt.toFixed(1)}pt.`; warns.push(`Decal ${i+1} tự thu nhỏ còn ${Math.round(s*100)}%.`); }
-    else { box.className='dc-fit'; box.textContent=`Vừa khổ — cỡ chữ in ${pt.toFixed(1)}pt.`; }
-  });
-  if(!dcFontsReady) warns.push('Đang tải font chữ Trung — bản xem trước sẽ tự cập nhật.');
-  if(dcFontWarn) warns.push('Không tải được font chữ Trung (mất mạng?) — đang dùng font của máy, kiểm tra kỹ chữ Trung trước khi in.');
-  dcErrors = [...new Set(errs)];
-  if(dcErrors.some(e=>/chưa có Thông tin Decal/.test(e))) dcErrors = dcErrors.filter(e=>!/thiếu giá trị \{(tenCN|tenEN|tenVT|dcCN|dcEN|gacc)\}/.test(e));
-  if(dcErrors.some(e=>/Net\/Gross/.test(e))) dcErrors = dcErrors.filter(e=>!/thiếu giá trị \{v\}/.test(e));
-  if(dcErrors.length){
-    st.className = 'dc-status bad';
-    st.innerHTML = `<b>Chặn in — còn ${dcErrors.length} lỗi</b><ul>${dcErrors.slice(0,12).map(e=>`<li>${escapeHtml(e)}</li>`).join('')}${dcErrors.length>12?`<li>… và ${dcErrors.length-12} lỗi khác</li>`:''}</ul>`;
-  } else if(warns.length){
-    st.className = 'dc-status warn'; st.innerHTML = `<b>In được — lưu ý</b><ul>${warns.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul>`;
-  } else { st.className = 'dc-status ok'; st.innerHTML = `<b>Sẵn sàng in ${decals.length} decal · Lot ${escapeHtml(dcJob.lotNo)}</b>`; }
-  btn.disabled = dcErrors.length>0 || !decals.length || !dcFontsReady;
-  btn.textContent = dcErrors.length ? `Còn ${dcErrors.length} lỗi — chưa in được` : !dcFontsReady ? 'Đang tải font…' : `🖨️ In / Xuất PDF (${decals.length} decal)`;
-}
 function dcRenderLog(){
   const el = document.getElementById('dcLog');
   if(!dcJob || !dcJob.log.length){ el.innerHTML = '<span class="muted">Chưa có thay đổi.</span>'; return; }
@@ -5690,14 +5973,20 @@ function dcRenderLog(){
 }
 
 /* ---------- lưu / in ---------- */
-function dcSaveJob(){
-  if(!dcJob){ showToast('Chọn lô trước'); return; }
-  const decals = dcDecals();
-  const data = {lotNo:dcJob.lotNo, items:dcJob.items, tpls:dcJob.tpls, each:dcJob.each, log:dcJob.log, soDecal:decals.length,
+function dcSaveJob(silent){
+  if(!dcJob){ showToast('Chọn lô trước'); return Promise.resolve(false); }
+  if(dcJob.locked){ if(!silent) showToast('Decal này đã lưu (chốt). Muốn đổi bấm “Sửa decal này”.'); return Promise.resolve(false); }
+  dcRenderPreview();
+  if(dcErrors.length){ showToast('Còn lỗi — chưa lưu được'); return Promise.resolve(false); }
+  const res = dcCompute(); const snap = {decals:dcSnapOf(res.decals), lotRows:dcLotRows(), savedAt:Date.now(), savedBy:currentUser.displayName};
+  Object.values(dcJob.tpls).forEach(t=>t.own = true);
+  const data = {lotNo:dcJob.lotNo, items:dcJob.items, tpls:dcJob.tpls, each:dcJob.each, log:dcJob.log, proof:dcJob.proof||dcProofDefaults(), soDecal:res.decals.length, snap,
     updatedAt:Date.now(), updatedBy:currentUser.displayName};
-  db.collection('capmalo_decal_don').doc(dcJobId(dcJob.lotNo)).set(data).then(()=>{
-    dcDirty = false; logActivity(`Decal: lưu decal lô ${dcJob.lotNo} (${decals.length} decal)`); showToast('Đã lưu decal');
-  }).catch(fsErr);
+  return db.collection('capmalo_decal_don').doc(dcJobId(dcJob.lotNo)).set(data).then(()=>{
+    dcDirty = false; dcJob.snap = snap; dcJob.locked = true;
+    logActivity(`Decal: lưu (chốt) decal lô ${dcJob.lotNo} (${res.decals.length} decal)`); if(!silent) showToast('Đã lưu — decal này giữ nguyên, không đổi theo mẫu sau này');
+    dcRenderJobArea(); return true;
+  }).catch(e=>{ fsErr(e); return false; });
 }
 function dcPrint(){
   dcRenderPreview();
@@ -5707,6 +5996,7 @@ function dcPrint(){
   const sizes = {};
   const body = els.map(el=>{
     const c = el.cloneNode(true); c.querySelectorAll('tr.sel').forEach(tr=>tr.classList.remove('sel'));
+    c.style.transform = ''; c.style.transformOrigin = '';
     const name = `p${String(c.dataset.w).replace('.','_')}x${String(c.dataset.h).replace('.','_')}`;
     sizes[name] = [c.dataset.w, c.dataset.h]; c.style.setProperty('page', name);
     return c.outerHTML;
@@ -5715,17 +6005,21 @@ function dcPrint(){
   const first = Object.values(sizes)[0];
   const w = window.open('', '_blank');
   if(!w){ showToast('Trình duyệt chặn cửa sổ in — cho phép popup rồi thử lại'); return; }
-  const title = `Decal_${dcJob.lotNo.replace(/[^\w-]+/g,'-')}`;
+  const title = `Decal_IN_${dcJob.lotNo.replace(/[^\w-]+/g,'-')}`;
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><link rel="stylesheet" href="${DC_FONT_URL}">
     <style>${DC_DECAL_CSS}\n@page{size:${first[0]}mm ${first[1]}mm;margin:0}\n${pages}\nhtml,body{margin:0;padding:0;background:#fff}
     .dc-decal{break-after:page;page-break-after:always}.dc-decal:last-child{break-after:auto;page-break-after:auto}</style></head>
     <body>${body}<scr` + `ipt>(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>setTimeout(()=>window.print(),300));</scr` + `ipt></body></html>`);
   w.document.close();
-  dcLog(`In / xuất PDF ${els.length} decal`);
   logActivity(`Decal: in ${els.length} decal lô ${dcJob.lotNo}`);
-  dcSaveJob();   // lưu luôn bản đã in để tra lại
+  if(dcJob.locked){
+    dcJob.log.unshift({t:Date.now(), u:currentUser.displayName, msg:`In lại ${els.length} decal (bản đã lưu)`}); dcJob.log = dcJob.log.slice(0,60);
+    db.collection('capmalo_decal_don').doc(dcJobId(dcJob.lotNo)).update({log:dcJob.log}).catch(()=>{}); dcRenderLog();
+  } else {
+    dcJob.log.unshift({t:Date.now(), u:currentUser.displayName, msg:`In / xuất PDF ${els.length} decal`});
+    dcSaveJob(true);   // in = chốt: tự lưu đúng bản vừa in
+  }
 }
-
 /* ---------- Decal đã lưu ---------- */
 function dcRenderJobs(){
   const el = document.getElementById('dcJobList');
@@ -5736,7 +6030,7 @@ function dcRenderJobs(){
   });
   el.innerHTML = list.map(j=>{
     const r = (g[j.lotNo]||[])[0];
-    return `<div class="list-row"><div class="left"><div><b>${escapeHtml(j.lotNo)}</b> ${r?'':'<span class="dc-bad small">(lô không còn)</span>'}
+    return `<div class="list-row"><div class="left"><div><b>${escapeHtml(j.lotNo)}</b> ${j.snap?'🔒':''} ${r?'':'<span class="dc-bad small">(lô không còn)</span>'}
       <div class="small muted">${r?escapeHtml(r.congTyTen+' · '+r.khachHangTen):''} · ${j.soDecal||0} decal · ${escapeHtml(j.updatedBy||'')} ${j.updatedAt?fmtActivityTs(j.updatedAt):''}</div></div></div>
       <div class="btn-row"><button class="btn btn-outline btn-sm" onclick="dcOpenJob('${escapeHtml(j.lotNo)}')">Mở</button>
       <button class="btn btn-danger btn-sm" onclick="dcDelJob('${j.id}',this)">Xoá</button></div></div>`;
@@ -5760,10 +6054,9 @@ function dcRenderTplList(){
   document.getElementById('dcTplEditor').classList.add('hidden');
   const el = document.getElementById('dcTplList');
   const q = boDauVN(document.getElementById('dcTplSearch').value);
-  const khName = id => (khList.find(k=>k.id===id)||{}).ten || '?';
-  const list = dcTplList.filter(t=>!q || boDauVN(t.ten+' '+(t.khachHangIds||[]).map(khName).join(' ')).includes(q));
+  const list = dcTplList.filter(t=>!q || boDauVN(t.ten+' '+(t.markText||'')).includes(q));
   el.innerHTML = list.map(t=>`<div class="list-row"><div class="left"><span class="color-dot" style="background:${escapeHtml(t.color||'#000')}"></span>
-      <div><b>${escapeHtml(t.ten)}</b><div class="small muted">QC ${+t.w/10}×${+t.h/10}cm · ${(t.rows||[]).length} dòng · Mặc định cho: ${(t.khachHangIds||[]).map(khName).map(escapeHtml).join(', ')||'—'}</div>
+      <div><b>${escapeHtml(t.ten)}</b><div class="small muted">QC ${+t.w/10} × ${+t.h/10} cm · ${(t.rows||[]).length} dòng · KG ${+t.capMM||8}mm · Ký hiệu: ${escapeHtml(t.markText||'—')}</div>
       <div class="small muted">${t.updatedBy?'Sửa: '+escapeHtml(t.updatedBy)+' '+fmtActivityTs(t.updatedAt):''}</div></div></div>
       <div class="btn-row"><button class="btn btn-outline btn-sm" onclick="dcOpenTplEd('${t.id}')">✏️ Sửa</button>
       <button class="btn btn-outline btn-sm" onclick="dcOpenTplEd(null,'${t.id}')">📄 Nhân bản</button>
@@ -5776,15 +6069,15 @@ function dcDelTpl(id, btn){
   db.collection('capmalo_decal_mau').doc(id).delete().then(()=>{ logActivity(`Decal: xoá mẫu ${t?t.ten:id}`); showToast('Đã xoá mẫu (các lô đã lưu vẫn giữ bản riêng)'); }).catch(fsErr);
 }
 function dcNewTpl(){ const from = document.getElementById('dcNewFrom').value; dcOpenTplEd(null, from||null); }
-function dcBlankTpl(){ return {ten:'', title:'Decal', w:150, h:120, margin:3.5, split:40, color:'#000000', fp:9, fb:24, lang:'cnen', rows:[], khachHangIds:[]}; }
+function dcBlankTpl(){ return {ten:'', title:'Decal', w:150, h:120, split:40, color:'#000000', fp:9, capMM:8, sx:0.78, markText:'', markPos:'right', markSpace:5, markSize:3.5, lang:'cnen', rows:[]}; }
 function dcOpenTplEd(id, copyFrom, preset){
   let data;
   if(preset) data = preset;
   else if(id){ const t = dcTplList.find(x=>x.id===id); if(!t) return; data = dcClone(t); delete data.id; }
-  else if(copyFrom){ const t = dcTplList.find(x=>x.id===copyFrom); data = dcClone(t); delete data.id; data.ten = t.ten + ' (bản sao)'; data.khachHangIds = []; }
+  else if(copyFrom){ const t = dcTplList.find(x=>x.id===copyFrom); data = dcClone(t); delete data.id; data.ten = t.ten + ' (bản sao)'; }
   else data = dcBlankTpl();
-  data.rows = (data.rows||[]).map(r=>Object.assign({key:dcUid()}, r)); data.khachHangIds = data.khachHangIds||[];
-  ['margin','split','fp','fb'].forEach(k=>{ if(typeof data[k]!=='number') data[k] = dcBlankTpl()[k]; });
+  dcNormTpl(data);
+  data.rows = (data.rows||[]).map(r=>Object.assign({key:dcUid()}, r));
   dcTplEd = {id: id||null, data}; dcREsel.tpl = null;
   if(dcSection!=='mau') dcSwitchSub('mau'); else dcRenderTplEditor();
 }
@@ -5792,18 +6085,24 @@ function dcRenderTplEditor(){
   document.getElementById('dcTplListWrap').classList.add('hidden');
   const box = document.getElementById('dcTplEditor'); box.classList.remove('hidden');
   const t = dcTplEd.data;
-  const f = (k, lab, type, extra) => `<div class="field"><label>${lab}</label><input type="${type||'text'}" value="${escapeHtml(t[k])}" ${extra||''} oninput="dcTplSet('${k}', this.value, '${type||'text'}')"></div>`;
+  const f = (k, lab, type, extra, val) => `<div class="field"><label>${lab}</label><input type="${type==='cm'||type==='pct'?'number':(type||'text')}" value="${escapeHtml(val!==undefined?val:t[k])}" ${extra||''} oninput="dcTplSet('${k}', this.value, '${type||'text'}')"></div>`;
   box.innerHTML = `<div class="dc-wrap">
     <div class="dc-left">
       <div class="card"><div class="row"><div class="card-title">${dcTplEd.id?'Sửa mẫu':'Mẫu mới'}</div><button class="btn btn-outline btn-sm" onclick="dcCloseTplEd()">✕ Đóng</button></div>
-        <div class="row-flex">${f('ten','Tên mẫu')}${f('title','Tiêu đề (in phía trên khung)')}</div>
-        <div class="row-flex">${f('w','QC rộng (mm)','number','min="30" max="400"')}${f('h','QC cao (mm)','number','min="30" max="400"')}
+        <div class="row-flex">${f('ten','Tên mẫu')}${f('title','Tiêu đề (in trên file xác nhận)')}</div>
+        <div class="row-flex">${f('w','QC rộng (cm)','cm','step="0.1" min="3" max="40"', +t.w/10)}${f('h','QC cao (cm)','cm','step="0.1" min="3" max="40"', +t.h/10)}
           <div class="field"><label>Màu in</label><input type="color" value="${escapeHtml(t.color)}" oninput="dcTplSet('color', this.value)"></div></div>
-        <div class="row-flex">${f('margin','Lề trong (mm)','number','step="0.5" min="0"')}${f('split','Cột nhãn (%)','number','step="0.5" min="15" max="70"')}
-          ${f('fp','Chữ thường (pt)','number','step="0.5" min="5"')}${f('fb','Chữ lớn (pt)','number','step="1" min="10"')}</div>
-        <label>Mặc định cho khách hàng</label>
-        <div class="dc-chks">${khList.map(k=>`<label class="perm-item"><input type="checkbox" ${t.khachHangIds.includes(k.id)?'checked':''} onchange="dcTplKh('${k.id}', this.checked)"> ${escapeHtml(k.ten)}</label>`).join('') || '<span class="small muted">Chưa có khách hàng trong Danh Mục.</span>'}</div>
-        <div class="hint" style="margin:6px 0 0;">Mỗi khách chỉ 1 mẫu mặc định — lưu mẫu này sẽ bỏ khách đó khỏi mẫu mặc định cũ.</div>
+        <div class="hint" style="margin:6px 0 0;">QC = đúng kích thước decal = bảng viền màu (nhà in cắt đúng bảng, không lề).</div>
+        <div class="row-flex">${f('split','Cột nhãn (%)','number','step="0.5" min="15" max="70"')}${f('fp','Chữ thường (pt)','number','step="0.5" min="5"')}</div>
+        <div class="row-flex">${f('capMM','Chữ lớn — chiều cao chữ KG (mm)','number','step="0.5" min="3" max="20"')}${f('sx','Co ngang chữ lớn (%)','pct','step="1" min="60" max="100"', Math.round((+t.sx||0.78)*100))}</div>
+        <div class="hint" style="margin:6px 0 0;">Font: Times New Roman (chữ Trung: Tống thể). Chữ lớn tràn ô → app tự co ngang thêm, tối thiểu 60%; quá nữa thì chặn in.</div>
+        <div class="dc-markbox">
+          <div style="font-weight:700;color:var(--primary-dark);font-size:13px;">Ký hiệu dưới decal</div>
+          <div class="row-flex">${f('markText','Ký hiệu (để trống = không in)')}
+            <div class="field"><label>Vị trí</label><select onchange="dcTplSet('markPos', this.value)"><option value="right" ${t.markPos==='right'?'selected':''}>Góc phải dưới</option><option value="left" ${t.markPos==='left'?'selected':''}>Góc trái dưới</option><option value="center" ${t.markPos==='center'?'selected':''}>Giữa dưới</option></select></div></div>
+          <div class="row-flex">${f('markSpace','Chừa thêm dưới bảng (mm)','number','step="0.5" min="2" max="20"')}${f('markSize','Cỡ chữ ký hiệu (mm)','number','step="0.5" min="1.5" max="10"')}</div>
+          <div class="hint" style="margin:6px 0 0;">Có ký hiệu → decal dài thêm phần “chừa thêm” để in ký hiệu. Ví dụ đang dùng: M, AQ, MCK, MCQ, AK, AP, H, C, D, T.</div>
+        </div>
       </div>
       <div class="card"><div class="card-title">Thư viện dòng hay dùng</div>
         <div class="row-flex"><div class="field"><label>Kiểu nhãn</label><select onchange="dcTplSet('lang', this.value)">
@@ -5815,17 +6114,21 @@ function dcRenderTplEditor(){
     </div>
     <div class="dc-right">
       <div id="dcTplStatus" class="dc-status"></div>
-      <div class="card"><div class="card-title">Xem trước với dữ liệu mẫu</div><div class="hint">Lot VN000/CN000 · Net 9.44 · Gross 10 · hôm nay · công ty đầu tiên có Thông tin Decal.</div><div id="dcTplPv" class="dc-pv"></div></div>
+      <div class="card"><div class="card-title">Xem trước với dữ liệu mẫu</div>
+        <div class="row-flex"><div class="field"><label>Xem với công ty</label><select id="dcTplPvCty" onchange="dcTplPvCty=this.value;dcTplEdPreview()">${congTyList.map(c=>`<option value="${c.id}">${escapeHtml(c.ten)} (${escapeHtml(c.maCode||'')})${dcCtyMap[c.id]?'':' — chưa có Thông tin Decal'}</option>`).join('')}</select></div></div>
+        <div class="hint" style="margin-top:6px;">Lot VN000/CN000 · Net 9.44 · Gross 10 · ngày hôm nay. Chữ xám [..] = chỗ sẽ tự điền theo lô/công ty.</div><div id="dcTplPv" class="dc-pv"></div></div>
       <div class="btn-row"><button class="btn btn-outline" style="flex:1;" onclick="dcCloseTplEd()">Huỷ</button><button class="btn btn-primary" style="flex:2;" id="dcTplSaveBtn" onclick="dcSaveTpl()">💾 Lưu mẫu</button></div>
     </div></div>`;
   dcRenderLibChips(); dcRERender('tpl'); dcTplEdPreview();
 }
 function dcTplSet(k, v, type){
-  const t = dcTplEd.data; t[k] = type==='number' ? (parseFloat(v)||0) : v;
+  const t = dcTplEd.data;
+  if(type==='cm') t[k] = Math.round((parseFloat(String(v).replace(',','.'))||0)*100)/10;      // cm → mm
+  else if(type==='pct') t[k] = (parseFloat(v)||0)/100;
+  else t[k] = type==='number' ? (parseFloat(String(v).replace(',','.'))||0) : v;
   if(k==='lang') dcRenderLibChips();
   dcTplEdPreview();
 }
-function dcTplKh(id, on){ const a = dcTplEd.data.khachHangIds; if(on && !a.includes(id)) a.push(id); if(!on) dcTplEd.data.khachHangIds = a.filter(x=>x!==id); }
 function dcLibLabel(x, lang){ return lang==='cn' ? x.cn : lang==='encn' ? `${x.en} ${x.cn}` : `${x.cn}/${x.en}`; }
 function dcRenderLibChips(){
   const t = dcTplEd.data; const used = new Set(t.rows.map(r=>r.libK).filter(Boolean));
@@ -5839,39 +6142,47 @@ function dcAddLib(k){
   dcRenderLibChips(); dcRERender('tpl'); dcTplEdPreview();
 }
 function dcSampleDecal(){
-  const cid = Object.keys(dcCtyMap)[0];
-  const r = {id:'sample', lotNo:'VN000/CN000', congTyId:cid||'', vungNuoiId:'', vungNuoiTen:'Phu My - Ca Mau Province', ngaySX:[]};
+  const ids = congTyList.map(c=>c.id);
+  const cid = (dcTplPvCty && ids.includes(dcTplPvCty)) ? dcTplPvCty : (ids.find(id=>dcCtyMap[id]) || ids[0] || '');
+  const r = {id:'sample', lotNo:'VN000/CN000', congTyId:cid, vungNuoiId:'', vungNuoiTen:'Phu My - Ca Mau Province', ngaySX:[]};
   return {r, ri:0, date:new Date().toISOString().slice(0,10), net:'9.44', gross:'10', key:'sample'};
 }
 function dcTplEdPreview(){
   if(!dcTplEd) return;
   const t = dcTplEd.data, d = dcSampleDecal(), vars = dcVars(d);
+  const sel = document.getElementById('dcTplPvCty'); if(sel) sel.value = d.r.congTyId;
+  const PH = {tenCN:'[Tên TQ]', tenEN:'[Tên EN]', tenVT:'[Tên viết tắt]', dcCN:'[Địa chỉ TQ]', dcEN:'[Địa chỉ EN]', gacc:'[Số GACC]'};
+  const missing = Object.keys(PH).filter(k=>!String(vars[k]||'').trim());
+  missing.forEach(k=>vars[k] = PH[k]);
   const errs = [];
   if(!String(t.ten||'').trim()) errs.push('Chưa đặt tên mẫu.');
   if(dcTplList.some(x=>x.id!==dcTplEd.id && boDauVN(x.ten)===boDauVN(t.ten))) errs.push('Đã có mẫu trùng tên.');
   dcTplProblems(t, t.ten||'mới').forEach(e=>errs.push(e+'.'));
+  if(!(t.sx>=DC_SX_MIN && t.sx<=1)) errs.push('Co ngang chữ lớn phải từ 60% đến 100%.');
+  if(!(t.capMM>0)) errs.push('Chiều cao chữ KG không hợp lệ.');
   const cells = t.rows.map((row,k)=>{
-    const e = []; let v;
-    if(row.src==='each') v = '(riêng từng decal)';
+    const e = []; let v, ph = false;
+    if(row.src==='each'){ v = '[Nhập riêng từng decal]'; ph = true; }
     else if(row.src==='fixed'){ v = row.value||''; if(!v.trim()||v.includes(DC_PH)) errs.push(`Dòng ${k+1}: chưa nhập nội dung.`); }
-    else {
-      v = dcCell(row, d, vars, e, `Dòng ${k+1}`);
-      e.filter(x=>x.includes('không hiểu')).forEach(x=>errs.push(x+'.'));   // thiếu dữ liệu công ty mẫu không phải lỗi của mẫu
-    }
-    return {v, bad:e.length>0};
+    else { v = dcCell(row, d, vars, e, `Dòng ${k+1}`); e.forEach(x=>errs.push(x+'.')); ph = Object.values(PH).some(p=>v.includes(p)); }
+    return {v, bad:e.length>0, ph};
   });
   const pv = document.getElementById('dcTplPv');
   pv.innerHTML = t.rows.length ? `<div class="dc-pv-item"><div class="dc-pv-head"><span>${escapeHtml(t.title||'')}<br>QC: ${+t.w/10}*${+t.h/10}cm</span></div>${dcDecalHTML(t, cells, {selKey:dcREsel.tpl})}<div class="dc-fit" id="dcTplFit"></div></div>` : '<div class="empty">Chưa có dòng — thêm từ “Thư viện dòng”.</div>';
   const el = pv.querySelector('.dc-decal');
   if(el){
-    const s = dcFitOne(el), pt = (+t.fp||9)*s, fb = document.getElementById('dcTplFit');
-    if(pt < DC_MIN_PT){ fb.className='dc-fit bad'; fb.textContent=`Chữ quá nhỏ: ${pt.toFixed(1)}pt`; errs.push(`Chữ in quá nhỏ (${pt.toFixed(1)}pt) — bớt dòng hoặc tăng khổ.`); }
-    else { fb.className = s<0.999?'dc-fit warn':'dc-fit'; fb.textContent = `${s<0.999?'Tự thu nhỏ '+Math.round(s*100)+'% — ':''}cỡ chữ in ${pt.toFixed(1)}pt`; }
+    const fr = dcFitOne(el), pt = (+t.fp||9)*fr.s, fb = document.getElementById('dcTplFit');
+    const m = dcFitMsg(0, fr, pt); fb.className = 'dc-fit '+m.cls; fb.textContent = m.txt;
+    if(m.err) errs.push(m.err.replace('Decal 1: ',''));
+    dcZoomIn(pv);
   }
   const st = document.getElementById('dcTplStatus'), btn = document.getElementById('dcTplSaveBtn');
   const E = [...new Set(errs)];
-  st.className = 'dc-status ' + (E.length?'bad':'ok');
-  st.innerHTML = E.length ? `<b>Chưa lưu được — ${E.length} mục</b><ul>${E.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul>` : '<b>Mẫu hợp lệ — có thể lưu</b>';
+  const usesCty = t.rows.some(r=>['cty','addr','gacc'].includes(r.src));
+  const c = congTyList.find(x=>x.id===d.r.congTyId);
+  if(E.length){ st.className='dc-status bad'; st.innerHTML = `<b>Chưa lưu được — ${E.length} mục</b><ul>${E.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul>`; }
+  else if(usesCty && missing.length){ st.className='dc-status warn'; st.innerHTML = `<b>Mẫu đúng cấu trúc — lưu được</b><div>Công ty đang xem (${escapeHtml(c?c.ten:'—')}) chưa có đủ Thông tin Decal nên các ô chữ xám <i>[...]</i> là chỗ sẽ tự điền. Nhập ở Danh Mục › Thông tin Decal để xem đầy đủ.</div>`; }
+  else { st.className='dc-status ok'; st.innerHTML = '<b>Mẫu hợp lệ — có thể lưu</b>'; }
   btn.disabled = E.length>0;
   dcTplEd.errs = E;
 }
@@ -5879,25 +6190,17 @@ function dcCloseTplEd(){ dcTplEd = null; dcRenderTplList(); }
 async function dcSaveTpl(){
   dcTplEdPreview(); if(!dcTplEd || dcTplEd.errs.length) return;
   const t = dcTplEd.data;
-  const data = {ten:t.ten.trim(), title:t.title||'', w:+t.w, h:+t.h, margin:+t.margin, split:+t.split, color:t.color, fp:+t.fp, fb:+t.fb, lang:t.lang||'cnen',
-    khachHangIds:[...t.khachHangIds],
+  const data = {ten:t.ten.trim(), title:t.title||'', w:+t.w, h:+t.h, split:+t.split, color:t.color, fp:+t.fp, capMM:+t.capMM, sx:+t.sx,
+    markText:String(t.markText||'').trim(), markPos:t.markPos||'right', markSpace:+t.markSpace, markSize:+t.markSize, lang:t.lang||'cnen',
     rows:t.rows.map(r=>({key:r.key, label:r.label, src:r.src, kind:r.kind||'normal', value:r.value||'', fmt:r.fmt||'', ...(r.libK?{libK:r.libK}:{})})),
     updatedAt:Date.now(), updatedBy:currentUser.displayName};
   try{
-    let id = dcTplEd.id;
-    if(id) await db.collection('capmalo_decal_mau').doc(id).update(data);
-    else { const ref = await db.collection('capmalo_decal_mau').add(data); id = ref.id; }
-    // mỗi khách chỉ 1 mẫu mặc định
-    for(const o of dcTplList){
-      if(o.id===id) continue;
-      const keep = (o.khachHangIds||[]).filter(k=>!data.khachHangIds.includes(k));
-      if(keep.length !== (o.khachHangIds||[]).length) await db.collection('capmalo_decal_mau').doc(o.id).update({khachHangIds:keep});
-    }
+    if(dcTplEd.id) await db.collection('capmalo_decal_mau').doc(dcTplEd.id).set(data);
+    else await db.collection('capmalo_decal_mau').add(data);
     logActivity(`Decal: ${dcTplEd.id?'sửa':'tạo'} mẫu ${data.ten}`); showToast('Đã lưu mẫu');
     dcTplEd = null; dcRenderTplList();
   }catch(e){ fsErr(e); }
 }
-
 /* ---------- Nhập mẫu từ PDF ---------- */
 function dcToFmt(value, ci, code){
   const t = dcToFmt1(value, ci, code); if(t.clean) return t;
@@ -5955,14 +6258,14 @@ function dcBuildFromPdf(decals, allText, colors){
   rows.forEach((r,i)=>{ if(/PRODUCT METHOD/.test(r.label)) warns.push(`Dòng ${i+1}: “PRODUCT METHOD” có thể sai, đúng là “PRODUCTION METHOD”.`); });
   decals.forEach((d,k)=>{ if(k && d.rows.length!==d0.rows.length) warns.push(`Decal ${k+1} có ${d.rows.length} dòng, khác decal 1 (${d0.rows.length}) — mẫu lấy theo decal 1. Nên tách thành 2 mẫu.`); });
   rows.forEach((r,i)=>{ if(['gross','net','date'].includes(r.src)){ decals.forEach((d,k)=>{ if(!k) return; const v = cell(d,i); const x = r.src==='date'?P.dateFmt(v):P.weightFmt(v); if(x && x.fmt!==r.fmt) warns.push(`Decal ${k+1}, dòng ${i+1}: cách ghi “${v}” khác decal 1 — mẫu dùng cách ghi của decal 1.`); }); } });
-  let w, h, margin;
-  if(d0.frame){ w=dcR1(d0.frame.w); h=dcR1(d0.frame.h); margin=dcR1(d0.frame.m); }
-  else if(d0.qc){ w=d0.qc.w; h=d0.qc.h; margin=dcR1(Math.max(0,(w-d0.table.w)/2)); warns.push('Không thấy khung ngoài, lấy khổ theo chữ “QC”.'); }
-  else { w=dcR1(d0.table.w+7); h=dcR1(d0.table.h+7); margin=3.5; warns.push('Không thấy khung ngoài và chữ QC — tạm lấy khổ = bảng + lề 3,5mm. Kiểm tra lại khổ!'); }
+  let w, h;
+  if(d0.qc){ w = d0.qc.w; h = d0.qc.h; }
+  else { w = dcR1(d0.table.w); h = dcR1(d0.table.h); warns.push('Không thấy chữ “QC” — tạm lấy khổ = kích thước bảng trong file. Kiểm tra lại khổ!'); }
+  if(d0.mark) warns.push(`Nhận ký hiệu dưới decal: “${d0.mark}”.`);
   const bigs = d0.rows.filter(r=>r.size>med*1.6).map(r=>r.size);
   const color = Object.entries(colors).sort((a,b)=>b[1]-a[1])[0];
-  const tpl = {ten:'', title:d0.title||'Decal', w, h, margin, split:dcR1(d0.split), color:color?color[0]:'#000000',
-    fp:Math.round(med*2)/2, fb:bigs.length?Math.min(Math.round(Math.max(...bigs)),60):24, lang:'cnen', rows, khachHangIds:[]};
+  const tpl = {ten:'', title:d0.title||'Decal', w, h, split:dcR1(d0.split), color:color?color[0]:'#000000',
+    fp:Math.round(med*2)/2, capMM:d0.capAnn||8, sx:0.78, markText:d0.mark||'', markPos:'right', markSpace:5, markSize:3.5, lang:'cnen', rows};
   DC_REQ.forEach(([src,lab])=>{ if(!rows.some(r=>r.src===src)) warns.push(`Không nhận ra dòng ${lab} — thêm/chỉnh ở bước sau.`); });
   return {tpl, warns, nDecal:decals.length, company: co ? co.ten : ''};
 }
@@ -5979,7 +6282,8 @@ async function dcImportPdf(ev){
       const r = await DCPDF.readPage(await pdf.getPage(p), lib.OPS);
       nText += r.items.filter(i=>i.str.trim()).length; text += ' '+r.items.map(i=>i.str).join(' ');
       Object.entries(r.colors).forEach(([k,v])=>colors[k]=(colors[k]||0)+v);
-      decals = decals.concat(DCPDF.parseDecals(r.items, r.segs));
+      const ds = DCPDF.parseDecals(r.items, r.segs); ds.forEach(dd=>dcDetectExtras(dd, r.items));
+      decals = decals.concat(ds);
     }
     const p1 = await pdf.getPage(1); const vp0 = p1.getViewport({scale:1}); const vp = p1.getViewport({scale:Math.min(3, 1400/vp0.width)});
     const cv = document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height; cv.style.width='100%';
@@ -5991,8 +6295,8 @@ async function dcImportPdf(ev){
     body.innerHTML = `<div class="dc-wrap"><div class="dc-left" style="max-width:none;flex:1 1 380px;"><div class="small muted">File gốc: ${escapeHtml(file.name)}</div><div id="dcPdfCv" style="border:1px solid var(--border);border-radius:8px;max-height:65vh;overflow:auto;margin-top:6px;"></div></div>
       <div class="dc-right" style="flex:1 1 420px;">
         ${dcPdfRes.warns.length ? `<div class="dc-status warn"><b>Cần kiểm tra (${dcPdfRes.warns.length})</b><ul>${dcPdfRes.warns.map(w=>`<li>${escapeHtml(w)}</li>`).join('')}</ul></div>` : '<div class="dc-status ok"><b>Bốc tách xong — không phát hiện bất thường</b></div>'}
-        <div class="dc-kv" style="margin:10px 0;"><div>QC<b>${t.w}×${t.h} mm</b></div><div>Lề / cột nhãn<b>${t.margin} mm / ${t.split}%</b></div><div>Màu<b><span class="color-dot" style="background:${escapeHtml(t.color)}"></span> ${escapeHtml(t.color)}</b></div>
-          <div>Chữ thường / lớn<b>${t.fp} / ${t.fb} pt</b></div><div>Số decal trong file<b>${dcPdfRes.nDecal}</b></div><div>Công ty nhận ra<b>${escapeHtml(dcPdfRes.company||'—')}</b></div></div>
+        <div class="dc-kv" style="margin:10px 0;"><div>QC<b>${t.w/10} × ${t.h/10} cm</b></div><div>Cột nhãn / ký hiệu<b>${t.split}% / ${escapeHtml(t.markText||'—')}</b></div><div>Màu<b><span class="color-dot" style="background:${escapeHtml(t.color)}"></span> ${escapeHtml(t.color)}</b></div>
+          <div>Chữ thường / KG cao<b>${t.fp} pt / ${t.capMM} mm</b></div><div>Số decal trong file<b>${dcPdfRes.nDecal}</b></div><div>Công ty nhận ra<b>${escapeHtml(dcPdfRes.company||'—')}</b></div></div>
         <div class="table-scroll"><table class="grid-table"><thead><tr><th>#</th><th>Nhãn</th><th>Nội dung / nguồn</th></tr></thead><tbody>
           ${t.rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r.label)}${r.kind==='big'?' <span class="dc-tag">Chữ lớn</span>':''}</td><td style="white-space:pre-line;">${r.src==='fixed'?escapeHtml(r.value):`<span class="dc-tag var">${DC_SRC[r.src]}</span> ${escapeHtml(r.fmt||'')}`}</td></tr>`).join('')}
         </tbody></table></div></div></div>`;
@@ -6041,7 +6345,7 @@ function dcCtyPreview(id){
   const c = congTyList.find(x=>x.id===id); const o = dcCtyRead(id); const box = document.getElementById('dcip_'+id); if(!box||!c) return;
   const v1 = `${o.tenCN} ${o.tenEN}\n(${o.tenVT}) - ${c.maCode||''}`, v2 = `${o.dcCN}\n${o.dcEN}`;
   const row = (l,v)=>`<tr><td class="l">${l}</td><td class="v">${escapeHtml(v)}</td></tr>`;
-  box.innerHTML = `<div class="dc-decal" style="width:100%;height:auto;padding:0;--c:#1c2430;--fp:8.5pt;--split:34%"><table style="height:auto;">${row('生产加工企业名称及注册号',v1)}${row('生产加工企业地址',v2)}${row('在华注册编号',o.gacc)}</table></div>`;
+  box.innerHTML = `<div class="dc-decal dc-static" style="width:100%;--c:#1c2430;--fp:8.5pt;--split:34%"><table>${row('生产加工企业名称及注册号',v1)}${row('生产加工企业地址',v2)}${row('在华注册编号',o.gacc)}</table></div>`;
 }
 function dcSaveCty(id, confirmIt, btn){
   const c = congTyList.find(x=>x.id===id); const o = dcCtyRead(id); const old = dcCtyMap[id] || {};
@@ -6068,6 +6372,9 @@ function dcUnconfirmCty(id, btn){
   }).catch(fsErr);
 }
 window.addEventListener('beforeunload', e=>{ if(dcDirty){ e.preventDefault(); e.returnValue=''; } });
+
+
+let dcRz; window.addEventListener('resize', ()=>{ clearTimeout(dcRz); dcRz = setTimeout(()=>{ if(activeTab==='tkDecal' && dcSection==='tao' && dcJob) dcRenderPreview(); if(dcTplEd) dcTplEdPreview(); }, 250); });
 
 </script>
 </body>
