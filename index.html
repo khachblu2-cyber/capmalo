@@ -2,8 +2,18 @@
 <!--
   ==========================================================
   APP: CẤP MÃ LÔ
-  Phiên bản: V3.9.0  —  28/10/2026
+  Phiên bản: V3.9.1  —  28/10/2026
   ----------------------------------------------------------
+  V3.9.1 (28/10/2026) — chỉ sửa tab TK Decal
+  - Xuất file mở MÀN HÌNH XEM FILE ngay trong app (không mở cửa sổ mới):
+    nút ✕ Đóng · 📤 Chia sẻ (Zalo, Mail, Lưu vào Tệp… trên điện thoại)
+    · ⬇ Lưu PDF · 🖨️ In (vector, chỉ hiện trên máy tính). 2 tab: Xác nhận /
+    File in. PDF trên điện thoại là ảnh độ phân giải cao (~330 dpi file
+    xác nhận, ~600 dpi file in, tự giảm nếu vượt giới hạn máy).
+  - File xác nhận: bỏ bảng thiết kế; thay bằng dải màu "XÁC NHẬN MẪU DECAL"
+    (Lot, khách hàng, quy cách, ngày) + các dòng mặt hàng — tự lấy từ lô.
+    Bỏ mục nhập "Thông tin bảng thiết kế".
+  - File in: Lưu / Chia sẻ / In = chốt (lưu) decal.
   V3.9.0 (28/10/2026) — chỉ sửa tab TK Decal
   - QC = đúng kích thước decal = bảng viền màu (nhà in cắt đúng bảng),
     bỏ lề trong. Nhập khổ QC bằng cm.
@@ -251,6 +261,25 @@
   .dc-exp .btn{width:100%;}
   .dc-markbox{background:#eef4ff;border:1px solid #b9cdf3;border-radius:10px;padding:10px 12px;margin-top:10px;}
   .dc-pv .dc-decal{box-shadow:0 1px 6px rgba(20,30,50,.12);}
+  .dcv{position:fixed;inset:0;z-index:300;background:#2a3240;display:flex;flex-direction:column;color:#fff;}
+  .dcv.hidden{display:none !important;}
+  .dcv-top{display:flex;align-items:center;gap:10px;padding:max(12px, env(safe-area-inset-top)) 12px 10px;background:#1c2430;}
+  .dcv-x{min-height:44px;padding:0 16px;border-radius:22px;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
+  .dcv-t{flex:1;min-width:0;display:flex;flex-direction:column;} .dcv-t b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} .dcv-t span{font-size:11.5px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dcv-tabs{display:flex;gap:6px;padding:0 12px 10px;background:#1c2430;}
+  .dcv-tabs button{flex:1;height:38px;border-radius:19px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .dcv-tabs button.on{background:#fff;color:#1c2430;border-color:#fff;}
+  .dcv-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .dcv-page{display:block;max-width:100%;width:auto;max-height:none;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+  .dcv-page.z{max-width:none;width:260%;}
+  .dcv-body.zoomed{align-items:flex-start;}
+  .dcv-cap{font-size:12px;opacity:.75;margin-bottom:8px;}
+  .dcv-wait{margin-top:40px;font-size:14px;opacity:.85;text-align:center;}
+  .dcv-note{font-size:11.5px;opacity:.75;text-align:center;padding:0 14px 6px;}
+  .dcv-bot{display:flex;gap:8px;padding:10px 12px max(14px, env(safe-area-inset-bottom));background:#1c2430;}
+  .dcv-bot button{flex:1;height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
+  .dcv-bot button.pri{background:#165dd8;border-color:#165dd8;}
+  .dcv-bot button:disabled{opacity:.45;cursor:not-allowed;}
   footer.app-footer{text-align:center;padding:16px;color:var(--muted);font-size:11px;}
 </style>
 </head>
@@ -307,7 +336,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V3.9.0</div>
+      <div class="ver">Phiên bản: V3.9.1</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -481,17 +510,12 @@
               <button class="btn btn-outline hidden" style="flex:1;min-width:150px;" id="dcSaveBtn" onclick="dcSaveJob()">💾 Lưu (chốt) decal</button>
             </div>
             <div class="dc-export">
-              <div class="dc-exp a"><button class="btn btn-outline" id="dcProofBtn" onclick="dcProof()">📄 File gửi khách xác nhận</button>
-                <div class="small">1 file PDF: bảng thiết kế + bảng lô + tất cả decal, có tiêu đề QC và chú thích chiều cao chữ KG. Không dùng để in.</div></div>
-              <div class="dc-exp b"><button class="btn btn-primary" id="dcPrintBtn" onclick="dcPrint()">🖨️ File in đúng kích thước</button>
+              <div class="dc-exp a"><button class="btn btn-outline" id="dcProofBtn" onclick="dcOpenViewer('proof')">📄 File gửi khách xác nhận</button>
+                <div class="small">1 file PDF: dải thông tin lô + tất cả decal, có tiêu đề QC và chú thích chiều cao chữ KG. Không dùng để in.</div></div>
+              <div class="dc-exp b"><button class="btn btn-primary" id="dcPrintBtn" onclick="dcOpenViewer('print')">🖨️ File in đúng kích thước</button>
                 <div class="small">1 file PDF, mỗi trang = 1 decal đúng khổ (bảng = QC, + phần ký hiệu nếu có). Bấm = chốt (lưu) decal.</div></div>
             </div>
-            <div class="hint" style="margin-top:8px;">Khi lưu PDF: chọn “Lưu dưới dạng PDF”, Tỷ lệ 100%, Lề: Không.</div>
-            <div class="card hidden" id="dcProofCard" style="margin-top:10px;">
-              <div class="card-title">Thông tin bảng thiết kế (file gửi khách)</div>
-              <div class="hint">In ở đầu file xác nhận. Lưu kèm decal của lô (sửa được cả khi decal đã chốt).</div>
-              <div class="row-flex" id="dcProofFields" style="flex-wrap:wrap;"></div>
-            </div>
+            <div class="hint" style="margin-top:8px;">Bấm để xem file → Chia sẻ / Lưu PDF (cả trên điện thoại). Trên máy tính có thêm 🖨️ In (bản vector): chọn “Lưu dưới dạng PDF”, Tỷ lệ 100%, Lề: Không.</div>
             <div class="card" style="margin-top:10px;">
               <div class="card-title">Lịch sử chỉnh sửa decal của lô</div>
               <div id="dcLog" class="small"></div>
@@ -1053,6 +1077,19 @@
 <div id="exportArea" style="position:fixed;left:-9999px;top:0;background:#fff;padding:22px;width:1150px;"></div>
 <div class="toast" id="toast"></div>
 
+<!-- TK Decal: màn hình xem file (V3.9.1) -->
+<div class="dcv hidden" id="dcViewer" role="dialog" aria-modal="true" aria-labelledby="dcvTitle">
+  <div class="dcv-top"><button type="button" class="dcv-x" onclick="dcViewerClose()">✕ Đóng</button>
+    <div class="dcv-t"><b id="dcvTitle"></b><span id="dcvSub"></span></div></div>
+  <div class="dcv-tabs"><button type="button" data-k="proof" onclick="dcViewerTab('proof')">📄 Xác nhận</button><button type="button" data-k="print" onclick="dcViewerTab('print')">🖨️ File in</button></div>
+  <div class="dcv-body" id="dcvBody"></div>
+  <div class="dcv-note" id="dcvNote"></div>
+  <div class="dcv-bot">
+    <button type="button" id="dcvShare" class="pri" onclick="dcViewerShare()">📤 Chia sẻ</button>
+    <button type="button" id="dcvSave" onclick="dcViewerSave()">⬇ Lưu PDF</button>
+    <button type="button" id="dcvPrint" class="desk" onclick="dcViewerPrint()">🖨️ In (vector)</button>
+  </div>
+</div>
 <!-- TK Decal: duyệt mẫu bốc tách từ PDF (V3.8.0) -->
 <div class="modal-overlay hidden" id="dcPdfModal">
   <div class="modal" style="max-width:1150px;">
@@ -5431,24 +5468,6 @@ function dcFitOne(el){
   }
   return {s, sx, sx0, cap, bigOk: sx >= DC_SX_MIN - 1e-6};
 }
-function dcProofDefaults(){
-  const recs = dcJob ? (dcLotGroups()[dcJob.lotNo] || []) : [];
-  const c = recs[0] ? congTyList.find(x=>x.id===recs[0].congTyId) : null;
-  return {donVi: c ? String(c.ten||'').toUpperCase() : '', maSo:'', ngay:new Date().toISOString().slice(0,10), nguoiLam: currentUser?currentUser.displayName:'',
-    tenHang:'Decal', chatLieu:'Decal nhựa đục', mauIn:'', ppIn:'Offset', ghiChu:''};
-}
-const DC_PROOF_FIELDS = [['donVi','Đơn vị'],['maSo','Mã số'],['ngay','Ngày','date'],['nguoiLam','Người làm'],['tenHang','Tên hàng'],['chatLieu','Chất liệu'],['mauIn','Màu in'],['ppIn','PP in'],['ghiChu','Ghi chú']];
-let dcProofTimer = null;
-function dcRenderProof(){
-  const el = document.getElementById('dcProofFields'); if(!el || !dcJob) return;
-  const P = Object.assign(dcProofDefaults(), dcJob.proof||{}); dcJob.proof = P;
-  el.innerHTML = DC_PROOF_FIELDS.map(([k,lab,type])=>`<div class="field"><label>${lab}</label><input type="${type||'text'}" value="${escapeHtml(P[k]||'')}" ${k==='mauIn'?'placeholder="VD: 1 màu xanh lá"':''} oninput="dcSetProof('${k}', this.value)"></div>`).join('');
-}
-function dcSetProof(k, v){
-  dcJob.proof[k] = v;
-  if(dcJob.locked){ clearTimeout(dcProofTimer); const lot = dcJob.lotNo, P = dcClone(dcJob.proof); dcProofTimer = setTimeout(()=>db.collection('capmalo_decal_don').doc(dcJobId(lot)).update({proof:P}).catch(fsErr), 700); }
-  else dcDirty = true;
-}
 function dcLotRows(){
   const recs = dcLotGroups()[dcJob.lotNo] || [];
   return recs.map(r=>{
@@ -5458,74 +5477,19 @@ function dcLotRows(){
 }
 const DC_PROOF_CSS = `
 .dcp{font-family:Arial,sans-serif;color:#1c2430;background:#fff;}
-.dcp .wrap{padding:10mm;display:inline-block;}
-.dcp .hd{border-collapse:collapse;margin:0 auto 4mm;font-size:9.5pt;}
-.dcp .hd td{border:0.3mm solid #1c2430;padding:1.2mm 2.2mm;}
-.dcp .hd td.k{color:#555;white-space:nowrap;} .dcp .hd td.b{font-weight:700;} .dcp .hd td.red{color:#d0021b;font-weight:700;}
-.dcp .hd td.tt{text-align:center;font-family:'Times New Roman',Tinos,serif;} .dcp .hd td.tt b{font-size:14pt;letter-spacing:.02em;} .dcp .hd td.tt div{font-size:8pt;color:#555;margin-top:1mm;}
-.dcp .lt{border-collapse:collapse;margin:0 auto 6mm;font-size:8.5pt;}
-.dcp .lt th{background:#3ad3e0;text-align:left;padding:1.8mm 2.2mm;} .dcp .lt td{border-top:0.2mm solid #d5e0ec;padding:1.6mm 2.2mm;vertical-align:middle;}
+.dcp .wrap{padding:10mm;display:inline-block;background:#fff;}
+.dcp .band{display:flex;border:0.3mm solid #0f8f9b;border-radius:1.5mm;overflow:hidden;margin-bottom:3mm;}
+.dcp .band .bt{background:#0f8f9b;color:#fff;padding:2.5mm 4mm;display:flex;flex-direction:column;justify-content:center;}
+.dcp .band .bt b{font-family:'Times New Roman',Tinos,serif;font-size:14pt;letter-spacing:.03em;white-space:nowrap;}
+.dcp .band .bt div{font-size:7.5pt;opacity:.9;margin-top:.6mm;white-space:nowrap;}
+.dcp .band .bi{flex:1;display:flex;gap:7mm;align-items:center;padding:2mm 4mm;background:#effafb;font-size:9.5pt;flex-wrap:wrap;}
+.dcp .band .bi span{display:block;color:#5b6b75;font-size:7.5pt;}
+.dcp .mh{font-size:8.5pt;color:#3f4a5a;margin-bottom:6mm;line-height:1.5;}
 .dcp .grid{display:flex;flex-wrap:wrap;gap:10mm 12mm;}
 .dcp .pd-h{display:flex;justify-content:space-between;align-items:flex-end;color:#E0207A;font-size:10pt;line-height:1.25;margin-bottom:1mm;}
 .dcp .dim{position:absolute;height:0;border-top:0.2mm solid #E0207A;pointer-events:none;}
 .dcp .dimt{position:absolute;font:2.6mm/1 Arial,sans-serif;color:#E0207A;white-space:nowrap;background:#fff;padding:0 0.6mm;}
 `;
-function dcProof(){
-  dcRenderPreview();
-  if(dcErrors.length || !dcFontsReady) return;
-  const els = [...document.querySelectorAll('#dcPreview .dc-decal')]; if(!els.length) return;
-  const Ts = dcJob.locked ? dcJob.snap.decals.map(x=>x.T) : dcCompute().decals.map(x=>x.T);
-  const P = Object.assign(dcProofDefaults(), dcJob.proof||{});
-  const lot = (dcJob.locked && dcJob.snap.lotRows) ? dcJob.snap.lotRows : dcLotRows();
-  const e = escapeHtml, lotDash = e(dcJob.lotNo.replace(/\//g,'-'));
-  const decalsHTML = els.map((el,i)=>{
-    const c = el.cloneNode(true); c.style.transform=''; c.style.transformOrigin=''; c.querySelectorAll('tr.sel').forEach(tr=>tr.classList.remove('sel'));
-    const T = Ts[i] || {};
-    return `<div class="pd"><div class="pd-h"><span>${e(T.title||'Decal')}<br>QC: ${+T.w/10}*${+T.h/10}cm</span><span>${lotDash}</span></div>${c.outerHTML}</div>`;
-  }).join('');
-  const maxW = Math.max(...Ts.map(T=>+T.w||150)); const per = Math.min(3, els.length);
-  const cell = (k,v,b)=>`<td class="k">${k}</td><td class="${b||''}">${e(v||'')}</td>`;
-  const quyCach = [...new Set(Ts.map(T=>`${+T.w/10} × ${+T.h/10} cm`))].join('; ');
-  const head = `<table class="hd"><tr><td rowspan="3" class="tt"><b>BẢNG THIẾT KẾ DECAL</b><div>Xác nhận mẫu với khách hàng</div></td>
-      ${cell('Đơn vị',P.donVi,'b')}${cell('Tên hàng',P.tenHang)}${cell('Màu in',P.mauIn,'b')}</tr>
-    <tr>${cell('Ngày',P.ngay?fmtDateVN(P.ngay):'')}${cell('Quy cách',quyCach)}${cell('PP in',P.ppIn)}</tr>
-    <tr>${cell('Mã số',P.maSo,'b')}${cell('Chất liệu',P.chatLieu,'red')}${cell('Người làm',P.nguoiLam)}</tr>
-    ${P.ghiChu?`<tr><td class="k">Ghi chú</td><td colspan="6">${e(P.ghiChu)}</td></tr>`:''}</table>`;
-  const lt = `<table class="lt"><tr><th>Lot No</th><th>Code</th><th>Ngày sản xuất</th><th>Vùng nuôi</th><th>Khách hàng</th><th>Mặt hàng - Net</th></tr>
-    ${lot.map((r,i)=>`<tr>${i===0?`<td rowspan="${lot.length}"><b>${e(r.lotNo)}</b></td><td rowspan="${lot.length}">${e(r.code)}</td>`:''}<td>${e(r.ngay)}</td>${i===0?`<td rowspan="${lot.length}">${e(r.vung)}</td><td rowspan="${lot.length}">${e(r.kh)}</td>`:''}<td>${e(r.mh)}</td></tr>`).join('')}</table>`;
-  // dựng & đo ngay trên trang chính (font đã tải) → file xác nhận không phụ thuộc máy in
-  if(!document.getElementById('dcpCss')){ const st = document.createElement('style'); st.id = 'dcpCss'; st.textContent = DC_PROOF_CSS; document.head.appendChild(st); }
-  const host = document.createElement('div'); host.className = 'dcp'; host.style.cssText = 'position:fixed;left:-30000px;top:0;';
-  host.innerHTML = `<div class="wrap"><div style="width:${per*maxW + (per-1)*12}mm">${head}${lt}<div class="grid">${decalsHTML}</div></div></div>`;
-  document.body.appendChild(host);
-  const pxmm = 96/25.4, mm = v => (v/pxmm).toFixed(2)+'mm';
-  try{
-    host.querySelectorAll('.dc-decal').forEach(d=>{
-      const bv = d.querySelector('tr.big td.v .bv'); if(!bv) return;
-      const cap = +d.dataset.cap || 8, td = bv.parentNode, dr = d.getBoundingClientRect();
-      const mk = document.createElement('i'); mk.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline'; bv.appendChild(mk);
-      const base = mk.getBoundingClientRect().top - dr.top; mk.remove();
-      const br = bv.getBoundingClientRect(), tr = td.getBoundingClientRect();
-      const capPx = cap*pxmm, topY = base - capPx, x1 = br.left - dr.left + br.width*0.45, x2 = tr.right - dr.left - 1.5*pxmm;
-      [topY, base].forEach(y=>{ const l = document.createElement('div'); l.className='dim'; l.style.left = mm(x1); l.style.width = mm(Math.max(0,x2-x1)); l.style.top = mm(y); d.appendChild(l); });
-      const t = document.createElement('div'); t.className='dimt'; t.textContent = cap.toFixed(1)+' mm'; d.appendChild(t);
-      t.style.left = mm(x2 - t.offsetWidth); t.style.top = mm((topY+base)/2 - t.offsetHeight/2);
-    });
-  }catch(err){ console.error(err); }
-  const wrap = host.querySelector('.wrap');
-  const W = Math.ceil(wrap.offsetWidth/pxmm)+1, H = Math.ceil(wrap.offsetHeight/pxmm)+1;
-  const body = host.innerHTML; host.remove();
-  const w = window.open('', '_blank');
-  if(!w){ showToast('Trình duyệt chặn cửa sổ — cho phép popup rồi thử lại'); return; }
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>XacNhan_Decal_${e(dcJob.lotNo.replace(/[^\w-]+/g,'-'))}</title><link rel="stylesheet" href="${DC_FONT_URL}">
-    <style>${DC_DECAL_CSS}\n${DC_PROOF_CSS}\nhtml,body{margin:0;padding:0;background:#fff;}\n@page{size:${W}mm ${H}mm;margin:0}</style></head>
-    <body><div class="dcp">${body}</div><scr` + `ipt>window.addEventListener('load',function(){(document.fonts?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print();},300);});});</scr` + `ipt></body></html>`);
-  w.document.close();
-  logActivity(`Decal: xuất file xác nhận lô ${dcJob.lotNo} (${els.length} decal)`);
-  dcJob.log.unshift({t:Date.now(), u:currentUser.displayName, msg:`Xuất file gửi khách xác nhận (${els.length} decal)`}); dcJob.log = dcJob.log.slice(0,60);
-  if(dcJob.locked) db.collection('capmalo_decal_don').doc(dcJobId(dcJob.lotNo)).update({log:dcJob.log}).catch(()=>{}); else dcDirty = true;
-  dcRenderLog();
-}
 function dcDetectExtras(d, items){
   const MM = 72/25.4, bot = d.y - d.table.h*MM, L = d.x, R = d.x + d.table.w*MM;
   const below = items.filter(it=>it.str.trim() && !/mm\s*$/i.test(it.str) && !/[㐀-鿿]/.test(it.str) && it.y < bot && it.y > bot - 7*MM && it.x > L-5 && it.x < R+5).sort((a,b)=>a.x-b.x);
@@ -5679,7 +5643,6 @@ function dcCancelEdit(){
 function dcEnsureItems(){
   const recs = dcLotGroups()[dcJob.lotNo] || [];
   recs.forEach(r=>{ if(!dcJob.items[r.id]) dcJob.items[r.id] = {tplId:'', netM:'', grossM:''}; });
-  if(!dcJob.proof) dcJob.proof = dcProofDefaults();
 }
 function dcSyncLiveTpls(){
   // lô CHƯA lưu: mẫu nào chưa sửa riêng thì luôn theo bản thư viện mới nhất
@@ -5782,7 +5745,6 @@ function dcTplProblems(T, name){
 function dcRenderJobArea(){
   const has = !!dcJob, locked = has && dcJob.locked;
   ['dcItemsCard','dcRowsCard'].forEach(id=>document.getElementById(id).classList.toggle('hidden', !has || locked));
-  document.getElementById('dcProofCard').classList.toggle('hidden', !has); if(has) dcRenderProof();
   dcRenderLotInfo(); if(!locked){ dcRenderItems(); dcRenderRowsArea(); } dcRenderPreview(); dcRenderLog();
 }
 function dcRenderLotInfo(){
@@ -5980,7 +5942,7 @@ function dcSaveJob(silent){
   if(dcErrors.length){ showToast('Còn lỗi — chưa lưu được'); return Promise.resolve(false); }
   const res = dcCompute(); const snap = {decals:dcSnapOf(res.decals), lotRows:dcLotRows(), savedAt:Date.now(), savedBy:currentUser.displayName};
   Object.values(dcJob.tpls).forEach(t=>t.own = true);
-  const data = {lotNo:dcJob.lotNo, items:dcJob.items, tpls:dcJob.tpls, each:dcJob.each, log:dcJob.log, proof:dcJob.proof||dcProofDefaults(), soDecal:res.decals.length, snap,
+  const data = {lotNo:dcJob.lotNo, items:dcJob.items, tpls:dcJob.tpls, each:dcJob.each, log:dcJob.log, soDecal:res.decals.length, snap,
     updatedAt:Date.now(), updatedBy:currentUser.displayName};
   return db.collection('capmalo_decal_don').doc(dcJobId(dcJob.lotNo)).set(data).then(()=>{
     dcDirty = false; dcJob.snap = snap; dcJob.locked = true;
@@ -6020,6 +5982,177 @@ function dcPrint(){
     dcSaveJob(true);   // in = chốt: tự lưu đúng bản vừa in
   }
 }
+/* ---------- V3.9.1: dựng file (xác nhận / in) + màn hình xem file trong app ---------- */
+function dcProofHeadHTML(Ts, lot){
+  const e = escapeHtml;
+  const sizes = [...new Set(Ts.map(T=>`${+T.w/10} × ${+T.h/10} cm`))].join('; ');
+  const r0 = lot[0] || {};
+  return `<div class="band"><div class="bt"><b>XÁC NHẬN MẪU DECAL</b><div>Vui lòng kiểm tra &amp; phản hồi trước khi in</div></div>
+      <div class="bi"><div><span>Lot No</span><b>${e(r0.lotNo||dcJob.lotNo)}</b></div><div><span>Khách hàng</span><b>${e(r0.kh||'')}</b></div>
+      <div><span>Quy cách</span><b>${e(sizes)}</b></div><div><span>Ngày</span><b>${fmtDateVN(new Date().toISOString().slice(0,10))}</b></div></div></div>
+    <div class="mh">${lot.map(r=>`<div>• ${e(r.mh)}${r.ngay?' · SX '+e(r.ngay):''}</div>`).join('')}</div>`;
+}
+function dcOffHost(cls){
+  const host = document.createElement('div'); host.className = cls||'';
+  host.style.cssText = 'position:fixed;left:0;top:0;z-index:1;background:#fff;';   // nằm dưới màn hình xem file (che kín) để html2canvas chụp được
+  document.body.appendChild(host); return host;
+}
+function dcDecalClones(){
+  return [...document.querySelectorAll('#dcPreview .dc-decal')].map(el=>{
+    const c = el.cloneNode(true); c.style.transform=''; c.style.transformOrigin=''; c.querySelectorAll('tr.sel').forEach(tr=>tr.classList.remove('sel')); return c;
+  });
+}
+function dcAnnotate8mm(d){
+  const pxmm = 96/25.4, mm = v => (v/pxmm).toFixed(2)+'mm';
+  const bv = d.querySelector('tr.big td.v .bv'); if(!bv) return;
+  const cap = +d.dataset.cap || 8, td = bv.parentNode, dr = d.getBoundingClientRect();
+  const mk = document.createElement('i'); mk.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline'; bv.appendChild(mk);
+  const base = mk.getBoundingClientRect().top - dr.top; mk.remove();
+  const br = bv.getBoundingClientRect(), tr = td.getBoundingClientRect();
+  const topY = base - cap*pxmm, x1 = br.left - dr.left + br.width*0.45, x2 = tr.right - dr.left - 1.5*pxmm;
+  [topY, base].forEach(y=>{ const l = document.createElement('div'); l.className='dim'; l.style.left = mm(x1); l.style.width = mm(Math.max(0,x2-x1)); l.style.top = mm(y); d.appendChild(l); });
+  const t = document.createElement('div'); t.className='dimt'; t.textContent = cap.toFixed(1)+' mm'; d.appendChild(t);
+  t.style.left = mm(x2 - t.offsetWidth); t.style.top = mm((topY+base)/2 - t.offsetHeight/2);
+}
+function dcBuildProofHost(){
+  // trả về {host, wrap, W, H} — đã vẽ chú thích chiều cao chữ KG
+  const Ts = dcJob.locked ? dcJob.snap.decals.map(x=>x.T) : dcCompute().decals.map(x=>x.T);
+  const lot = (dcJob.locked && dcJob.snap.lotRows) ? dcJob.snap.lotRows : dcLotRows();
+  const lotDash = escapeHtml(dcJob.lotNo.replace(/\//g,'-'));
+  if(!document.getElementById('dcpCss')){ const st = document.createElement('style'); st.id = 'dcpCss'; st.textContent = DC_PROOF_CSS; document.head.appendChild(st); }
+  const clones = dcDecalClones();
+  const maxW = Math.max(...Ts.map(T=>+T.w||150)); const per = maxW > 200 ? Math.min(2, clones.length) : Math.min(3, clones.length);
+  const host = dcOffHost('dcp');
+  host.innerHTML = `<div class="wrap"><div style="width:${per*maxW + (per-1)*12}mm">${dcProofHeadHTML(Ts, lot)}<div class="grid"></div></div></div>`;
+  const grid = host.querySelector('.grid');
+  clones.forEach((c,i)=>{
+    const T = Ts[i] || {}; const pd = document.createElement('div'); pd.className = 'pd';
+    pd.innerHTML = `<div class="pd-h"><span>${escapeHtml(T.title||'Decal')}<br>QC: ${+T.w/10}*${+T.h/10}cm</span><span>${lotDash}</span></div>`;
+    pd.appendChild(c); grid.appendChild(pd);
+  });
+  try{ host.querySelectorAll('.dc-decal').forEach(dcAnnotate8mm); }catch(err){ console.error(err); }
+  const wrap = host.querySelector('.wrap'); const pxmm = 96/25.4;
+  return {host, wrap, W: Math.ceil(wrap.offsetWidth/pxmm)+1, H: Math.ceil(wrap.offsetHeight/pxmm)+1};
+}
+function dcProof(){   // in vector (máy tính)
+  dcRenderPreview();
+  if(dcErrors.length || !dcFontsReady) return;
+  const {host, W, H} = dcBuildProofHost(); const body = host.innerHTML; host.remove();
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Trình duyệt chặn cửa sổ — cho phép popup rồi thử lại'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>XacNhan_Decal_${escapeHtml(dcJob.lotNo.replace(/[^\w-]+/g,'-'))}</title><link rel="stylesheet" href="${DC_FONT_URL}">
+    <style>${DC_DECAL_CSS}\n${DC_PROOF_CSS}\nhtml,body{margin:0;padding:0;background:#fff;}\n@page{size:${W}mm ${H}mm;margin:0}</style></head>
+    <body><div class="dcp">${body}</div><scr` + `ipt>window.addEventListener('load',function(){(document.fonts?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print();},300);});});</scr` + `ipt></body></html>`);
+  w.document.close();
+  dcNoteExport('Xuất file gửi khách xác nhận (in/PDF máy tính)');
+}
+function dcNoteExport(msg){
+  logActivity(`Decal: ${msg} — lô ${dcJob.lotNo}`);
+  dcJob.log.unshift({t:Date.now(), u:currentUser.displayName, msg}); dcJob.log = dcJob.log.slice(0,60);
+  if(dcJob.locked) db.collection('capmalo_decal_don').doc(dcJobId(dcJob.lotNo)).update({log:dcJob.log}).catch(()=>{}); else dcDirty = true;
+  dcRenderLog();
+}
+
+/* màn hình xem file: ảnh độ phân giải cao (dùng được trên điện thoại) */
+let dcView = {kind:'proof', pages:null, blob:null, name:'', busy:false};
+const DC_MAX_PX = 16000000;   // giới hạn canvas của iPhone
+async function dcSnapCanvas(el, wmm, hmm, dpi){
+  const pxmm = 96/25.4; const area = (wmm*pxmm)*(hmm*pxmm);
+  const scale = Math.max(1, Math.min(dpi/96, Math.sqrt(DC_MAX_PX/area)));
+  return html2canvas(el, {scale, backgroundColor:'#ffffff', logging:false, useCORS:true});
+}
+async function dcMakePages(kind){
+  if(kind==='proof'){
+    const {host, wrap, W, H} = dcBuildProofHost();
+    try{ const cv = await dcSnapCanvas(wrap, W, H, 330); return [{cv, w:W, h:H}]; } finally{ host.remove(); }
+  }
+  const host = dcOffHost(); const out = [];
+  try{
+    dcDecalClones().forEach(c=>host.appendChild(c));
+    for(const c of [...host.children]){ const w = +c.dataset.w, h = +c.dataset.h; out.push({cv: await dcSnapCanvas(c, w, h, 600), w, h}); }
+  } finally{ host.remove(); }
+  return out;
+}
+function dcPdfFromPages(pages, jpeg){
+  const {jsPDF} = window.jspdf;
+  let doc = null;
+  pages.forEach(p=>{
+    const o = p.w > p.h ? 'l' : 'p';
+    if(!doc) doc = new jsPDF({unit:'mm', format:[p.w, p.h], orientation:o, compress:true});
+    else doc.addPage([p.w, p.h], o);
+    doc.addImage(p.cv.toDataURL(jpeg ? 'image/jpeg' : 'image/png', 0.95), jpeg ? 'JPEG' : 'PNG', 0, 0, p.w, p.h, undefined, 'FAST');
+  });
+  return doc.output('blob');
+}
+function dcOpenViewer(kind){
+  dcRenderPreview();
+  if(dcErrors.length){ showToast('Còn lỗi — chưa xuất được'); return; }
+  if(!dcFontsReady){ showToast('Đang tải font, thử lại sau giây lát'); return; }
+  if(typeof html2canvas!=='function' || !window.jspdf){ showToast('Chưa tải được thư viện tạo PDF (kiểm tra mạng) — dùng nút In trên máy tính'); }
+  document.getElementById('dcViewer').classList.remove('hidden'); document.body.style.overflow='hidden';
+  dcViewerTab(kind);
+}
+function dcViewerClose(){ document.getElementById('dcViewer').classList.add('hidden'); document.body.style.overflow=''; dcView.pages = null; dcView.blob = null; }
+async function dcViewerTab(kind){
+  dcView = {kind, pages:null, blob:null, busy:true, name:''};
+  const lotF = dcJob.lotNo.replace(/[^\w-]+/g,'-');
+  const n = document.querySelectorAll('#dcPreview .dc-decal').length;
+  document.querySelectorAll('#dcViewer .dcv-tabs button').forEach(b=>b.classList.toggle('on', b.dataset.k===kind));
+  document.getElementById('dcvTitle').textContent = kind==='proof' ? 'File gửi khách xác nhận' : 'File in đúng kích thước';
+  dcView.name = kind==='proof' ? `XacNhan_Decal_${lotF}.pdf` : `Decal_IN_${lotF}.pdf`;
+  const sizes = [...document.querySelectorAll('#dcPreview .dc-decal')].map(d=>`${d.dataset.w} × ${d.dataset.h} mm`);
+  document.getElementById('dcvSub').textContent = kind==='proof' ? `${dcView.name} · 1 trang` : `${dcView.name} · ${n} trang · ${[...new Set(sizes)].join('; ')}`;
+  document.getElementById('dcvNote').textContent = kind==='proof' ? 'Chia sẻ → Zalo, Mail, Lưu vào Tệp… · Lưu PDF → tải file về máy. File xác nhận không dùng để in.'
+    : 'Gửi nhà in. Lưu / Chia sẻ / In file này = chốt (lưu) decal. Trên máy tính nên dùng 🖨️ In → “Lưu dưới dạng PDF” để có bản vector nét nhất.';
+  document.getElementById('dcvNote').textContent += ' · Chạm vào trang để phóng to.';
+  const body = document.getElementById('dcvBody'); body.innerHTML = '<div class="dcv-wait">Đang tạo file…</div>';
+  dcViewerBtns(false);
+  try{
+    if(typeof html2canvas!=='function' || !window.jspdf) throw new Error('Chưa tải được thư viện tạo PDF (html2canvas / jsPDF). Kiểm tra mạng rồi mở lại.');
+    const pages = await dcMakePages(kind);
+    if(dcView.kind!==kind) return;
+    dcView.pages = pages;
+    body.innerHTML = '';
+    pages.forEach((p,i)=>{ const im = new Image(); im.src = p.cv.toDataURL('image/jpeg', 0.85); im.alt = `Trang ${i+1}`; im.className = 'dcv-page'; im.title = 'Chạm để phóng to / thu nhỏ';
+      im.onclick = ()=>{ im.classList.toggle('z'); body.classList.toggle('zoomed', !!body.querySelector('.dcv-page.z')); }; body.appendChild(im);
+      if(pages.length>1){ const cap = document.createElement('div'); cap.className='dcv-cap'; cap.textContent = `Trang ${i+1}/${pages.length} · ${p.w} × ${p.h} mm`; body.appendChild(cap); } });
+    dcView.blob = dcPdfFromPages(pages, kind==='proof');
+    dcView.busy = false; dcViewerBtns(true);
+  }catch(err){
+    body.innerHTML = `<div class="dcv-wait" style="color:#ffb4b4;">Không tạo được file: ${escapeHtml(err.message||String(err))}</div>`;
+  }
+}
+function dcViewerBtns(on){
+  ['dcvShare','dcvSave'].forEach(id=>{ const b = document.getElementById(id); b.disabled = !on; });
+  const pr = document.getElementById('dcvPrint'); pr.disabled = false;
+  const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  pr.classList.toggle('hidden', mobile);   // in vector chỉ dùng trên máy tính
+  const canShare = !!(navigator.canShare && navigator.share);
+  document.getElementById('dcvShare').classList.toggle('hidden', !canShare);
+}
+async function dcViewerLockIfPrint(){
+  if(dcView.kind==='print' && !dcJob.locked){ await dcSaveJob(true); }
+}
+async function dcViewerShare(){
+  if(!dcView.blob) return;
+  const file = new File([dcView.blob], dcView.name, {type:'application/pdf'});
+  try{
+    if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:dcView.name}); }
+    else { dcViewerSave(); return; }
+    await dcViewerLockIfPrint(); dcNoteExport(`Chia sẻ ${dcView.name}`);
+  }catch(err){ if(err && err.name!=='AbortError') showToast('Không chia sẻ được: '+(err.message||err)); }
+}
+async function dcViewerSave(){
+  if(!dcView.blob) return;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(dcView.blob); a.download = dcView.name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  await dcViewerLockIfPrint(); dcNoteExport(`Lưu ${dcView.name}`);
+}
+function dcViewerPrint(){
+  const k = dcView.kind; dcViewerClose();
+  if(k==='proof') dcProof(); else dcPrint();
+}
+
 /* ---------- Decal đã lưu ---------- */
 function dcRenderJobs(){
   const el = document.getElementById('dcJobList');
