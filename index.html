@@ -2,8 +2,17 @@
 <!--
   ==========================================================
   APP: CẤP MÃ LÔ
-  Phiên bản: V3.9.1  —  28/10/2026
+  Phiên bản: V3.9.2  —  02/11/2026
   ----------------------------------------------------------
+  V3.9.2 (02/11/2026) — chỉ sửa tab TK Decal
+  - Mẫu: thêm "Chữ nhãn bên trái dòng lớn — cao chữ hoa (mm)" và "Co ngang
+    nhãn bên trái (%)" (chỉnh riêng, không theo chữ KG). Không vừa ô → tự
+    co ngang thêm tới 60%, quá nữa thì chặn in. Mẫu cũ giữ cỡ như trước.
+  - Xuất Word (.docx): mỗi trang 1 decal, khổ giấy = đúng QC (+ phần ký hiệu),
+    lề 0, độ rộng cột / chiều cao dòng / cỡ chữ / co ngang chữ chính xác.
+  - Xuất Excel (.xlsx): mỗi decal 1 sheet, chiều cao dòng chính xác, độ rộng
+    cột gần đúng (±0,5 mm); dòng chữ lớn dùng "thu nhỏ cho vừa ô".
+  - Trên điện thoại: Word/Excel mở bảng Chia sẻ (nếu có), không thì tải về.
   V3.9.1 (28/10/2026) — chỉ sửa tab TK Decal
   - Xuất file mở MÀN HÌNH XEM FILE ngay trong app (không mở cửa sổ mới):
     nút ✕ Đóng · 📤 Chia sẻ (Zalo, Mail, Lưu vào Tệp… trên điện thoại)
@@ -259,6 +268,9 @@
   .dc-exp{border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;}
   .dc-exp.a{background:#eef4ff;border:1px solid #b9cdf3;} .dc-exp.b{background:#e8f7ef;border:1px solid #a7dcbf;}
   .dc-exp .btn{width:100%;}
+  .dc-exp.w{background:#eef3fb;border:1px solid #b8c9e6;} .dc-exp.w .btn{background:#2b579a;color:#fff;}
+  .dc-exp.x{background:#edf7f1;border:1px solid #a9d3b9;} .dc-exp.x .btn{background:#1d6f42;color:#fff;}
+  .dc-exp .btn:disabled{opacity:.5;}
   .dc-markbox{background:#eef4ff;border:1px solid #b9cdf3;border-radius:10px;padding:10px 12px;margin-top:10px;}
   .dc-pv .dc-decal{box-shadow:0 1px 6px rgba(20,30,50,.12);}
   .dcv{position:fixed;inset:0;z-index:300;background:#2a3240;display:flex;flex-direction:column;color:#fff;}
@@ -336,7 +348,7 @@
   <div class="app-header">
     <div>
       <h1>🏷️ Cấp Mã Lô</h1>
-      <div class="ver">Phiên bản: V3.9.1</div>
+      <div class="ver">Phiên bản: V3.9.2</div>
     </div>
     <div class="row" style="gap:8px;">
       <div class="role-chip" id="roleChip" onclick="doLogout()">—</div>
@@ -514,6 +526,10 @@
                 <div class="small">1 file PDF: dải thông tin lô + tất cả decal, có tiêu đề QC và chú thích chiều cao chữ KG. Không dùng để in.</div></div>
               <div class="dc-exp b"><button class="btn btn-primary" id="dcPrintBtn" onclick="dcOpenViewer('print')">🖨️ File in đúng kích thước</button>
                 <div class="small">1 file PDF, mỗi trang = 1 decal đúng khổ (bảng = QC, + phần ký hiệu nếu có). Bấm = chốt (lưu) decal.</div></div>
+              <div class="dc-exp w"><button class="btn" id="dcWordBtn" onclick="dcExportWord()">📝 Word (.docx)</button>
+                <div class="small">Mỗi trang = 1 decal, khổ giấy đúng QC, lề 0; độ rộng cột, chiều cao dòng, cỡ chữ, co ngang chữ đặt chính xác. Sửa chữ được trong Word.</div></div>
+              <div class="dc-exp x"><button class="btn" id="dcExcelBtn" onclick="dcExportExcel()">📊 Excel (.xlsx)</button>
+                <div class="small">Mỗi decal 1 sheet. Chiều cao dòng chính xác; độ rộng cột gần đúng (±0,5 mm — giới hạn của Excel). Excel không co ngang chữ: dòng chữ lớn dùng “thu nhỏ cho vừa ô”.</div></div>
             </div>
             <div class="hint" style="margin-top:8px;">Bấm để xem file → Chia sẻ / Lưu PDF (cả trên điện thoại). Trên máy tính có thêm 🖨️ In (bản vector): chọn “Lưu dưới dạng PDF”, Tỷ lệ 100%, Lề: Không.</div>
             <div class="card" style="margin-top:10px;">
@@ -5329,6 +5345,7 @@ const DC_DECAL_CSS = `
 .dc-decal tr.big td.v{font-size:var(--fbig);}
 .dc-decal tr.big td.l{font-size:var(--fbl);}
 .dc-decal .sx{display:inline-block;transform:scaleX(var(--sx));transform-origin:0 50%;}
+.dc-decal .sx.bl{transform:scaleX(var(--sxl,1));}
 .dc-decal .dc-mark{position:absolute;line-height:1;white-space:nowrap;color:var(--c);}
 .dc-decal tr.sel td{background:#FFF3B8;}
 .dc-decal td.bad{background:#ffe3e3;}
@@ -5430,6 +5447,8 @@ function dcNormTpl(t){
   t.w = +t.w || 150; t.h = +t.h || 120; t.split = +t.split || 40; t.fp = +t.fp || 9;
   if(typeof t.capMM !== 'number' || !(t.capMM > 0)) t.capMM = 8;
   if(typeof t.sx !== 'number' || !(t.sx > 0)) t.sx = 0.78;
+  if(typeof t.capL !== 'number' || !(t.capL > 0)) t.capL = Math.round(t.capMM*0.62*10)/10;
+  if(typeof t.sxL !== 'number' || !(t.sxL > 0)) t.sxL = 1;
   t.markText = t.markText || ''; t.markPos = t.markPos || 'right';
   if(typeof t.markSpace !== 'number') t.markSpace = 5; if(typeof t.markSize !== 'number') t.markSize = 3.5;
   delete t.margin; delete t.fb; delete t.khachHangIds;
@@ -5451,22 +5470,23 @@ function dcFitOne(el){
   const cap = +el.dataset.cap || 8, sx0 = +el.dataset.sx || 0.78;
   const F = cap / dcCapRatio(fam);
   el.style.setProperty('--fbig', F.toFixed(3)+'mm');
-  el.style.setProperty('--fbl', (F*0.62).toFixed(3)+'mm');
+  const capL = +el.dataset.capl || cap*0.62, sxl0 = +el.dataset.sxl || 1;
+  el.style.setProperty('--fbl', (capL / dcCapRatio(fam)).toFixed(3)+'mm');
   el.style.setProperty('--s', 1);
   let sx = sx0;
   const inner = td => { const cs = getComputedStyle(td); return td.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); };
   tb.querySelectorAll('tr.big td.v .bv').forEach(sp=>{ const w0 = sp.offsetWidth; if(w0) sx = Math.min(sx, inner(sp.parentNode) / w0 * 0.995); });
   el.style.setProperty('--sx', Math.max(sx, 0.3).toFixed(3));
-  let lf = 1;
-  tb.querySelectorAll('tr.big td.l .bl').forEach(sp=>{ const w0 = sp.offsetWidth; if(w0) lf = Math.min(lf, inner(sp.parentNode) / (w0 * Math.max(sx,0.3)) * 0.995); });
-  if(lf < 1) el.style.setProperty('--fbl', (F*0.62*lf).toFixed(3)+'mm');
+  let sxl = sxl0;
+  tb.querySelectorAll('tr.big td.l .bl').forEach(sp=>{ const w0 = sp.offsetWidth; if(w0) sxl = Math.min(sxl, inner(sp.parentNode) / w0 * 0.995); });
+  el.style.setProperty('--sxl', Math.max(sxl, 0.3).toFixed(3));
   const availH = (+el.dataset.th || 0) * pxmm;
   let s = 1;
   for(let k=0;k<25;k++){
     if(tb.offsetHeight <= availH + 0.5) break;
     s *= Math.min(availH/tb.offsetHeight, 0.99); el.style.setProperty('--s', s.toFixed(3));
   }
-  return {s, sx, sx0, cap, bigOk: sx >= DC_SX_MIN - 1e-6};
+  return {s, sx, sx0, sxl, sxl0, cap, capL, bigOk: sx >= DC_SX_MIN - 1e-6, labOk: sxl >= DC_SX_MIN - 1e-6};
 }
 function dcLotRows(){
   const recs = dcLotGroups()[dcJob.lotNo] || [];
@@ -5540,7 +5560,7 @@ function dcCompute(getT){
   return {decals, errs:E};
 }
 function dcSnapOf(list){
-  return list.map(x=>({T:{ten:x.T.ten, title:x.T.title||'', w:+x.T.w, h:+x.T.h, split:+x.T.split, color:x.T.color, fp:+x.T.fp, capMM:+x.T.capMM||8, sx:+x.T.sx||0.78,
+  return list.map(x=>({T:{ten:x.T.ten, title:x.T.title||'', w:+x.T.w, h:+x.T.h, split:+x.T.split, color:x.T.color, fp:+x.T.fp, capMM:+x.T.capMM||8, sx:+x.T.sx||0.78, capL:+x.T.capL||0, sxL:+x.T.sxL||1,
       markText:x.T.markText||'', markPos:x.T.markPos||'right', markSpace:+x.T.markSpace||0, markSize:+x.T.markSize||3.5,
       rows:x.T.rows.map(r=>({label:r.label, kind:r.kind||'normal'}))}, cells:x.cells.map(c=>c.v), date:x.d.date, item:x.d.r.id}));
 }
@@ -5552,9 +5572,12 @@ function dcFitMsg(i, f, pt){
   const pct = v => Math.round(v*100)+'%';
   if(!f.bigOk) return {cls:'bad', txt:`Chữ lớn (KG cao ${f.cap}mm) không vừa ô — phải co ngang còn ${pct(f.sx)} (tối thiểu ${pct(DC_SX_MIN)}). Giảm % cột nhãn, rút gọn cách ghi hoặc tăng khổ.`,
     err:`Decal ${i+1}: chữ lớn không vừa ô dù đã co ngang tối đa — giảm % cột nhãn, rút gọn cách ghi (vd bỏ “(6块)”) hoặc tăng khổ.`};
+  if(f.labOk===false) return {cls:'bad', txt:`Chữ nhãn bên trái (cao ${f.capL}mm) không vừa ô — phải co ngang còn ${pct(f.sxl)} (tối thiểu ${pct(DC_SX_MIN)}). Giảm cỡ chữ trái, tăng % cột nhãn hoặc tăng khổ.`,
+    err:`Decal ${i+1}: chữ nhãn bên trái không vừa ô dù đã co ngang tối đa — giảm cỡ chữ trái hoặc tăng % cột nhãn.`};
   if(pt < DC_MIN_PT) return {cls:'bad', txt:`Chữ thường quá nhỏ: ${pt.toFixed(1)}pt (tối thiểu ${DC_MIN_PT}pt) — bỏ bớt dòng, rút gọn hoặc tăng khổ.`, err:`Decal ${i+1}: chữ thường quá nhỏ (${pt.toFixed(1)}pt).`};
   const notes = [];
   if(f.sx < f.sx0 - 0.005) notes.push(`chữ lớn đã co ngang còn ${pct(f.sx)}`);
+  if(f.sxl < f.sxl0 - 0.005) notes.push(`nhãn trái đã co ngang còn ${pct(f.sxl)}`);
   if(f.s < 0.999) notes.push(`chữ thường thu nhỏ còn ${pt.toFixed(1)}pt`);
   if(notes.length) return {cls:'warn', txt:`KG cao ${f.cap}mm · ${notes.join(' · ')}.`, warn:`Decal ${i+1}: ${notes.join(', ')}.`};
   return {cls:'', txt:`Vừa khổ — KG cao ${f.cap}mm, co ngang ${pct(f.sx)} · chữ thường ${pt.toFixed(1)}pt.`};
@@ -5593,6 +5616,7 @@ function dcSetStatus(errs, warns, n, extraHTML){
   btn.disabled = errs.length>0 || !n || !dcFontsReady;
   btn.textContent = errs.length ? `Còn ${errs.length} lỗi — chưa in được` : !dcFontsReady ? 'Đang tải font…' : `🖨️ File in đúng kích thước (${n} decal)`;
   const pb = document.getElementById('dcProofBtn');
+  ['dcWordBtn','dcExcelBtn'].forEach(id=>{ const b2 = document.getElementById(id); if(b2) b2.disabled = btn.disabled; });
   if(pb){ pb.disabled = btn.disabled; pb.textContent = errs.length ? '📄 Còn lỗi — chưa xuất được' : '📄 File gửi khách xác nhận'; }
   const sv = document.getElementById('dcSaveBtn');
   if(sv){ sv.classList.toggle('hidden', !!dcJob.locked); sv.disabled = errs.length>0 || !n; sv.textContent = errs.length ? '💾 Còn lỗi — chưa lưu được' : '💾 Lưu (chốt) decal'; }
@@ -5731,7 +5755,7 @@ function dcDecalHTML(T, cells, opt){
   const ms = +T.markSize||3.5, mt = +T.h + Math.max(0,(sp-ms)/2);
   const mpos = T.markPos==='left' ? 'left:1.5mm;' : T.markPos==='center' ? 'left:0;right:0;text-align:center;' : 'right:1.5mm;';
   const markHTML = mark ? `<div class="dc-mark" style="top:${mt}mm;${mpos}font-size:${ms}mm;">${escapeHtml(mark)}</div>` : '';
-  return `<div class="dc-decal" data-w="${+T.w}" data-h="${H}" data-th="${+T.h}" data-cap="${+T.capMM||8}" data-sx="${+T.sx||0.78}" data-fp="${+T.fp||9}" style="width:${+T.w}mm;height:${H}mm;--c:${escapeHtml(T.color||'#000')};--fp:${+T.fp||9}pt;--split:${+T.split||40}%"><table style="height:${+T.h}mm">${rows}</table>${markHTML}</div>`;
+  return `<div class="dc-decal" data-w="${+T.w}" data-h="${H}" data-th="${+T.h}" data-cap="${+T.capMM||8}" data-sx="${+T.sx||0.78}" data-capl="${+T.capL||0}" data-sxl="${+T.sxL||1}" data-fp="${+T.fp||9}" style="width:${+T.w}mm;height:${H}mm;--c:${escapeHtml(T.color||'#000')};--fp:${+T.fp||9}pt;--split:${+T.split||40}%"><table style="height:${+T.h}mm">${rows}</table>${markHTML}</div>`;
 }
 function dcTplProblems(T, name){
   const errs = [];
@@ -6153,6 +6177,128 @@ function dcViewerPrint(){
   if(k==='proof') dcProof(); else dcPrint();
 }
 
+/* ---------- V3.9.2: xuất Word (.docx) / Excel (.xlsx) đúng kích thước ---------- */
+function dcExportData(){
+  // lấy đúng những gì đang hiển thị ở bản xem trước (bản đã lưu hoặc bản đang sửa)
+  dcRenderPreview();
+  if(dcErrors.length){ showToast('Còn lỗi — chưa xuất được'); return null; }
+  const els = [...document.querySelectorAll('#dcPreview .dc-decal')]; if(!els.length) return null;
+  const src = dcJob.locked ? dcJob.snap.decals.map(x=>({T:x.T, cells:x.cells, date:x.date}))
+                           : dcCompute().decals.map(x=>({T:x.T, cells:x.cells.map(c=>c.v), date:x.d.date}));
+  return els.map((el,i)=>{
+    const T = src[i].T, f = dcFits[i] || {s:1, sx:+T.sx||0.78, sxl:+T.sxL||1};
+    const pxmm = el.offsetWidth / (+T.w || 1);
+    const fam = getComputedStyle(el).fontFamily, ratio = dcCapRatio(fam);
+    let hs = [...el.querySelectorAll('tr')].map(tr=>tr.getBoundingClientRect().height / (el.getBoundingClientRect().width / (+T.w||1)));
+    const sum = hs.reduce((a,b)=>a+b,0) || 1; hs = hs.map(h=>h * (+T.h) / sum);       // tổng = đúng chiều cao QC
+    return {T, cells:src[i].cells, date:src[i].date, rowH:hs, s:f.s||1, sx:f.sx||+T.sx||0.78, sxl:f.sxl||+T.sxL||1,
+      fBig:(+T.capMM||8)/ratio*72/25.4, fLab:(+T.capL||(+T.capMM||8)*0.62)/ratio*72/25.4, pxmm};
+  });
+}
+async function dcShareOrSave(blob, name){
+  const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  if(mobile && navigator.canShare){
+    const file = new File([blob], name, {type:blob.type});
+    if(navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file], title:name}); return true; }catch(e){ if(e && e.name==='AbortError') return false; } }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  return true;
+}
+const dcX = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const dcTw = mm => Math.round(mm * 1440 / 25.4);
+function dcDocxRun(text, pt, scale, color){
+  return `<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="SimSun" w:cs="Times New Roman"/><w:color w:val="${color}"/>${scale && Math.round(scale*100)!==100 ? `<w:w w:val="${Math.max(1,Math.round(scale*100))}"/>`:''}<w:sz w:val="${Math.max(2,Math.round(pt*2))}"/><w:szCs w:val="${Math.max(2,Math.round(pt*2))}"/></w:rPr><w:t xml:space="preserve">${dcX(text)}</w:t></w:r>`;
+}
+function dcDocxCell(text, wTw, pt, scale, color){
+  const ln = Math.round(pt * 20 * (pt > 14 ? 1.02 : 1.18));   // dòng chính xác theo cỡ chữ → căn giữa ô đúng như PDF
+  const paras = String(text||'').split('\n').map(line=>`<w:p><w:pPr><w:autoSpaceDE w:val="0"/><w:autoSpaceDN w:val="0"/><w:spacing w:before="0" w:after="0" w:line="${ln}" w:lineRule="exact"/></w:pPr>${dcDocxRun(line, pt, scale, color)}</w:p>`).join('');
+  return `<w:tc><w:tcPr><w:tcW w:w="${wTw}" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${paras}</w:tc>`;
+}
+async function dcExportWord(){
+  const D = dcExportData(); if(!D) return;
+  if(typeof JSZip!=='function'){ showToast('Chưa tải được thư viện tạo Word (kiểm tra mạng)'); return; }
+  const parts = D.map((x,idx)=>{
+    const T = x.T, col = String(T.color||'#000000').replace('#','').toUpperCase();
+    const W = dcTw(+T.w), wL = Math.round(W * (+T.split||40)/100), wR = W - wL;
+    const mark = String(T.markText||'').trim(), sp = mark ? (+T.markSpace||0) : 0;
+    const rowH = x.rowH.slice(); rowH[rowH.length-1] -= mark ? 0.5 : 1.0;       // chừa chỗ cho nét viền + đoạn bắt buộc sau bảng (Word không cho bảng là phần tử cuối trang)
+    const fp = (+T.fp||9) * x.s;
+    const rows = T.rows.map((r,i)=>{
+      const big = r.kind==='big';
+      return `<w:tr><w:trPr><w:trHeight w:val="${dcTw(rowH[i])}" w:hRule="exact"/><w:cantSplit/></w:trPr>${
+        dcDocxCell(r.label, wL, big?x.fLab:fp, big?x.sxl:1, col)}${dcDocxCell(x.cells[i], wR, big?x.fBig:fp, big?x.sx:1, col)}</w:tr>`;
+    }).join('');
+    const bd = `w:val="single" w:sz="6" w:space="0" w:color="${col}"`;
+    const tbl = `<w:tbl><w:tblPr><w:tblW w:w="${W}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblInd w:w="0" w:type="dxa"/>
+      <w:tblBorders><w:top ${bd}/><w:left ${bd}/><w:bottom ${bd}/><w:right ${bd}/><w:insideH ${bd}/><w:insideV ${bd}/></w:tblBorders>
+      <w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="${dcTw(1.2)}" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="${dcTw(1.2)}" w:type="dxa"/></w:tblCellMar></w:tblPr>
+      <w:tblGrid><w:gridCol w:w="${wL}"/><w:gridCol w:w="${wR}"/></w:tblGrid>${rows}</w:tbl>`;
+    const H = +T.h + sp, land = +T.w > H;
+    const sect = `<w:sectPr><w:pgSz w:w="${W}" w:h="${dcTw(H)}"${land?' w:orient="landscape"':''}/><w:pgMar w:top="0" w:right="0" w:bottom="0" w:left="0" w:header="0" w:footer="0" w:gutter="0"/><w:cols w:space="0"/></w:sectPr>`;
+    const last = idx === D.length-1;
+    const jc = T.markPos==='left' ? 'left' : T.markPos==='center' ? 'center' : 'right';
+    const after = mark
+      ? `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="${dcTw(Math.max(1, sp-0.6))}" w:lineRule="exact"/><w:ind w:left="${dcTw(1.5)}" w:right="${dcTw(1.5)}"/><w:jc w:val="${jc}"/>${last?'':sect}</w:pPr>${dcDocxRun(mark, (+T.markSize||3.5)/dcCapRatio("'Times New Roman'")*72/25.4, 1, col)}</w:p>`
+      : `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr>${last?'':sect}</w:pPr></w:p>`;
+    return {xml: tbl + after, sect};
+  });
+  const body = parts.map(p=>p.xml).join('') + parts[parts.length-1].sect;
+  const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`);
+  zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+  zip.file('word/_rels/document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  zip.file('word/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles ${NS}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="SimSun" w:cs="Times New Roman"/><w:sz w:val="18"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults></w:styles>`);
+  zip.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${NS}><w:body>${body}</w:body></w:document>`);
+  const blob = await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const name = `Decal_${dcJob.lotNo.replace(/[^\w-]+/g,'-')}.docx`;
+  if(await dcShareOrSave(blob, name)) dcNoteExport(`Xuất Word ${name} (${D.length} decal)`);
+}
+async function dcExportExcel(){
+  const D = dcExportData(); if(!D) return;
+  if(typeof ExcelJS!=='object'){ showToast('Chưa tải được thư viện tạo Excel (kiểm tra mạng)'); return; }
+  const wb = new ExcelJS.Workbook(); wb.creator = 'Cấp Mã Lô';
+  const pxOfMm = mm => mm * 96 / 25.4;
+  const colW = mm => Math.max(0.5, Math.round(((pxOfMm(mm) - 5) / 7) * 100) / 100);   // độ rộng cột Excel (theo ký tự Calibri 11)
+  const used = new Set();
+  D.forEach((x,i)=>{
+    const T = x.T, argb = 'FF' + String(T.color||'#000000').replace('#','').toUpperCase();
+    let nm = `Decal ${i+1} ${fmtDateVN(x.date).slice(0,5).replace('/','-')}`; while(used.has(nm)) nm += '_'; used.add(nm);
+    const mark = String(T.markText||'').trim(), sp = mark ? (+T.markSpace||0) : 0;
+    const ws = wb.addWorksheet(nm, {views:[{showGridLines:false}],
+      pageSetup:{margins:{left:0,right:0,top:0,bottom:0,header:0,footer:0}, orientation:(+T.w > +T.h+sp)?'landscape':'portrait', fitToPage:true, fitToWidth:1, fitToHeight:1, horizontalCentered:false, verticalCentered:false}});
+    const wl = (+T.w) * (+T.split||40) / 100;
+    ws.getColumn(1).width = colW(wl); ws.getColumn(2).width = colW(+T.w - wl);
+    const bd = {style:'thin', color:{argb}}, border = {top:bd, left:bd, bottom:bd, right:bd};
+    const fp = (+T.fp||9) * x.s;
+    T.rows.forEach((r,k)=>{
+      const big = r.kind==='big', row = ws.getRow(k+1);
+      row.height = Math.round(x.rowH[k] * 72 / 25.4 * 100) / 100;
+      [[1, r.label, big ? x.fLab : fp], [2, x.cells[k], big ? x.fBig : fp]].forEach(([c, v, pt])=>{
+        const cell = row.getCell(c); cell.value = String(v||'');
+        cell.font = {name:'Times New Roman', size:Math.round(pt*10)/10, color:{argb}};
+        cell.alignment = big ? {vertical:'middle', horizontal:'left', shrinkToFit:true, indent:0} : {vertical:'middle', horizontal:'left', wrapText:true, indent:0};
+        cell.border = border;
+      });
+    });
+    let last = T.rows.length;
+    if(mark){
+      const row = ws.getRow(last+1); row.height = Math.round(sp * 72 / 25.4 * 100) / 100;
+      ws.mergeCells(last+1, 1, last+1, 2);
+      const cell = row.getCell(1); cell.value = mark;
+      cell.font = {name:'Times New Roman', size:Math.round((+T.markSize||3.5)/0.662*72/25.4*10)/10, color:{argb}};
+      cell.alignment = {vertical:'middle', horizontal: T.markPos==='left'?'left':T.markPos==='center'?'center':'right'};
+      last += 1;
+    }
+    ws.pageSetup.printArea = `A1:B${last}`;
+  });
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const name = `Decal_${dcJob.lotNo.replace(/[^\w-]+/g,'-')}.xlsx`;
+  if(await dcShareOrSave(blob, name)) dcNoteExport(`Xuất Excel ${name} (${D.length} decal)`);
+}
+
 /* ---------- Decal đã lưu ---------- */
 function dcRenderJobs(){
   const el = document.getElementById('dcJobList');
@@ -6228,6 +6374,7 @@ function dcRenderTplEditor(){
         <div class="hint" style="margin:6px 0 0;">QC = đúng kích thước decal = bảng viền màu (nhà in cắt đúng bảng, không lề).</div>
         <div class="row-flex">${f('split','Cột nhãn (%)','number','step="0.5" min="15" max="70"')}${f('fp','Chữ thường (pt)','number','step="0.5" min="5"')}</div>
         <div class="row-flex">${f('capMM','Chữ lớn — chiều cao chữ KG (mm)','number','step="0.5" min="3" max="20"')}${f('sx','Co ngang chữ lớn (%)','pct','step="1" min="60" max="100"', Math.round((+t.sx||0.78)*100))}</div>
+        <div class="row-flex">${f('capL','Chữ nhãn bên trái dòng lớn — cao chữ hoa (mm)','number','step="0.1" min="2" max="25"')}${f('sxL','Co ngang nhãn bên trái (%)','pct','step="1" min="60" max="100"', Math.round((+t.sxL||1)*100))}</div>
         <div class="hint" style="margin:6px 0 0;">Font: Times New Roman (chữ Trung: Tống thể). Chữ lớn tràn ô → app tự co ngang thêm, tối thiểu 60%; quá nữa thì chặn in.</div>
         <div class="dc-markbox">
           <div style="font-weight:700;color:var(--primary-dark);font-size:13px;">Ký hiệu dưới decal</div>
@@ -6293,6 +6440,8 @@ function dcTplEdPreview(){
   dcTplProblems(t, t.ten||'mới').forEach(e=>errs.push(e+'.'));
   if(!(t.sx>=DC_SX_MIN && t.sx<=1)) errs.push('Co ngang chữ lớn phải từ 60% đến 100%.');
   if(!(t.capMM>0)) errs.push('Chiều cao chữ KG không hợp lệ.');
+  if(!(t.capL>0)) errs.push('Cỡ chữ nhãn bên trái không hợp lệ.');
+  if(!(t.sxL>=DC_SX_MIN && t.sxL<=1)) errs.push('Co ngang nhãn bên trái phải từ 60% đến 100%.');
   const cells = t.rows.map((row,k)=>{
     const e = []; let v, ph = false;
     if(row.src==='each'){ v = '[Nhập riêng từng decal]'; ph = true; }
@@ -6323,7 +6472,7 @@ function dcCloseTplEd(){ dcTplEd = null; dcRenderTplList(); }
 async function dcSaveTpl(){
   dcTplEdPreview(); if(!dcTplEd || dcTplEd.errs.length) return;
   const t = dcTplEd.data;
-  const data = {ten:t.ten.trim(), title:t.title||'', w:+t.w, h:+t.h, split:+t.split, color:t.color, fp:+t.fp, capMM:+t.capMM, sx:+t.sx,
+  const data = {ten:t.ten.trim(), title:t.title||'', w:+t.w, h:+t.h, split:+t.split, color:t.color, fp:+t.fp, capMM:+t.capMM, sx:+t.sx, capL:+t.capL, sxL:+t.sxL,
     markText:String(t.markText||'').trim(), markPos:t.markPos||'right', markSpace:+t.markSpace, markSize:+t.markSize, lang:t.lang||'cnen',
     rows:t.rows.map(r=>({key:r.key, label:r.label, src:r.src, kind:r.kind||'normal', value:r.value||'', fmt:r.fmt||'', ...(r.libK?{libK:r.libK}:{})})),
     updatedAt:Date.now(), updatedBy:currentUser.displayName};
